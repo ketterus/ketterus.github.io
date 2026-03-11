@@ -38,7 +38,7 @@
         linear-gradient(rgba(20,30,40,.55), rgba(20,30,40,.55)),
         linear-gradient(135deg, var(--brand-dark), var(--brand-light));
       color: #fff;
-      padding: 110px 0 90px;
+      padding: 120px 0 100px;
     }
 
     .hero h1 {
@@ -48,7 +48,7 @@
 
     .hero p {
       font-size: 1.1rem;
-      max-width: 700px;
+      max-width: 760px;
     }
 
     .section {
@@ -95,12 +95,6 @@
       margin-bottom: 18px;
     }
 
-    .cta-band {
-      background: var(--bg);
-      border-top: 1px solid #e5e7eb;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
     .btn-brand {
       background: var(--accent);
       border-color: var(--accent);
@@ -112,10 +106,6 @@
       background: #c9a055;
       border-color: #c9a055;
       color: #1f2933;
-    }
-
-    .btn-outline-light:hover {
-      color: var(--brand-dark);
     }
 
     .check-list {
@@ -170,7 +160,8 @@
   <nav class="navbar navbar-expand-lg bg-white sticky-top border-bottom">
     <div class="container">
       <a class="navbar-brand fw-bold" href="#">Ketter Home Improvements</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -190,40 +181,21 @@
 
   <header class="hero">
     <div class="container">
-      <div class="row align-items-center g-4">
-        <div class="col-lg-8">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-9">
           <p class="text-uppercase fw-semibold mb-3" style="letter-spacing:1px;">Reliable Repairs • Honest Service • Quality Work</p>
           <h1 class="display-4 mb-4">Home repairs and improvements done right the first time.</h1>
-          <p class="mb-4">
+          <p class="mb-4 mx-auto">
             Ketter Home Improvements provides dependable repair, maintenance, and improvement services for homeowners and rental properties in Cleveland, Tennessee and surrounding areas.
           </p>
-          <div class="d-flex flex-wrap gap-3">
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLScTxBuJnHgExiw2dRQfmZjeNf2E_jSiS5glNLzrsopw-z_WrQ/viewform?usp=header" target="_blank" rel="noopener" class="btn btn-brand btn-lg px-4">
-              Submit a Service Request
-            </a>
-            <a href="#contact" class="btn btn-outline-light btn-lg px-4">
-              Contact Us
-            </a>
-          </div>
-        </div>
 
-        <div class="col-lg-4">
-          <div class="card border-0 shadow-lg rounded-4">
-            <div class="card-body p-4">
-              <h5 class="fw-bold mb-3 text-dark">Need help with a repair?</h5>
-              <p class="text-secondary mb-3">
-                Fast, simple service requests for home maintenance and improvement jobs.
-              </p>
-              <ul class="check-list text-dark">
-                <li>Home repairs</li>
-                <li>Property maintenance</li>
-                <li>Clear communication</li>
-                <li>Affordable workmanship</li>
-              </ul>
-              <a href="https://docs.google.com/forms/d/e/1FAIpQLScTxBuJnHgExiw2dRQfmZjeNf2E_jSiS5glNLzrsopw-z_WrQ/viewform?usp=header" target="_blank" rel="noopener" class="btn btn-dark w-100 mt-4">
-                Start Request
-              </a>
-            </div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLScTxBuJnHgExiw2dRQfmZjeNf2E_jSiS5glNLzrsopw-z_WrQ/viewform?usp=header" target="_blank" rel="noopener" class="btn btn-brand btn-lg px-5">
+            Request Service
+          </a>
+
+          <div class="mt-3">
+            <span class="text-white-50">Or call or text </span>
+            <a href="tel:13045820759" class="text-white fw-semibold text-decoration-none">304-582-0759</a>
           </div>
         </div>
       </div>
@@ -315,24 +287,6 @@
     </div>
   </section>
 
-  <section class="section cta-band">
-    <div class="container">
-      <div class="row align-items-center g-4">
-        <div class="col-lg-8">
-          <h3 class="fw-bold mb-2">Ready to request service?</h3>
-          <p class="text-secondary mb-0">
-            Use our quick online request form and we’ll review the details and follow up as soon as possible.
-          </p>
-        </div>
-        <div class="col-lg-4 text-lg-end">
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLScTxBuJnHgExiw2dRQfmZjeNf2E_jSiS5glNLzrsopw-z_WrQ/viewform?usp=header" target="_blank" rel="noopener" class="btn btn-brand btn-lg px-4">
-            Open Service Request Form
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <section id="why-us" class="section">
     <div class="container">
       <div class="text-center mb-5">
@@ -398,7 +352,7 @@
             <li>Clear communication from start to finish</li>
             <li>Practical repair solutions</li>
             <li>Respect for your home and property</li>
-            <li>Service request form for fast intake</li>
+            <li>Fast online request form</li>
           </ul>
         </div>
       </div>
@@ -410,7 +364,7 @@
       <div class="text-center mb-5">
         <h2 class="section-title">Contact</h2>
         <p class="section-subtitle">
-          Reach out directly or use the service request form for the fastest way to send job details.
+          Reach out directly by phone or email, or use the online request form when you're ready to send job details.
         </p>
       </div>
 
@@ -449,7 +403,7 @@
 
       <div class="text-center mt-5">
         <a href="https://docs.google.com/forms/d/e/1FAIpQLScTxBuJnHgExiw2dRQfmZjeNf2E_jSiS5glNLzrsopw-z_WrQ/viewform?usp=header" target="_blank" rel="noopener" class="btn btn-brand btn-lg px-5">
-          Request Service Online
+          Request Service
         </a>
       </div>
     </div>
