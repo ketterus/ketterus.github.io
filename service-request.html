@@ -137,58 +137,58 @@
     </div>
   </div>
 
-  <script>
-    const scriptUrl = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
-    const form = document.getElementById("serviceRequestForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const submitStatus = document.getElementById("submitStatus");
+<script>
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbzsoQOa9-F0XV7iV1D5Ww-tAry5ke-e3x95U3KM17OOahph-60isfP3AaPcVxyb-Geu2Q/exec";
+  const form = document.getElementById("serviceRequestForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const submitStatus = document.getElementById("submitStatus");
 
-    function showStatus(type, message) {
-      submitStatus.className = `alert alert-${type}`;
-      submitStatus.textContent = message;
-      submitStatus.style.display = "block";
+  function showStatus(type, message) {
+    submitStatus.className = `alert alert-${type}`;
+    submitStatus.textContent = message;
+    submitStatus.style.display = "block";
+  }
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    submitStatus.style.display = "none";
+
+    if (!form.checkValidity()) {
+      form.classList.add("was-validated");
+      return;
     }
 
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      submitStatus.style.display = "none";
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
 
-      if (!form.checkValidity()) {
-        form.classList.add("was-validated");
-        return;
-      }
+    try {
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Submitting...";
+      const response = await fetch(scriptUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-      try {
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
+      const result = await response.json();
 
-        const response = await fetch(scriptUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          showStatus("success", `Request submitted successfully. Reference: ${result.requestId}`);
-          form.reset();
-          form.classList.remove("was-validated");
-        } else {
-          showStatus("danger", "Submission failed.");
-          console.error(result.error);
-        }
-      } catch (err) {
+      if (result.success) {
+        showStatus("success", `Request submitted successfully. Reference: ${result.requestId}`);
+        form.reset();
+        form.classList.remove("was-validated");
+      } else {
         showStatus("danger", "Submission failed.");
-        console.error(err);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Submit Request";
+        console.error(result.error);
       }
-    });
-  </script>
+    } catch (err) {
+      showStatus("danger", "Submission failed.");
+      console.error(err);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Request";
+    }
+  });
+</script>
 </body>
 </html>
