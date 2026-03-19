@@ -36,7 +36,15 @@
 
             <div class="col-md-6">
               <label class="form-label" for="RequesterRelationship">Relationship to Property</label>
-              <input class="form-control" id="RequesterRelationship" name="RequesterRelationship" placeholder="Owner, tenant, manager, etc.">
+              <select class="form-select" id="RequesterRelationship" name="RequesterRelationship">
+                <option value="">Select...</option>
+                <option value="Owner">Owner</option>
+                <option value="Tenant">Tenant</option>
+                <option value="Property Manager">Property Manager</option>
+                <option value="Family Member">Family Member</option>
+                <option value="Agent">Agent</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
 
             <div class="col-md-6">
