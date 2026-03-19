@@ -24,7 +24,13 @@
 
         <div id="submitStatus" class="alert" role="alert"></div>
 
-        <form id="serviceRequestForm" novalidate>
+        <form
+  id="serviceRequestForm"
+  action="https://script.google.com/macros/s/AKfycbzsoQOa9-F0XV7iV1D5Ww-tAry5ke-e3x95U3KM17OOahph-60isfP3AaPcVxyb-Geu2Q/exec"
+  method="post"
+  target="hidden_iframe"
+  novalidate
+>
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label required" for="RequesterName">Full Name</label>
@@ -133,12 +139,12 @@
             </div>
           </div>
         </form>
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
       </div>
     </div>
   </div>
 
 <script>
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbzsoQOa9-F0XV7iV1D5Ww-tAry5ke-e3x95U3KM17OOahph-60isfP3AaPcVxyb-Geu2Q/exec";
   const form = document.getElementById("serviceRequestForm");
   const submitBtn = document.getElementById("submitBtn");
   const submitStatus = document.getElementById("submitStatus");
@@ -149,11 +155,11 @@
     submitStatus.style.display = "block";
   }
 
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
+  form.addEventListener("submit", function (e) {
     submitStatus.style.display = "none";
 
     if (!form.checkValidity()) {
+      e.preventDefault();
       form.classList.add("was-validated");
       return;
     }
@@ -161,33 +167,13 @@
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting...";
 
-    try {
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
-
-      const response = await fetch(scriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        showStatus("success", `Request submitted successfully. Reference: ${result.requestId}`);
-        form.reset();
-        form.classList.remove("was-validated");
-      } else {
-        showStatus("danger", "Submission failed.");
-        console.error(result.error);
-      }
-    } catch (err) {
-      showStatus("danger", "Submission failed.");
-      console.error(err);
-    } finally {
+    setTimeout(function () {
+      showStatus("success", "Request submitted. Please allow a few seconds, then verify it reached the system.");
+      form.reset();
+      form.classList.remove("was-validated");
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit Request";
-    }
+    }, 1500);
   });
 </script>
 </body>
