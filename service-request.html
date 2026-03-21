@@ -201,38 +201,49 @@
                 </select>
               </div>
 
-              <div class="col-12 pt-2">
-                <h3 class="h6 mb-1">Service Address</h3>
-                <p class="text-muted small mb-0">This is the property address where the work is needed.</p>
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="ServiceSameAsRequester" name="ServiceSameAsRequester" value="Yes">
+                  <label class="form-check-label" for="ServiceSameAsRequester">
+                    Service address is same as my address
+                  </label>
+                </div>
               </div>
 
-              <div class="col-md-8">
-                <label class="form-label required" for="ServiceStreet1">Street Address</label>
-                <input class="form-control" id="ServiceStreet1" name="ServiceStreet1" autocomplete="address-line1" required>
-                <div class="invalid-feedback">Please enter the service address.</div>
-              </div>
+              <div id="serviceAddressFields" class="row g-3">
+                <div class="col-12 pt-2">
+                  <h3 class="h6 mb-1">Service Address</h3>
+                  <p class="text-muted small mb-0">This is the property address where the work is needed.</p>
+                </div>
 
-              <div class="col-md-4">
-                <label class="form-label" for="ServiceStreet2">Address Line 2</label>
-                <input class="form-control" id="ServiceStreet2" name="ServiceStreet2" autocomplete="address-line2">
-              </div>
+                <div class="col-md-8">
+                  <label class="form-label required" for="ServiceStreet1">Street Address</label>
+                  <input class="form-control" id="ServiceStreet1" name="ServiceStreet1" autocomplete="address-line1" required>
+                  <div class="invalid-feedback">Please enter the service address.</div>
+                </div>
 
-              <div class="col-md-5">
-                <label class="form-label required" for="ServiceCity">City</label>
-                <input class="form-control" id="ServiceCity" name="ServiceCity" autocomplete="address-level2" required>
-                <div class="invalid-feedback">Please enter the service city.</div>
-              </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="ServiceStreet2">Address Line 2</label>
+                  <input class="form-control" id="ServiceStreet2" name="ServiceStreet2" autocomplete="address-line2">
+                </div>
 
-              <div class="col-md-3">
-                <label class="form-label required" for="ServiceState">State</label>
-                <input class="form-control text-uppercase" id="ServiceState" name="ServiceState" maxlength="2" autocomplete="address-level1" required>
-                <div class="invalid-feedback">Enter the 2-letter state code.</div>
-              </div>
+                <div class="col-md-5">
+                  <label class="form-label required" for="ServiceCity">City</label>
+                  <input class="form-control" id="ServiceCity" name="ServiceCity" autocomplete="address-level2" required>
+                  <div class="invalid-feedback">Please enter the service city.</div>
+                </div>
 
-              <div class="col-md-4">
-                <label class="form-label required" for="ServiceZip">ZIP</label>
-                <input class="form-control zip-input" id="ServiceZip" name="ServiceZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required>
-                <div class="invalid-feedback">Enter a 5-digit ZIP code.</div>
+                <div class="col-md-3">
+                  <label class="form-label required" for="ServiceState">State</label>
+                  <input class="form-control text-uppercase" id="ServiceState" name="ServiceState" maxlength="2" autocomplete="address-level1" required>
+                  <div class="invalid-feedback">Enter the 2-letter state code.</div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label required" for="ServiceZip">ZIP</label>
+                  <input class="form-control zip-input" id="ServiceZip" name="ServiceZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required>
+                  <div class="invalid-feedback">Enter a 5-digit ZIP code.</div>
+                </div>
               </div>
 
               <div class="col-md-6">
@@ -333,8 +344,12 @@
   <script>
     const form = document.getElementById("serviceRequestForm");
     const submitBtn = document.getElementById("submitBtn");
+
+    const serviceSameAsRequester = document.getElementById("ServiceSameAsRequester");
+    const serviceAddressFieldsWrap = document.getElementById("serviceAddressFields");
+
     const billingSameAsRequester = document.getElementById("BillingSameAsRequester");
-    const billingAddressFields = document.getElementById("billingAddressFields");
+    const billingAddressFieldsWrap = document.getElementById("billingAddressFields");
 
     const requesterAddressFields = {
       street1: document.getElementById("RequesterStreet1"),
@@ -352,7 +367,7 @@
       zip: document.getElementById("ServiceZip")
     };
 
-    const billingAddressInputs = {
+    const billingAddressFields = {
       street1: document.getElementById("BillingStreet1"),
       street2: document.getElementById("BillingStreet2"),
       city: document.getElementById("BillingCity"),
@@ -407,20 +422,49 @@
       );
 
       document.getElementById("BillingAddress").value = buildAddress(
-        billingAddressInputs.street1.value,
-        billingAddressInputs.street2.value,
-        billingAddressInputs.city.value,
-        billingAddressInputs.state.value,
-        billingAddressInputs.zip.value
+        billingAddressFields.street1.value,
+        billingAddressFields.street2.value,
+        billingAddressFields.city.value,
+        billingAddressFields.state.value,
+        billingAddressFields.zip.value
       );
     }
 
+    function copyRequesterAddressToService() {
+      serviceAddressFields.street1.value = requesterAddressFields.street1.value;
+      serviceAddressFields.street2.value = requesterAddressFields.street2.value;
+      serviceAddressFields.city.value = requesterAddressFields.city.value;
+      serviceAddressFields.state.value = requesterAddressFields.state.value;
+      serviceAddressFields.zip.value = requesterAddressFields.zip.value;
+    }
+
     function copyRequesterAddressToBilling() {
-      billingAddressInputs.street1.value = requesterAddressFields.street1.value;
-      billingAddressInputs.street2.value = requesterAddressFields.street2.value;
-      billingAddressInputs.city.value = requesterAddressFields.city.value;
-      billingAddressInputs.state.value = requesterAddressFields.state.value;
-      billingAddressInputs.zip.value = requesterAddressFields.zip.value;
+      billingAddressFields.street1.value = requesterAddressFields.street1.value;
+      billingAddressFields.street2.value = requesterAddressFields.street2.value;
+      billingAddressFields.city.value = requesterAddressFields.city.value;
+      billingAddressFields.state.value = requesterAddressFields.state.value;
+      billingAddressFields.zip.value = requesterAddressFields.zip.value;
+    }
+
+    function toggleServiceAddressState() {
+      const checked = serviceSameAsRequester.checked;
+
+      if (checked) {
+        copyRequesterAddressToService();
+        serviceAddressFieldsWrap.classList.add("d-none");
+        serviceAddressFields.street1.required = false;
+        serviceAddressFields.city.required = false;
+        serviceAddressFields.state.required = false;
+        serviceAddressFields.zip.required = false;
+      } else {
+        serviceAddressFieldsWrap.classList.remove("d-none");
+        serviceAddressFields.street1.required = true;
+        serviceAddressFields.city.required = true;
+        serviceAddressFields.state.required = true;
+        serviceAddressFields.zip.required = true;
+      }
+
+      setCombinedAddresses();
     }
 
     function toggleBillingAddressState() {
@@ -428,17 +472,17 @@
 
       if (checked) {
         copyRequesterAddressToBilling();
-        billingAddressFields.classList.add("d-none");
-        billingAddressInputs.street1.required = false;
-        billingAddressInputs.city.required = false;
-        billingAddressInputs.state.required = false;
-        billingAddressInputs.zip.required = false;
+        billingAddressFieldsWrap.classList.add("d-none");
+        billingAddressFields.street1.required = false;
+        billingAddressFields.city.required = false;
+        billingAddressFields.state.required = false;
+        billingAddressFields.zip.required = false;
       } else {
-        billingAddressFields.classList.remove("d-none");
-        billingAddressInputs.street1.required = true;
-        billingAddressInputs.city.required = true;
-        billingAddressInputs.state.required = true;
-        billingAddressInputs.zip.required = true;
+        billingAddressFieldsWrap.classList.remove("d-none");
+        billingAddressFields.street1.required = true;
+        billingAddressFields.city.required = true;
+        billingAddressFields.state.required = true;
+        billingAddressFields.zip.required = true;
       }
 
       setCombinedAddresses();
@@ -465,6 +509,9 @@
 
     Object.values(requesterAddressFields).forEach(function (input) {
       input.addEventListener("input", function () {
+        if (serviceSameAsRequester.checked) {
+          copyRequesterAddressToService();
+        }
         if (billingSameAsRequester.checked) {
           copyRequesterAddressToBilling();
         }
@@ -478,10 +525,14 @@
       });
     });
 
-    Object.values(billingAddressInputs).forEach(function (input) {
+    Object.values(billingAddressFields).forEach(function (input) {
       input.addEventListener("input", function () {
         setCombinedAddresses();
       });
+    });
+
+    serviceSameAsRequester.addEventListener("change", function () {
+      toggleServiceAddressState();
     });
 
     billingSameAsRequester.addEventListener("change", function () {
@@ -500,6 +551,10 @@
       ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
         normalizeStateInput(document.getElementById(id));
       });
+
+      if (serviceSameAsRequester.checked) {
+        copyRequesterAddressToService();
+      }
 
       if (billingSameAsRequester.checked) {
         copyRequesterAddressToBilling();
@@ -549,6 +604,7 @@
       }, 1200);
     });
 
+    toggleServiceAddressState();
     toggleBillingAddressState();
     setCombinedAddresses();
   </script>
