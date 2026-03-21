@@ -45,10 +45,20 @@
             target="hidden_iframe"
             novalidate
           >
+            <input type="hidden" id="RequesterAddress" name="RequesterAddress">
+            <input type="hidden" id="ServiceAddress" name="ServiceAddress">
+            <input type="hidden" id="BillingAddress" name="BillingAddress">
+
             <div class="row g-3">
+              <div class="col-12">
+                <h2 class="h5 mb-1">Requester Information</h2>
+                <p class="text-muted small mb-0">This is the person submitting the service request.</p>
+              </div>
+
               <div class="col-md-6">
                 <label class="form-label required" for="RequesterName">Full Name</label>
                 <input class="form-control" id="RequesterName" name="RequesterName" autocomplete="name" required>
+                <div class="invalid-feedback">Please enter your full name.</div>
               </div>
 
               <div class="col-md-6">
@@ -67,11 +77,24 @@
               <div class="col-md-6">
                 <label class="form-label" for="RequesterEmail">Email</label>
                 <input class="form-control" id="RequesterEmail" name="RequesterEmail" type="email" autocomplete="email">
+                <div class="invalid-feedback">Enter a valid email address.</div>
               </div>
 
               <div class="col-md-6">
                 <label class="form-label required" for="RequesterPhone">Phone</label>
-                <input class="form-control" id="RequesterPhone" name="RequesterPhone" type="tel" autocomplete="tel" required>
+                <input
+                  class="form-control phone-input"
+                  id="RequesterPhone"
+                  name="RequesterPhone"
+                  type="tel"
+                  inputmode="numeric"
+                  autocomplete="tel"
+                  maxlength="14"
+                  placeholder="3045551212"
+                  required
+                >
+                <div class="form-text">US numbers only. Include area code.</div>
+                <div class="invalid-feedback">Enter a valid 10-digit phone number.</div>
               </div>
 
               <div class="col-md-4">
@@ -81,6 +104,45 @@
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </select>
+              </div>
+
+              <div class="col-12 pt-2">
+                <h3 class="h6 mb-1">Requester Address</h3>
+                <p class="text-muted small mb-0">This is your mailing or home address.</p>
+              </div>
+
+              <div class="col-md-8">
+                <label class="form-label required" for="RequesterStreet1">Street Address</label>
+                <input class="form-control" id="RequesterStreet1" name="RequesterStreet1" autocomplete="address-line1" required>
+                <div class="invalid-feedback">Please enter your street address.</div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label" for="RequesterStreet2">Address Line 2</label>
+                <input class="form-control" id="RequesterStreet2" name="RequesterStreet2" autocomplete="address-line2">
+              </div>
+
+              <div class="col-md-5">
+                <label class="form-label required" for="RequesterCity">City</label>
+                <input class="form-control" id="RequesterCity" name="RequesterCity" autocomplete="address-level2" required>
+                <div class="invalid-feedback">Please enter your city.</div>
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label required" for="RequesterState">State</label>
+                <input class="form-control text-uppercase" id="RequesterState" name="RequesterState" maxlength="2" autocomplete="address-level1" required>
+                <div class="invalid-feedback">Enter the 2-letter state code.</div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label required" for="RequesterZip">ZIP</label>
+                <input class="form-control zip-input" id="RequesterZip" name="RequesterZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required>
+                <div class="invalid-feedback">Enter a 5-digit ZIP code.</div>
+              </div>
+
+              <div class="col-12 pt-4">
+                <h2 class="h5 mb-1">Service Details</h2>
+                <p class="text-muted small mb-0">Tell us what needs attention and where the work is located.</p>
               </div>
 
               <div class="col-md-4">
@@ -94,11 +156,18 @@
               </div>
 
               <div class="col-md-4">
-                <label class="form-label" for="BestContactTime">Best Contact Time</label>
-                <input class="form-control" id="BestContactTime" name="BestContactTime" placeholder="Morning, afternoon, 3-5 PM, etc.">
+                <label class="form-label required" for="BestContactTime">Best Contact Time</label>
+                <select class="form-select" id="BestContactTime" name="BestContactTime" required>
+                  <option value="">Select...</option>
+                  <option value="8 AM - 12 PM">8 AM - 12 PM</option>
+                  <option value="12 PM - 4 PM">12 PM - 4 PM</option>
+                  <option value="4 PM - 8 PM">4 PM - 8 PM</option>
+                  <option value="Anytime">Anytime</option>
+                </select>
+                <div class="invalid-feedback">Please select the best contact time.</div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <label class="form-label required" for="ServiceType">Service Type</label>
                 <select class="form-select" id="ServiceType" name="ServiceType" required>
                   <option value="">Select service...</option>
@@ -109,6 +178,7 @@
                   <option value="Rental Turnover Work">Rental Turnover Work</option>
                   <option value="Custom Request">Custom Request</option>
                 </select>
+                <div class="invalid-feedback">Please select a service type.</div>
               </div>
 
               <div class="col-md-6">
@@ -121,16 +191,6 @@
                 </select>
               </div>
 
-              <div class="col-12">
-                <label class="form-label required" for="ServiceAddress">Service Address</label>
-                <input class="form-control" id="ServiceAddress" name="ServiceAddress" autocomplete="street-address" required>
-              </div>
-
-              <div class="col-12">
-                <label class="form-label" for="BillingAddress">Billing Address</label>
-                <input class="form-control" id="BillingAddress" name="BillingAddress" autocomplete="street-address">
-              </div>
-
               <div class="col-md-6">
                 <label class="form-label" for="PermissionToEnter">Permission to Enter</label>
                 <select class="form-select" id="PermissionToEnter" name="PermissionToEnter">
@@ -141,6 +201,40 @@
                 </select>
               </div>
 
+              <div class="col-12 pt-2">
+                <h3 class="h6 mb-1">Service Address</h3>
+                <p class="text-muted small mb-0">This is the property address where the work is needed.</p>
+              </div>
+
+              <div class="col-md-8">
+                <label class="form-label required" for="ServiceStreet1">Street Address</label>
+                <input class="form-control" id="ServiceStreet1" name="ServiceStreet1" autocomplete="address-line1" required>
+                <div class="invalid-feedback">Please enter the service address.</div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label" for="ServiceStreet2">Address Line 2</label>
+                <input class="form-control" id="ServiceStreet2" name="ServiceStreet2" autocomplete="address-line2">
+              </div>
+
+              <div class="col-md-5">
+                <label class="form-label required" for="ServiceCity">City</label>
+                <input class="form-control" id="ServiceCity" name="ServiceCity" autocomplete="address-level2" required>
+                <div class="invalid-feedback">Please enter the service city.</div>
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label required" for="ServiceState">State</label>
+                <input class="form-control text-uppercase" id="ServiceState" name="ServiceState" maxlength="2" autocomplete="address-level1" required>
+                <div class="invalid-feedback">Enter the 2-letter state code.</div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label required" for="ServiceZip">ZIP</label>
+                <input class="form-control zip-input" id="ServiceZip" name="ServiceZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required>
+                <div class="invalid-feedback">Enter a 5-digit ZIP code.</div>
+              </div>
+
               <div class="col-md-6">
                 <label class="form-label" for="OnSiteContactName">On-Site Contact Name</label>
                 <input class="form-control" id="OnSiteContactName" name="OnSiteContactName" autocomplete="name">
@@ -148,12 +242,68 @@
 
               <div class="col-md-6">
                 <label class="form-label" for="OnSiteContactPhone">On-Site Contact Phone</label>
-                <input class="form-control" id="OnSiteContactPhone" name="OnSiteContactPhone" type="tel" autocomplete="tel">
+                <input
+                  class="form-control phone-input"
+                  id="OnSiteContactPhone"
+                  name="OnSiteContactPhone"
+                  type="tel"
+                  inputmode="numeric"
+                  autocomplete="tel"
+                  maxlength="14"
+                  placeholder="3045551212"
+                >
+                <div class="invalid-feedback">Enter a valid 10-digit phone number.</div>
               </div>
 
               <div class="col-12">
                 <label class="form-label required" for="IssueDescription">Describe the Issue</label>
                 <textarea class="form-control" id="IssueDescription" name="IssueDescription" rows="5" required></textarea>
+                <div class="invalid-feedback">Please describe the issue.</div>
+              </div>
+
+              <div class="col-12 pt-4">
+                <h2 class="h5 mb-1">Billing Address</h2>
+                <p class="text-muted small mb-0">This is where billing should be sent.</p>
+              </div>
+
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="BillingSameAsRequester" name="BillingSameAsRequester" value="Yes">
+                  <label class="form-check-label" for="BillingSameAsRequester">
+                    Billing address is same as my address
+                  </label>
+                </div>
+              </div>
+
+              <div id="billingAddressFields" class="row g-3">
+                <div class="col-md-8">
+                  <label class="form-label required" for="BillingStreet1">Street Address</label>
+                  <input class="form-control" id="BillingStreet1" name="BillingStreet1" autocomplete="address-line1" required>
+                  <div class="invalid-feedback">Please enter the billing street address.</div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label" for="BillingStreet2">Address Line 2</label>
+                  <input class="form-control" id="BillingStreet2" name="BillingStreet2" autocomplete="address-line2">
+                </div>
+
+                <div class="col-md-5">
+                  <label class="form-label required" for="BillingCity">City</label>
+                  <input class="form-control" id="BillingCity" name="BillingCity" autocomplete="address-level2" required>
+                  <div class="invalid-feedback">Please enter the billing city.</div>
+                </div>
+
+                <div class="col-md-3">
+                  <label class="form-label required" for="BillingState">State</label>
+                  <input class="form-control text-uppercase" id="BillingState" name="BillingState" maxlength="2" autocomplete="address-level1" required>
+                  <div class="invalid-feedback">Enter the 2-letter state code.</div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label required" for="BillingZip">ZIP</label>
+                  <input class="form-control zip-input" id="BillingZip" name="BillingZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required>
+                  <div class="invalid-feedback">Enter a 5-digit ZIP code.</div>
+                </div>
               </div>
 
               <div class="col-12 pt-2">
@@ -183,8 +333,208 @@
   <script>
     const form = document.getElementById("serviceRequestForm");
     const submitBtn = document.getElementById("submitBtn");
+    const billingSameAsRequester = document.getElementById("BillingSameAsRequester");
+    const billingAddressFields = document.getElementById("billingAddressFields");
+
+    const requesterAddressFields = {
+      street1: document.getElementById("RequesterStreet1"),
+      street2: document.getElementById("RequesterStreet2"),
+      city: document.getElementById("RequesterCity"),
+      state: document.getElementById("RequesterState"),
+      zip: document.getElementById("RequesterZip")
+    };
+
+    const serviceAddressFields = {
+      street1: document.getElementById("ServiceStreet1"),
+      street2: document.getElementById("ServiceStreet2"),
+      city: document.getElementById("ServiceCity"),
+      state: document.getElementById("ServiceState"),
+      zip: document.getElementById("ServiceZip")
+    };
+
+    const billingAddressInputs = {
+      street1: document.getElementById("BillingStreet1"),
+      street2: document.getElementById("BillingStreet2"),
+      city: document.getElementById("BillingCity"),
+      state: document.getElementById("BillingState"),
+      zip: document.getElementById("BillingZip")
+    };
+
+    function digitsOnly(value) {
+      return String(value || "").replace(/\D/g, "");
+    }
+
+    function normalizePhoneInput(input) {
+      input.value = digitsOnly(input.value).slice(0, 10);
+    }
+
+    function normalizeZipInput(input) {
+      input.value = digitsOnly(input.value).slice(0, 5);
+    }
+
+    function normalizeStateInput(input) {
+      input.value = String(input.value || "").replace(/[^a-z]/gi, "").toUpperCase().slice(0, 2);
+    }
+
+    function buildAddress(street1, street2, city, state, zip) {
+      const line1 = String(street1 || "").trim();
+      const line2 = String(street2 || "").trim();
+      const cityVal = String(city || "").trim();
+      const stateVal = String(state || "").trim();
+      const zipVal = String(zip || "").trim();
+
+      const streetPart = [line1, line2].filter(Boolean).join(", ");
+      const cityStateZipPart = [cityVal, stateVal, zipVal].filter(Boolean).join(", ");
+
+      return [streetPart, cityStateZipPart].filter(Boolean).join(", ");
+    }
+
+    function setCombinedAddresses() {
+      document.getElementById("RequesterAddress").value = buildAddress(
+        requesterAddressFields.street1.value,
+        requesterAddressFields.street2.value,
+        requesterAddressFields.city.value,
+        requesterAddressFields.state.value,
+        requesterAddressFields.zip.value
+      );
+
+      document.getElementById("ServiceAddress").value = buildAddress(
+        serviceAddressFields.street1.value,
+        serviceAddressFields.street2.value,
+        serviceAddressFields.city.value,
+        serviceAddressFields.state.value,
+        serviceAddressFields.zip.value
+      );
+
+      document.getElementById("BillingAddress").value = buildAddress(
+        billingAddressInputs.street1.value,
+        billingAddressInputs.street2.value,
+        billingAddressInputs.city.value,
+        billingAddressInputs.state.value,
+        billingAddressInputs.zip.value
+      );
+    }
+
+    function copyRequesterAddressToBilling() {
+      billingAddressInputs.street1.value = requesterAddressFields.street1.value;
+      billingAddressInputs.street2.value = requesterAddressFields.street2.value;
+      billingAddressInputs.city.value = requesterAddressFields.city.value;
+      billingAddressInputs.state.value = requesterAddressFields.state.value;
+      billingAddressInputs.zip.value = requesterAddressFields.zip.value;
+    }
+
+    function toggleBillingAddressState() {
+      const checked = billingSameAsRequester.checked;
+
+      if (checked) {
+        copyRequesterAddressToBilling();
+        billingAddressFields.classList.add("d-none");
+        billingAddressInputs.street1.required = false;
+        billingAddressInputs.city.required = false;
+        billingAddressInputs.state.required = false;
+        billingAddressInputs.zip.required = false;
+      } else {
+        billingAddressFields.classList.remove("d-none");
+        billingAddressInputs.street1.required = true;
+        billingAddressInputs.city.required = true;
+        billingAddressInputs.state.required = true;
+        billingAddressInputs.zip.required = true;
+      }
+
+      setCombinedAddresses();
+    }
+
+    document.querySelectorAll(".phone-input").forEach(function (input) {
+      input.addEventListener("input", function () {
+        normalizePhoneInput(input);
+      });
+    });
+
+    document.querySelectorAll(".zip-input").forEach(function (input) {
+      input.addEventListener("input", function () {
+        normalizeZipInput(input);
+      });
+    });
+
+    ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
+      const input = document.getElementById(id);
+      input.addEventListener("input", function () {
+        normalizeStateInput(input);
+      });
+    });
+
+    Object.values(requesterAddressFields).forEach(function (input) {
+      input.addEventListener("input", function () {
+        if (billingSameAsRequester.checked) {
+          copyRequesterAddressToBilling();
+        }
+        setCombinedAddresses();
+      });
+    });
+
+    Object.values(serviceAddressFields).forEach(function (input) {
+      input.addEventListener("input", function () {
+        setCombinedAddresses();
+      });
+    });
+
+    Object.values(billingAddressInputs).forEach(function (input) {
+      input.addEventListener("input", function () {
+        setCombinedAddresses();
+      });
+    });
+
+    billingSameAsRequester.addEventListener("change", function () {
+      toggleBillingAddressState();
+    });
 
     form.addEventListener("submit", function (e) {
+      document.querySelectorAll(".phone-input").forEach(function (input) {
+        normalizePhoneInput(input);
+      });
+
+      document.querySelectorAll(".zip-input").forEach(function (input) {
+        normalizeZipInput(input);
+      });
+
+      ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
+        normalizeStateInput(document.getElementById(id));
+      });
+
+      if (billingSameAsRequester.checked) {
+        copyRequesterAddressToBilling();
+      }
+
+      const requesterPhone = document.getElementById("RequesterPhone");
+      const onSitePhone = document.getElementById("OnSiteContactPhone");
+
+      if (digitsOnly(requesterPhone.value).length !== 10) {
+        requesterPhone.setCustomValidity("Enter a valid 10-digit phone number.");
+      } else {
+        requesterPhone.setCustomValidity("");
+      }
+
+      if (onSitePhone.value && digitsOnly(onSitePhone.value).length !== 10) {
+        onSitePhone.setCustomValidity("Enter a valid 10-digit phone number.");
+      } else {
+        onSitePhone.setCustomValidity("");
+      }
+
+      const requesterZip = document.getElementById("RequesterZip");
+      const serviceZip = document.getElementById("ServiceZip");
+      const billingZip = document.getElementById("BillingZip");
+
+      requesterZip.setCustomValidity(digitsOnly(requesterZip.value).length === 5 ? "" : "Enter a 5-digit ZIP code.");
+      serviceZip.setCustomValidity(digitsOnly(serviceZip.value).length === 5 ? "" : "Enter a 5-digit ZIP code.");
+
+      if (!billingSameAsRequester.checked) {
+        billingZip.setCustomValidity(digitsOnly(billingZip.value).length === 5 ? "" : "Enter a 5-digit ZIP code.");
+      } else {
+        billingZip.setCustomValidity("");
+      }
+
+      setCombinedAddresses();
+
       if (!form.checkValidity()) {
         e.preventDefault();
         form.classList.add("was-validated");
@@ -198,6 +548,9 @@
         window.location.href = "/request-confirmation.html";
       }, 1200);
     });
+
+    toggleBillingAddressState();
+    setCombinedAddresses();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
