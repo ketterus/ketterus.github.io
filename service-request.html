@@ -342,6 +342,10 @@
   </footer>
 
   <script>
+    let requesterAutocomplete = null;
+    let serviceAutocomplete = null;
+    let billingAutocomplete = null;
+
     const form = document.getElementById("serviceRequestForm");
     const submitBtn = document.getElementById("submitBtn");
 
@@ -430,20 +434,21 @@
       );
     }
 
+    function copyAddressFields(source, target) {
+      target.street1.value = source.street1.value;
+      target.street2.value = source.street2.value;
+      target.city.value = source.city.value;
+      target.state.value = source.state.value;
+      target.zip.value = source.zip.value;
+      setCombinedAddresses();
+    }
+
     function copyRequesterAddressToService() {
-      serviceAddressFields.street1.value = requesterAddressFields.street1.value;
-      serviceAddressFields.street2.value = requesterAddressFields.street2.value;
-      serviceAddressFields.city.value = requesterAddressFields.city.value;
-      serviceAddressFields.state.value = requesterAddressFields.state.value;
-      serviceAddressFields.zip.value = requesterAddressFields.zip.value;
+      copyAddressFields(requesterAddressFields, serviceAddressFields);
     }
 
     function copyRequesterAddressToBilling() {
-      billingAddressFields.street1.value = requesterAddressFields.street1.value;
-      billingAddressFields.street2.value = requesterAddressFields.street2.value;
-      billingAddressFields.city.value = requesterAddressFields.city.value;
-      billingAddressFields.state.value = requesterAddressFields.state.value;
-      billingAddressFields.zip.value = requesterAddressFields.zip.value;
+      copyAddressFields(requesterAddressFields, billingAddressFields);
     }
 
     function toggleServiceAddressState() {
@@ -486,6 +491,110 @@
       }
 
       setCombinedAddresses();
+    }
+
+    function fillAddressFieldsFromPlace(prefix, place) {
+      if (!place || !place.address_components) return;
+
+      const street1El = document.getElementById(`${prefix}Street1`);
+      const street2El = document.getElementById(`${prefix}Street2`);
+      const cityEl = document.getElementById(`${prefix}City`);
+      const stateEl = document.getElementById(`${prefix}State`);
+      const zipEl = document.getElementById(`${prefix}Zip`);
+      const fullEl = document.getElementById(`${prefix}Address`);
+
+      let streetNumber = "";
+      let route = "";
+      let city = "";
+      let state = "";
+      let zip = "";
+
+      for (const component of place.address_components) {
+        const types = component.types || [];
+
+        if (types.includes("street_number")) {
+          streetNumber = component.long_name;
+        }
+        if (types.includes("route")) {
+          route = component.long_name;
+        }
+        if (types.includes("locality")) {
+          city = component.long_name;
+        }
+        if (types.includes("postal_town") && !city) {
+          city = component.long_name;
+        }
+        if (types.includes("administrative_area_level_1")) {
+          state = component.short_name;
+        }
+        if (types.includes("postal_code")) {
+          zip = component.long_name;
+        }
+      }
+
+      if (street1El) street1El.value = [streetNumber, route].filter(Boolean).join(" ").trim();
+      if (street2El && !street2El.value) street2El.value = "";
+      if (cityEl) cityEl.value = city;
+      if (stateEl) stateEl.value = state;
+      if (zipEl) zipEl.value = zip;
+
+      if (fullEl) {
+        fullEl.value = buildAddress(
+          street1El ? street1El.value : "",
+          street2El ? street2El.value : "",
+          cityEl ? cityEl.value : "",
+          stateEl ? stateEl.value : "",
+          zipEl ? zipEl.value : ""
+        );
+      }
+
+      if (prefix === "Requester") {
+        if (serviceSameAsRequester.checked) {
+          copyRequesterAddressToService();
+        }
+        if (billingSameAsRequester.checked) {
+          copyRequesterAddressToBilling();
+        }
+      }
+
+      setCombinedAddresses();
+    }
+
+    function createAutocomplete(prefix) {
+      const street1El = document.getElementById(`${prefix}Street1`);
+      if (!street1El || !window.google || !google.maps || !google.maps.places) {
+        return null;
+      }
+
+      const autocomplete = new google.maps.places.Autocomplete(street1El, {
+        types: ["address"],
+        componentRestrictions: { country: "us" },
+        fields: ["address_components", "formatted_address"]
+      });
+
+      autocomplete.addListener("place_changed", function () {
+        const place = autocomplete.getPlace();
+        fillAddressFieldsFromPlace(prefix, place);
+      });
+
+      return autocomplete;
+    }
+
+    function initAddressAutocomplete() {
+      requesterAutocomplete = createAutocomplete("Requester");
+      serviceAutocomplete = createAutocomplete("Service");
+      billingAutocomplete = createAutocomplete("Billing");
+    }
+
+    window.initAddressAutocomplete = initAddressAutocomplete;
+
+    function addressLooksComplete(addressFields) {
+      return !!(
+        String(addressFields.street1.value || "").trim() &&
+        String(addressFields.city.value || "").trim() &&
+        String(addressFields.state.value || "").trim() &&
+        digitsOnly(addressFields.zip.value).length === 5
+      );
     }
 
     document.querySelectorAll(".phone-input").forEach(function (input) {
@@ -590,6 +699,27 @@
 
       setCombinedAddresses();
 
+      if (!addressLooksComplete(requesterAddressFields)) {
+        e.preventDefault();
+        requesterAddressFields.street1.setCustomValidity("Please select or complete a valid requester address.");
+      } else {
+        requesterAddressFields.street1.setCustomValidity("");
+      }
+
+      if (!serviceSameAsRequester.checked && !addressLooksComplete(serviceAddressFields)) {
+        e.preventDefault();
+        serviceAddressFields.street1.setCustomValidity("Please select or complete a valid service address.");
+      } else {
+        serviceAddressFields.street1.setCustomValidity("");
+      }
+
+      if (!billingSameAsRequester.checked && !addressLooksComplete(billingAddressFields)) {
+        e.preventDefault();
+        billingAddressFields.street1.setCustomValidity("Please select or complete a valid billing address.");
+      } else {
+        billingAddressFields.street1.setCustomValidity("");
+      }
+
       if (!form.checkValidity()) {
         e.preventDefault();
         form.classList.add("was-validated");
@@ -607,6 +737,11 @@
     toggleServiceAddressState();
     toggleBillingAddressState();
     setCombinedAddresses();
+  </script>
+
+  <script
+    async
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&loading=async&libraries=places&callback=initAddressAutocomplete">
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
