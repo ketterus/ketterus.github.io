@@ -48,8 +48,17 @@
       margin: 0 0 0.35rem;
     }
     .project-status {
-      margin: 0;
+      margin: 0 0 0.75rem;
       color: #555;
+    }
+    .project-link {
+      display: inline-block;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #222;
+      background: #fff;
     }
   </style>
 </head>
@@ -98,8 +107,8 @@
 
         bodyEl.innerHTML = `
           <p>Welcome, <strong>${escapeHtml(data.client.clientName || "Client")}</strong>.</p>
-          <p class="portal-muted">Your portal is active.</p>
-          ${renderProjects(projects)}
+          <p class="portal-muted">Select a project to open its report.</p>
+          ${renderProjects(projects, token)}
         `;
       } catch (error) {
         statusEl.textContent = "Service unavailable";
@@ -107,7 +116,7 @@
       }
     }
 
-    function renderProjects(projects) {
+    function renderProjects(projects, token) {
       if (!projects.length) {
         return '<p class="portal-muted">No projects have been shared to your portal yet.</p>';
       }
@@ -118,6 +127,7 @@
             <div class="project-item">
               <p class="project-name">${escapeHtml(project.projectName || "Unnamed Project")}</p>
               <p class="project-status">Status: ${escapeHtml(project.status || "Not set")}</p>
+              <a class="project-link" href="/portal/report/?t=${encodeURIComponent(token)}&p=${encodeURIComponent(project.projectId || "")}">View Report</a>
             </div>
           `).join("")}
         </div>

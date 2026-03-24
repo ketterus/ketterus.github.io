@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ketter Home Improvements | Project Report</title>
+  <link href="/assets/css/site.css" rel="stylesheet">
+  <style>
+    .report-wrap {
+      max-width: 840px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+    .report-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 1rem;
+    }
+    .report-title {
+      margin: 0 0 1rem;
+    }
+    .report-status {
+      margin: 0 0 1rem;
+      font-weight: 600;
+    }
+    .report-muted {
+      color: #666;
+    }
+    .report-error {
+      color: #8b1e1e;
+    }
+    .report-link {
+      display: inline-block;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #222;
+      background: #fff;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="report-wrap">
+    <div class="report-card">
+      <h1 class="report-title">Project Report</h1>
+      <div id="report-status" class="report-status">Checking access...</div>
+      <div id="report-body" class="report-muted">Please wait.</div>
+    </div>
+  </main>
+
+  <script>
+    const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec";
+
+    function getParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        token: (params.get("t") || "").trim(),
+        projectId: (params.get("p") || "").trim()
+      };
+    }
+
+    async function loadReport() {
+      const statusEl = document.getElementById("report-status");
+      const bodyEl = document.getElementById("report-body");
+      const { token, projectId } = getParams();
+
+      if (!token) {
+        statusEl.textContent = "Access denied";
+        bodyEl.innerHTML = '<p class="report-error">This link is missing an access token.</p>';
+        return;
+      }
+
+      if (!projectId) {
+        statusEl.textContent = "Project not found";
+        bodyEl.innerHTML = `
+          <p class="report-error">This link is missing a project selection.</p>
+          <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
+        `;
+        return;
+      }
+
+      try {
+        const url = PORTAL_API_URL + "?t=" + encodeURIComponent(token);
+        const response = await fetch(url, { method: "GET" });
+        const data = await response.json();
+
+        if (!data.success) {
+          statusEl.textContent = "Access denied";
+          bodyEl.innerHTML = '<p class="report-error">' + escapeHtml(data.message || "Access failed.") + '</p>';
+          return;
+        }
+
+        const projects = (data.data && Array.isArray(data.data.projects)) ? data.data.projects : [];
+        const project = projects.find(p => String(p.projectId || "") === projectId);
+
+        if (!project) {
+          statusEl.textContent = "Project not found";
+          bodyEl.innerHTML = `
+            <p class="report-error">The selected project is not available in your portal.</p>
+            <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
+          `;
+          return;
+        }
+
+        statusEl.textContent = "Report ready";
+        bodyEl.innerHTML = `
+          <p><strong>Project:</strong> ${escapeHtml(project.projectName || "Unnamed Project")}</p>
+          <p><strong>Status:</strong> ${escapeHtml(project.status || "Not set")}</p>
+          <hr>
+          <p><strong>Report</strong></p>
+          <p class="report-muted">This is the report placeholder page for the selected project.</p>
+          <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
+        `;
+      } catch (error) {
+        statusEl.textContent = "Service unavailable";
+        bodyEl.innerHTML = '<p class="report-error">Unable to load report right now.</p>';
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    loadReport();
+  </script>
+</body>
+</html>
