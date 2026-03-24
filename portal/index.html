@@ -17,6 +17,7 @@
       border-radius: 12px;
       padding: 1.5rem;
       box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 1rem;
     }
     .portal-title {
       margin: 0 0 1rem;
@@ -30,6 +31,25 @@
     }
     .portal-error {
       color: #8b1e1e;
+    }
+    .project-list {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .project-item {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 1rem;
+      background: #fafafa;
+    }
+    .project-name {
+      font-weight: 600;
+      margin: 0 0 0.35rem;
+    }
+    .project-status {
+      margin: 0;
+      color: #555;
     }
   </style>
 </head>
@@ -72,16 +92,36 @@
           return;
         }
 
+        const projects = (data.data && Array.isArray(data.data.projects)) ? data.data.projects : [];
+
         statusEl.textContent = "Portal active";
+
         bodyEl.innerHTML = `
           <p>Welcome, <strong>${escapeHtml(data.client.clientName || "Client")}</strong>.</p>
           <p class="portal-muted">Your portal is active.</p>
-          <p class="portal-muted">No reports are available yet.</p>
+          ${renderProjects(projects)}
         `;
       } catch (error) {
         statusEl.textContent = "Service unavailable";
         bodyEl.innerHTML = '<p class="portal-error">Unable to load portal right now.</p>';
       }
+    }
+
+    function renderProjects(projects) {
+      if (!projects.length) {
+        return '<p class="portal-muted">No projects have been shared to your portal yet.</p>';
+      }
+
+      return `
+        <div class="project-list">
+          ${projects.map(project => `
+            <div class="project-item">
+              <p class="project-name">${escapeHtml(project.projectName || "Unnamed Project")}</p>
+              <p class="project-status">Status: ${escapeHtml(project.status || "Not set")}</p>
+            </div>
+          `).join("")}
+        </div>
+      `;
     }
 
     function escapeHtml(value) {
