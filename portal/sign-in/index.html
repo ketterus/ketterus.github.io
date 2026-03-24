@@ -3,82 +3,309 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ketter Home Improvements | Portal Sign-In</title>
+  <title>Ketter Home Improvements | Client Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="/assets/css/site.css" rel="stylesheet">
   <style>
-    .signin-wrap {
-      max-width: 640px;
+    .portal-wrap {
+      max-width: 760px;
       margin: 0 auto;
       padding: 2rem 1rem 4rem;
     }
-    .signin-card {
+
+    .portal-card {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 12px;
       padding: 1.5rem;
       box-shadow: 0 2px 8px rgba(0,0,0,.05);
-    }
-    .signin-title {
-      margin: 0 0 1rem;
-    }
-    .signin-help {
-      color: #666;
       margin-bottom: 1rem;
     }
-    .form-row {
-      margin-bottom: 1rem;
+
+    .portal-result-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 1rem;
+      background: #fafafa;
+      margin-bottom: 0.75rem;
     }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.35rem;
+
+    .portal-result-title {
+      margin: 0 0 0.35rem;
+      font-weight: 700;
     }
-    input {
-      width: 100%;
-      padding: 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font: inherit;
-      box-sizing: border-box;
+
+    .portal-result-text {
+      margin: 0 0 0.25rem;
+      color: #555;
     }
-    button {
-      padding: 0.8rem 1rem;
-      border: 1px solid #222;
-      background: #222;
-      color: #fff;
-      border-radius: 8px;
-      font: inherit;
-      cursor: pointer;
-    }
-    .fine-print {
-      margin-top: 1rem;
-      color: #666;
-      font-size: 0.95rem;
+
+    .portal-hidden {
+      display: none !important;
     }
   </style>
 </head>
 <body>
-  <main class="signin-wrap">
-    <div class="signin-card">
-      <h1 class="signin-title">Client Portal Sign-In</h1>
-      <p class="signin-help">Enter the email address and ZIP code associated with your account. If your information matches our records, we will email you a secure sign-in link.</p>
 
-      <form method="post" action="https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec?action=requestmagiclink">
-        <div class="form-row">
-          <label for="email">Email address</label>
-          <input id="email" name="email" type="email" autocomplete="email" required>
+  <nav class="navbar navbar-expand-lg bg-white sticky-top border-bottom">
+    <div class="site-shell w-100 d-flex align-items-center">
+      <a class="navbar-brand fw-bold" href="/">Ketter Home Improvements</a>
+
+      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="/#services">Services</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#why-us">Why Us</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#about">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#contact">Contact</a></li>
+        </ul>
+
+        <div class="d-flex flex-column flex-lg-row gap-2 ms-lg-3">
+          <a href="/portal/sign-in" class="btn btn-outline-secondary">Client Login</a>
+          <a href="/service-request.html" class="btn btn-brand">Request Service</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-wrap">
+    <div class="portal-wrap">
+      <div class="portal-card">
+        <div class="mb-4">
+          <h1 class="h2 mb-2">Client Login</h1>
+          <p class="text-muted mb-0">Enter the email address and ZIP code associated with your account to continue.</p>
         </div>
 
-        <div class="form-row">
-          <label for="zip">ZIP code</label>
-          <input id="zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" required>
-        </div>
+        <form id="portalLookupForm" novalidate>
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label required" for="lookupEmail">Email</label>
+              <input
+                class="form-control"
+                id="lookupEmail"
+                name="lookupEmail"
+                type="email"
+                autocomplete="email"
+                required
+              >
+              <div class="invalid-feedback">Enter a valid email address.</div>
+            </div>
 
-        <button type="submit">Email Me a Sign-In Link</button>
-      </form>
+            <div class="col-md-4">
+              <label class="form-label required" for="lookupZip">ZIP</label>
+              <input
+                class="form-control"
+                id="lookupZip"
+                name="lookupZip"
+                inputmode="numeric"
+                maxlength="5"
+                autocomplete="postal-code"
+                required
+              >
+              <div class="invalid-feedback">Enter a 5-digit ZIP code.</div>
+            </div>
 
-      <p class="fine-print">After you submit, you will be taken to a confirmation page.</p>
+            <div class="col-12 pt-2">
+              <button type="submit" class="btn btn-brand btn-lg" id="lookupSubmitBtn">Continue</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div id="portalStatusCard" class="portal-card portal-hidden">
+        <h2 class="h5 mb-3">Status</h2>
+        <div id="portalStatusMessage" class="text-muted">Please wait.</div>
+      </div>
+
+      <div id="portalMatchesCard" class="portal-card portal-hidden">
+        <h2 class="h5 mb-3">Choose Your Account</h2>
+        <p class="text-muted mb-3">More than one account matches the information entered. Select the correct one to continue.</p>
+        <div id="portalMatchesList"></div>
+      </div>
     </div>
   </main>
+
+  <footer>
+    <div class="site-shell text-center">
+      <div class="fw-semibold">Ketter Home Improvements</div>
+      <div class="small-muted">5561 Mouse Creek Road NW, Cleveland, TN 37312</div>
+      <div class="small-muted mt-2">
+        <a href="/privacy.html" class="text-decoration-none text-reset me-3">Privacy Policy</a>
+        <a href="/terms.html" class="text-decoration-none text-reset">Terms &amp; Conditions</a>
+      </div>
+      <div class="small-muted mt-2">© 2026 Ketter Home Improvements. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    const PORTAL_LOOKUP_API_URL = "https://script.google.com/macros/s/AKfycbwEJZwTBLy56OvlOLdICxNhePNZPNODmn3rELZ39ogw1VRBg1RGKLwOz3c2ny2G88WAlA/exec";
+
+    const form = document.getElementById("portalLookupForm");
+    const emailInput = document.getElementById("lookupEmail");
+    const zipInput = document.getElementById("lookupZip");
+    const submitBtn = document.getElementById("lookupSubmitBtn");
+
+    const statusCard = document.getElementById("portalStatusCard");
+    const statusMessage = document.getElementById("portalStatusMessage");
+
+    const matchesCard = document.getElementById("portalMatchesCard");
+    const matchesList = document.getElementById("portalMatchesList");
+
+    function digitsOnly(value) {
+      return String(value || "").replace(/\D/g, "");
+    }
+
+    function normalizeZipInput() {
+      zipInput.value = digitsOnly(zipInput.value).slice(0, 5);
+    }
+
+    function showStatus(message, isError = false) {
+      statusCard.classList.remove("portal-hidden");
+      statusMessage.textContent = message;
+      statusMessage.className = isError ? "text-danger" : "text-muted";
+    }
+
+    function hideStatus() {
+      statusCard.classList.add("portal-hidden");
+      statusMessage.textContent = "";
+      statusMessage.className = "text-muted";
+    }
+
+    function hideMatches() {
+      matchesCard.classList.add("portal-hidden");
+      matchesList.innerHTML = "";
+    }
+
+    function renderMatches(matches) {
+      if (!Array.isArray(matches) || !matches.length) {
+        hideMatches();
+        return;
+      }
+
+      matchesList.innerHTML = matches.map(function(match) {
+        const clientName = escapeHtml(match.clientName || "Client");
+        const contactName = escapeHtml(match.contactName || "");
+        const address = escapeHtml(match.address || "");
+        const clientRef = escapeHtml(match.clientRef || "");
+        const portalUrl = buildPortalUrl(match);
+
+        return `
+          <div class="portal-result-card">
+            <p class="portal-result-title">${clientName}</p>
+            ${contactName ? `<p class="portal-result-text">Contact: ${contactName}</p>` : ""}
+            ${clientRef ? `<p class="portal-result-text">Reference: ${clientRef}</p>` : ""}
+            ${address ? `<p class="portal-result-text">Address: ${address}</p>` : ""}
+            <a class="btn btn-brand mt-2" href="${portalUrl}">Continue</a>
+          </div>
+        `;
+      }).join("");
+
+      matchesCard.classList.remove("portal-hidden");
+    }
+
+    function buildPortalUrl(match) {
+      if (match.portalUrl) {
+        return match.portalUrl;
+      }
+
+      const token = String(match.portalToken || "").trim();
+      if (token) {
+        return "/portal/?t=" + encodeURIComponent(token);
+      }
+
+      return "/portal/sign-in";
+    }
+
+    async function submitLookup(event) {
+      event.preventDefault();
+
+      normalizeZipInput();
+      hideMatches();
+      hideStatus();
+
+      emailInput.setCustomValidity("");
+      zipInput.setCustomValidity("");
+
+      if (digitsOnly(zipInput.value).length !== 5) {
+        zipInput.setCustomValidity("Enter a 5-digit ZIP code.");
+      }
+
+      if (!form.checkValidity()) {
+        form.classList.add("was-validated");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Checking...";
+
+      showStatus("Checking your information...");
+
+      try {
+        const response = await fetch(PORTAL_LOOKUP_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: String(emailInput.value || "").trim(),
+            zip: digitsOnly(zipInput.value)
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          showStatus(data.message || "We could not find a matching account.", true);
+          return;
+        }
+
+        if (data.matchMode === "single") {
+          const portalUrl =
+            data.portalUrl ||
+            (data.portalToken ? "/portal/?t=" + encodeURIComponent(data.portalToken) : "");
+
+          if (!portalUrl) {
+            showStatus("Portal access is available, but no portal link was returned.", true);
+            return;
+          }
+
+          showStatus("Match found. Redirecting...");
+          window.location.href = portalUrl;
+          return;
+        }
+
+        if (data.matchMode === "multiple") {
+          showStatus("More than one account was found. Please choose the correct account.");
+          renderMatches(data.matches || []);
+          return;
+        }
+
+        showStatus("We could not determine the next step for this request.", true);
+
+      } catch (error) {
+        showStatus("Unable to complete login right now.", true);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Continue";
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    zipInput.addEventListener("input", normalizeZipInput);
+    form.addEventListener("submit", submitLookup);
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
