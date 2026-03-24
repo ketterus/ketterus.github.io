@@ -22,24 +22,6 @@
       margin-bottom: 1rem;
     }
 
-    .portal-result-card {
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 1rem;
-      background: #fafafa;
-      margin-bottom: 0.75rem;
-    }
-
-    .portal-result-title {
-      margin: 0 0 0.35rem;
-      font-weight: 700;
-    }
-
-    .portal-result-text {
-      margin: 0 0 0.25rem;
-      color: #555;
-    }
-
     .portal-hidden {
       display: none !important;
     }
@@ -76,7 +58,7 @@
       <div class="portal-card">
         <div class="mb-4">
           <h1 class="h2 mb-2">Client Login</h1>
-          <p class="text-muted mb-0">Enter the email address and ZIP code associated with your account to continue.</p>
+          <p class="text-muted mb-0">Enter the email address and ZIP code associated with your account. If we find a matching portal account, we will send a secure access link to your email.</p>
         </div>
 
         <form id="portalLookupForm" novalidate>
@@ -109,7 +91,7 @@
             </div>
 
             <div class="col-12 pt-2">
-              <button type="submit" class="btn btn-brand btn-lg" id="lookupSubmitBtn">Continue</button>
+              <button type="submit" class="btn btn-brand btn-lg" id="lookupSubmitBtn">Send Secure Link</button>
             </div>
           </div>
         </form>
@@ -118,12 +100,6 @@
       <div id="portalStatusCard" class="portal-card portal-hidden">
         <h2 class="h5 mb-3">Status</h2>
         <div id="portalStatusMessage" class="text-muted">Please wait.</div>
-      </div>
-
-      <div id="portalMatchesCard" class="portal-card portal-hidden">
-        <h2 class="h5 mb-3">Choose Your Account</h2>
-        <p class="text-muted mb-3">More than one account matches the information entered. Select the correct one to continue.</p>
-        <div id="portalMatchesList"></div>
       </div>
     </div>
   </main>
@@ -151,9 +127,6 @@
     const statusCard = document.getElementById("portalStatusCard");
     const statusMessage = document.getElementById("portalStatusMessage");
 
-    const matchesCard = document.getElementById("portalMatchesCard");
-    const matchesList = document.getElementById("portalMatchesList");
-
     function digitsOnly(value) {
       return String(value || "").replace(/\D/g, "");
     }
@@ -174,56 +147,10 @@
       statusMessage.className = "text-muted";
     }
 
-    function hideMatches() {
-      matchesCard.classList.add("portal-hidden");
-      matchesList.innerHTML = "";
-    }
-
-    function renderMatches(matches) {
-      if (!Array.isArray(matches) || !matches.length) {
-        hideMatches();
-        return;
-      }
-
-      matchesList.innerHTML = matches.map(function(match) {
-        const clientName = escapeHtml(match.clientName || "Client");
-        const contactName = escapeHtml(match.contactName || "");
-        const address = escapeHtml(match.address || "");
-        const clientRef = escapeHtml(match.clientRef || "");
-        const portalUrl = buildPortalUrl(match);
-
-        return `
-          <div class="portal-result-card">
-            <p class="portal-result-title">${clientName}</p>
-            ${contactName ? `<p class="portal-result-text">Contact: ${contactName}</p>` : ""}
-            ${clientRef ? `<p class="portal-result-text">Reference: ${clientRef}</p>` : ""}
-            ${address ? `<p class="portal-result-text">Address: ${address}</p>` : ""}
-            <a class="btn btn-brand mt-2" href="${portalUrl}">Continue</a>
-          </div>
-        `;
-      }).join("");
-
-      matchesCard.classList.remove("portal-hidden");
-    }
-
-    function buildPortalUrl(match) {
-      if (match.portalUrl) {
-        return match.portalUrl;
-      }
-
-      const token = String(match.portalToken || "").trim();
-      if (token) {
-        return "/portal/?t=" + encodeURIComponent(token);
-      }
-
-      return "/portal/sign-in";
-    }
-
     async function submitLookup(event) {
       event.preventDefault();
 
       normalizeZipInput();
-      hideMatches();
       hideStatus();
 
       emailInput.setCustomValidity("");
@@ -239,9 +166,9 @@
       }
 
       submitBtn.disabled = true;
-      submitBtn.textContent = "Checking...";
+      submitBtn.textContent = "Sending...";
 
-      showStatus("Checking your information...");
+      showStatus("Please wait...");
 
       try {
         const lookupUrl =
@@ -254,47 +181,19 @@
         const data = await response.json();
 
         if (!data.success) {
-          showStatus(data.message || "We could not find a matching account.", true);
+          showStatus(data.message || "Unable to complete request right now.", true);
           return;
         }
 
-        if (data.matchMode === "single") {
-          const portalUrl =
-            data.portalUrl ||
-            (data.portalToken ? "/portal/?t=" + encodeURIComponent(data.portalToken) : "");
-
-          if (!portalUrl) {
-            showStatus("Portal access is available, but no portal link was returned.", true);
-            return;
-          }
-
-          showStatus("Match found. Redirecting...");
-          window.location.href = portalUrl;
-          return;
-        }
-
-        if (data.matchMode === "multiple") {
-          showStatus("More than one account was found. Please choose the correct account.");
-          renderMatches(data.matches || []);
-          return;
-        }
-
-        showStatus("We could not determine the next step for this request.", true);
+        showStatus(
+          data.message || "If we found a matching portal account, we sent a secure access link to your email."
+        );
       } catch (error) {
-        showStatus("Unable to complete login right now.", true);
+        showStatus("Unable to complete request right now.", true);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "Continue";
+        submitBtn.textContent = "Send Secure Link";
       }
-    }
-
-    function escapeHtml(value) {
-      return String(value || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
     }
 
     zipInput.addEventListener("input", normalizeZipInput);
