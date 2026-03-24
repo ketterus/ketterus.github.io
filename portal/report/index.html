@@ -7,11 +7,13 @@
   <link href="/assets/css/site.css" rel="stylesheet">
   <style>
     .report-wrap {
-      max-width: 840px;
+      max-width: 960px;
       margin: 0 auto;
       padding: 2rem 1rem 4rem;
     }
-    .report-card {
+
+    .report-shell,
+    .report-section {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 12px;
@@ -19,19 +21,29 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.05);
       margin-bottom: 1rem;
     }
+
     .report-title {
-      margin: 0 0 1rem;
+      margin: 0 0 0.5rem;
     }
+
+    .report-subtitle {
+      margin: 0;
+      color: #666;
+    }
+
     .report-status {
       margin: 0 0 1rem;
       font-weight: 600;
     }
-    .report-muted {
-      color: #666;
-    }
+
     .report-error {
       color: #8b1e1e;
     }
+
+    .report-muted {
+      color: #666;
+    }
+
     .report-link {
       display: inline-block;
       padding: 0.6rem 0.9rem;
@@ -42,19 +54,83 @@
       background: #fff;
       margin-top: 1rem;
     }
+
+    .section-title {
+      margin: 0 0 1rem;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .field-label {
+      margin: 0 0 0.25rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .field-value {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .summary-text,
+    .empty-message {
+      margin: 0;
+      line-height: 1.5;
+      color: #444;
+    }
+
+    .item-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .item-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 1rem;
+      background: #fafafa;
+    }
+
+    .item-title {
+      margin: 0 0 0.4rem;
+      font-weight: 700;
+    }
+
+    .item-meta {
+      margin: 0 0 0.25rem;
+      color: #555;
+    }
+
+    .item-summary {
+      margin: 0;
+      color: #666;
+    }
   </style>
 </head>
 <body>
   <main class="report-wrap">
-    <div class="report-card">
-      <h1 class="report-title">Project Report</h1>
+    <section class="report-shell">
       <div id="report-status" class="report-status">Checking access...</div>
       <div id="report-body" class="report-muted">Please wait.</div>
-    </div>
+      <div id="report-sections"></div>
+    </section>
   </main>
 
   <script>
     const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec";
+
+    const sectionRenderers = {
+      overview: renderOverviewSection,
+      summary: renderSummarySection,
+      expenses: renderExpensesSection,
+      timeEntries: renderTimeEntriesSection,
+      documents: renderDocumentsSection,
+      updates: renderUpdatesSection
+    };
 
     function getParams() {
       const params = new URLSearchParams(window.location.search);
@@ -67,11 +143,13 @@
     async function loadReport() {
       const statusEl = document.getElementById("report-status");
       const bodyEl = document.getElementById("report-body");
+      const sectionsEl = document.getElementById("report-sections");
       const { token, projectId } = getParams();
 
       if (!token) {
         statusEl.textContent = "Access denied";
         bodyEl.innerHTML = '<p class="report-error">This link is missing an access token.</p>';
+        sectionsEl.innerHTML = "";
         return;
       }
 
@@ -81,45 +159,212 @@
           <p class="report-error">This link is missing a project selection.</p>
           <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
         `;
+        sectionsEl.innerHTML = "";
         return;
       }
 
       try {
-        const url = PORTAL_API_URL + "?t=" + encodeURIComponent(token);
+        const url = PORTAL_API_URL + "?t=" + encodeURIComponent(token) + "&p=" + encodeURIComponent(projectId);
         const response = await fetch(url, { method: "GET" });
         const data = await response.json();
 
         if (!data.success) {
           statusEl.textContent = "Access denied";
           bodyEl.innerHTML = '<p class="report-error">' + escapeHtml(data.message || "Access failed.") + '</p>';
+          sectionsEl.innerHTML = "";
           return;
         }
 
-        const projects = (data.data && Array.isArray(data.data.projects)) ? data.data.projects : [];
-        const project = projects.find(p => String(p.projectId || "") === projectId);
+        const project = data.project || {};
+        const sections = Array.isArray(data.sections) ? data.sections : [];
 
-        if (!project) {
-          statusEl.textContent = "Project not found";
-          bodyEl.innerHTML = `
-            <p class="report-error">The selected project is not available in your portal.</p>
-            <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
-          `;
-          return;
-        }
-
-        statusEl.textContent = "Report ready";
+        statusEl.textContent = "Project report";
         bodyEl.innerHTML = `
-          <p><strong>Project:</strong> ${escapeHtml(project.projectName || "Unnamed Project")}</p>
-          <p><strong>Status:</strong> ${escapeHtml(project.status || "Not set")}</p>
-          <hr>
-          <p><strong>Report</strong></p>
-          <p class="report-muted">This is the report placeholder page for the selected project.</p>
+          <h1 class="report-title">${escapeHtml(project.projectName || "Project Report")}</h1>
+          <p class="report-subtitle">${escapeHtml(project.projectId || "")}</p>
           <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
         `;
+
+        sectionsEl.innerHTML = renderSections(sections);
+
       } catch (error) {
         statusEl.textContent = "Service unavailable";
         bodyEl.innerHTML = '<p class="report-error">Unable to load report right now.</p>';
+        sectionsEl.innerHTML = "";
       }
+    }
+
+    function renderSections(sections) {
+      if (!sections.length) {
+        return `
+          <section class="report-section">
+            <h2 class="section-title">Report</h2>
+            <p class="empty-message">No report sections are available yet.</p>
+          </section>
+        `;
+      }
+
+      return sections.map(renderSection).join("");
+    }
+
+    function renderSection(section) {
+      const type = String(section?.type || "").trim();
+      const renderer = sectionRenderers[type] || renderGenericSection;
+      return renderer(section);
+    }
+
+    function renderOverviewSection(section) {
+      const d = section?.data || {};
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">${escapeHtml(section.title || "Project Overview")}</h2>
+          <div class="overview-grid">
+            <div>
+              <p class="field-label">Project Name</p>
+              <p class="field-value">${escapeHtml(d.projectName || "Not set")}</p>
+            </div>
+            <div>
+              <p class="field-label">Status</p>
+              <p class="field-value">${escapeHtml(d.status || "Not set")}</p>
+            </div>
+            <div>
+              <p class="field-label">Public Status</p>
+              <p class="field-value">${escapeHtml(d.publicStatus || "Not set")}</p>
+            </div>
+            <div>
+              <p class="field-label">Address</p>
+              <p class="field-value">${escapeHtml(d.address || "Not set")}</p>
+            </div>
+            <div>
+              <p class="field-label">Start Date</p>
+              <p class="field-value">${escapeHtml(formatDate(d.startDate))}</p>
+            </div>
+            <div>
+              <p class="field-label">End Date</p>
+              <p class="field-value">${escapeHtml(formatDate(d.endDate))}</p>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderSummarySection(section) {
+      const d = section?.data || {};
+      return `
+        <section class="report-section">
+          <h2 class="section-title">${escapeHtml(section.title || "Summary")}</h2>
+          <p class="summary-text">${escapeHtml(d.text || "No summary is available.")}</p>
+        </section>
+      `;
+    }
+
+    function renderExpensesSection(section) {
+      const items = Array.isArray(section?.data?.items) ? section.data.items : [];
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">${escapeHtml(section.title || "Expenses")}</h2>
+          ${items.length ? `
+            <div class="item-list">
+              ${items.map(item => `
+                <div class="item-card">
+                  <p class="item-title">${escapeHtml(item.description || "Expense")}</p>
+                  ${item.date ? `<p class="item-meta">Date: ${escapeHtml(formatDate(item.date))}</p>` : ""}
+                  ${item.category ? `<p class="item-meta">Category: ${escapeHtml(item.category)}</p>` : ""}
+                  ${item.amount != null ? `<p class="item-meta">Amount: ${escapeHtml(formatCurrency(item.amount))}</p>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          ` : `<p class="empty-message">${escapeHtml(section?.emptyMessage || "No expenses are available.")}</p>`}
+        </section>
+      `;
+    }
+
+    function renderTimeEntriesSection(section) {
+      const items = Array.isArray(section?.data?.items) ? section.data.items : [];
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">${escapeHtml(section.title || "Time Entries")}</h2>
+          ${items.length ? `
+            <div class="item-list">
+              ${items.map(item => `
+                <div class="item-card">
+                  <p class="item-title">${escapeHtml(item.staffName || "Time Entry")}</p>
+                  ${item.date ? `<p class="item-meta">Date: ${escapeHtml(formatDate(item.date))}</p>` : ""}
+                  ${item.hours != null ? `<p class="item-meta">Hours: ${escapeHtml(String(item.hours))}</p>` : ""}
+                  ${item.note ? `<p class="item-summary">${escapeHtml(item.note)}</p>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          ` : `<p class="empty-message">${escapeHtml(section?.emptyMessage || "No time entries are available.")}</p>`}
+        </section>
+      `;
+    }
+
+    function renderDocumentsSection(section) {
+      const items = Array.isArray(section?.data?.items) ? section.data.items : [];
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">${escapeHtml(section.title || "Documents")}</h2>
+          ${items.length ? `
+            <div class="item-list">
+              ${items.map(item => `
+                <div class="item-card">
+                  <p class="item-title">${escapeHtml(item.title || "Document")}</p>
+                  ${item.documentType ? `<p class="item-meta">Type: ${escapeHtml(item.documentType)}</p>` : ""}
+                  ${item.summary ? `<p class="item-summary">${escapeHtml(item.summary)}</p>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          ` : `<p class="empty-message">${escapeHtml(section?.emptyMessage || "No documents are available.")}</p>`}
+        </section>
+      `;
+    }
+
+    function renderUpdatesSection(section) {
+      const items = Array.isArray(section?.data?.items) ? section.data.items : [];
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">${escapeHtml(section.title || "Updates")}</h2>
+          ${items.length ? `
+            <div class="item-list">
+              ${items.map(item => `
+                <div class="item-card">
+                  <p class="item-title">${escapeHtml(item.title || "Update")}</p>
+                  ${item.date ? `<p class="item-meta">Date: ${escapeHtml(formatDate(item.date))}</p>` : ""}
+                  ${item.summary ? `<p class="item-summary">${escapeHtml(item.summary)}</p>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          ` : `<p class="empty-message">${escapeHtml(section?.emptyMessage || "No updates are available.")}</p>`}
+        </section>
+      `;
+    }
+
+    function renderGenericSection(section) {
+      return `
+        <section class="report-section">
+          <h2 class="section-title">${escapeHtml(section?.title || "Section")}</h2>
+          <p class="empty-message">This section type is not yet rendered.</p>
+        </section>
+      `;
+    }
+
+    function formatDate(value) {
+      if (!value) return "Not set";
+      const d = new Date(value);
+      if (isNaN(d)) return "Not set";
+      return d.toLocaleDateString();
+    }
+
+    function formatCurrency(value) {
+      const num = Number(value);
+      if (Number.isNaN(num)) return String(value);
+      return num.toLocaleString(undefined, { style: "currency", currency: "USD" });
     }
 
     function escapeHtml(value) {
