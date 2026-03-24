@@ -244,17 +244,13 @@
       showStatus("Checking your information...");
 
       try {
-        const response = await fetch(PORTAL_LOOKUP_API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            email: String(emailInput.value || "").trim(),
-            zip: digitsOnly(zipInput.value)
-          })
-        });
+        const lookupUrl =
+          PORTAL_LOOKUP_API_URL +
+          "?mode=lookup" +
+          "&email=" + encodeURIComponent(String(emailInput.value || "").trim()) +
+          "&zip=" + encodeURIComponent(digitsOnly(zipInput.value));
 
+        const response = await fetch(lookupUrl, { method: "GET" });
         const data = await response.json();
 
         if (!data.success) {
@@ -284,7 +280,6 @@
         }
 
         showStatus("We could not determine the next step for this request.", true);
-
       } catch (error) {
         showStatus("Unable to complete login right now.", true);
       } finally {
