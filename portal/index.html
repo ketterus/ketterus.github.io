@@ -3,82 +3,137 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ketter Home Improvements | Portal Sign-In</title>
+  <title>Ketter Home Improvements | Client Portal</title>
   <link href="/assets/css/site.css" rel="stylesheet">
   <style>
-    .signin-wrap {
-      max-width: 640px;
+    .portal-wrap {
+      max-width: 840px;
       margin: 0 auto;
       padding: 2rem 1rem 4rem;
     }
-    .signin-card {
+    .portal-card {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 12px;
       padding: 1.5rem;
       box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 1rem;
     }
-    .signin-title {
+    .portal-title {
       margin: 0 0 1rem;
     }
-    .signin-help {
-      color: #666;
-      margin-bottom: 1rem;
-    }
-    .form-row {
-      margin-bottom: 1rem;
-    }
-    label {
-      display: block;
+    .portal-status {
+      margin: 0 0 1rem;
       font-weight: 600;
-      margin-bottom: 0.35rem;
     }
-    input {
-      width: 100%;
-      padding: 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font: inherit;
-      box-sizing: border-box;
-    }
-    button {
-      padding: 0.8rem 1rem;
-      border: 1px solid #222;
-      background: #222;
-      color: #fff;
-      border-radius: 8px;
-      font: inherit;
-      cursor: pointer;
-    }
-    .fine-print {
-      margin-top: 1rem;
+    .portal-muted {
       color: #666;
-      font-size: 0.95rem;
+    }
+    .portal-error {
+      color: #8b1e1e;
+    }
+    .project-list {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .project-item {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 1rem;
+      background: #fafafa;
+    }
+    .project-name {
+      font-weight: 600;
+      margin: 0 0 0.35rem;
+    }
+    .project-status {
+      margin: 0;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <main class="signin-wrap">
-    <div class="signin-card">
-      <h1 class="signin-title">Client Portal Sign-In</h1>
-      <p class="signin-help">Enter the email address and ZIP code associated with your account. If your information matches our records, we will email you a secure sign-in link.</p>
-
-      <form method="post" action="https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec?action=requestmagiclink">
-        <div class="form-row">
-          <label for="email">Email address</label>
-          <input id="email" name="email" type="email" autocomplete="email" required>
-        </div>
-
-        <div class="form-row">
-          <label for="zip">ZIP code</label>
-          <input id="zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" required>
-        </div>
-
-        <button type="submit">Email Me a Sign-In Link</button>
-      </form>
-
-      <p class="fine-print">After you submit, you will be taken to a confirmation page.</p>
+  <main class="portal-wrap">
+    <div class="portal-card">
+      <h1 class="portal-title">Client Portal</h1>
+      <div id="portal-status" class="portal-status">Checking access...</div>
+      <div id="portal-body" class="portal-muted">Please wait.</div>
     </div>
   </main>
+
+  <script>
+    const PORTAL_API_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+    function getToken() {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get("t") || "").trim();
+    }
+
+    async function loadPortal() {
+      const statusEl = document.getElementById("portal-status");
+      const bodyEl = document.getElementById("portal-body");
+      const token = getToken();
+
+      if (!token) {
+        statusEl.textContent = "Access denied";
+        bodyEl.innerHTML = '<p class="portal-error">This link is missing an access token.</p>';
+        return;
+      }
+
+      try {
+        const url = PORTAL_API_URL + "?t=" + encodeURIComponent(token);
+        const response = await fetch(url, { method: "GET" });
+        const data = await response.json();
+
+        if (!data.success) {
+          statusEl.textContent = "Access denied";
+          bodyEl.innerHTML = '<p class="portal-error">' + escapeHtml(data.message || "Access failed.") + '</p>';
+          return;
+        }
+
+        const projects = (data.data && Array.isArray(data.data.projects)) ? data.data.projects : [];
+
+        statusEl.textContent = "Portal active";
+
+        bodyEl.innerHTML = `
+          <p>Welcome, <strong>${escapeHtml(data.client.clientName || "Client")}</strong>.</p>
+          <p class="portal-muted">Your portal is active.</p>
+          ${renderProjects(projects)}
+        `;
+      } catch (error) {
+        statusEl.textContent = "Service unavailable";
+        bodyEl.innerHTML = '<p class="portal-error">Unable to load portal right now.</p>';
+      }
+    }
+
+    function renderProjects(projects) {
+      if (!projects.length) {
+        return '<p class="portal-muted">No projects have been shared to your portal yet.</p>';
+      }
+
+      return `
+        <div class="project-list">
+          ${projects.map(project => `
+            <div class="project-item">
+              <p class="project-name">${escapeHtml(project.projectName || "Unnamed Project")}</p>
+              <p class="project-status">Status: ${escapeHtml(project.status || "Not set")}</p>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    loadPortal();
+  </script>
 </body>
 </html>

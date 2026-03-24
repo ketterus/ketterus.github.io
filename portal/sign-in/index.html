@@ -50,12 +50,10 @@
       font: inherit;
       cursor: pointer;
     }
-    .status {
+    .fine-print {
       margin-top: 1rem;
-      color: #444;
-    }
-    .error {
-      color: #8b1e1e;
+      color: #666;
+      font-size: 0.95rem;
     }
   </style>
 </head>
@@ -65,7 +63,7 @@
       <h1 class="signin-title">Client Portal Sign-In</h1>
       <p class="signin-help">Enter the email address and ZIP code associated with your account. If your information matches our records, we will email you a secure sign-in link.</p>
 
-      <form id="signin-form">
+      <form method="post" action="https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec?action=requestmagiclink">
         <div class="form-row">
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" autocomplete="email" required>
@@ -76,52 +74,11 @@
           <input id="zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" required>
         </div>
 
-        <button type="submit" id="submit-btn">Email Me a Sign-In Link</button>
+        <button type="submit">Email Me a Sign-In Link</button>
       </form>
 
-      <div id="status" class="status"></div>
+      <p class="fine-print">After you submit, you will be taken to a confirmation page.</p>
     </div>
   </main>
-
-  <script>
-    const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec";
-
-    document.getElementById("signin-form").addEventListener("submit", async function(event) {
-      event.preventDefault();
-
-      const statusEl = document.getElementById("status");
-      const submitBtn = document.getElementById("submit-btn");
-      const email = document.getElementById("email").value.trim();
-      const zip = document.getElementById("zip").value.trim();
-
-      statusEl.textContent = "";
-      statusEl.className = "status";
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Sending...";
-
-      try {
-        const response = await fetch(PORTAL_API_URL + "?action=requestmagiclink", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            email: email,
-            zip: zip
-          })
-        });
-
-        const data = await response.json();
-
-        statusEl.textContent = data.message || "If your account information matches our records, a sign-in link has been sent.";
-      } catch (error) {
-        statusEl.textContent = "Unable to process your request right now.";
-        statusEl.className = "status error";
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Email Me a Sign-In Link";
-      }
-    });
-  </script>
 </body>
 </html>
