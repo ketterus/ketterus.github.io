@@ -181,7 +181,6 @@
         statusEl.textContent = "Project report";
         bodyEl.innerHTML = `
           <h1 class="report-title">${escapeHtml(project.projectName || "Project Report")}</h1>
-          <p class="report-subtitle">${escapeHtml(project.projectId || "")}</p>
           <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
         `;
 
@@ -227,10 +226,6 @@
             <div>
               <p class="field-label">Status</p>
               <p class="field-value">${escapeHtml(d.status || "Not set")}</p>
-            </div>
-            <div>
-              <p class="field-label">Public Status</p>
-              <p class="field-value">${escapeHtml(d.publicStatus || "Not set")}</p>
             </div>
             <div>
               <p class="field-label">Address</p>
