@@ -7,7 +7,7 @@
   <link href="/assets/css/site.css" rel="stylesheet">
   <style>
     .report-wrap {
-      max-width: 960px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 2rem 1rem 4rem;
     }
@@ -23,7 +23,7 @@
     }
 
     .report-title {
-      margin: 0 0 0.5rem;
+      margin: 0 0 .5rem;
     }
 
     .report-subtitle {
@@ -46,7 +46,7 @@
 
     .report-link {
       display: inline-block;
-      padding: 0.6rem 0.9rem;
+      padding: .6rem .9rem;
       border: 1px solid #ccc;
       border-radius: 8px;
       text-decoration: none;
@@ -59,33 +59,36 @@
       margin: 0 0 1rem;
     }
 
-    .overview-grid {
+    .overview-grid,
+    .field-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1rem;
     }
 
     .field-label {
-      margin: 0 0 0.25rem;
-      font-size: 0.9rem;
+      margin: 0 0 .25rem;
+      font-size: .9rem;
       color: #666;
     }
 
     .field-value {
       margin: 0;
       font-weight: 600;
+      word-break: break-word;
     }
 
-    .summary-text,
+    .paragraph-text,
     .empty-message {
       margin: 0;
       line-height: 1.5;
       color: #444;
+      white-space: pre-wrap;
     }
 
     .item-list {
       display: grid;
-      gap: 0.75rem;
+      gap: .75rem;
     }
 
     .item-card {
@@ -96,18 +99,41 @@
     }
 
     .item-title {
-      margin: 0 0 0.4rem;
+      margin: 0 0 .4rem;
       font-weight: 700;
     }
 
     .item-meta {
-      margin: 0 0 0.25rem;
+      margin: 0 0 .25rem;
       color: #555;
     }
 
     .item-summary {
       margin: 0;
       color: #666;
+      white-space: pre-wrap;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .report-table th,
+    .report-table td {
+      padding: .7rem;
+      border-bottom: 1px solid #e5e5e5;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .report-table th {
+      font-weight: 700;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -123,14 +149,117 @@
   <script>
     const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycbwEJZwTBLy56OvlOLdICxNhePNZPNODmn3rELZ39ogw1VRBg1RGKLwOz3c2ny2G88WAlA/exec";
 
-    const sectionRenderers = {
-      overview: renderOverviewSection,
-      summary: renderSummarySection,
-      expenses: renderExpensesSection,
-      timeEntries: renderTimeEntriesSection,
-      documents: renderDocumentsSection,
-      updates: renderUpdatesSection
-    };
+    const reportTemplate = [
+      {
+        key: "projectOverview",
+        title: "Project Overview",
+        type: "fields",
+        source: "project",
+        fields: [
+          { label: "Project Name", path: "project.ProjectName" },
+          { label: "Reference", path: "project.ProjectRef" },
+          { label: "Status", path: "project.Status" },
+          { label: "Public Status", path: "project.PublicStatus" },
+          { label: "Address", path: "project.ProjectAddress" },
+          { label: "City", path: "project.City" },
+          { label: "State", path: "project.State" },
+          { label: "ZIP", path: "project.Zip" },
+          { label: "Start Date", path: "project.StartDate", format: "date" },
+          { label: "End Date", path: "project.EndDate", format: "date" }
+        ]
+      },
+      {
+        key: "projectScope",
+        title: "Project Scope",
+        type: "paragraph",
+        path: "project.Notes",
+        hideIfEmpty: true,
+        emptyMessage: "No project scope is available."
+      },
+      {
+        key: "publicSummary",
+        title: "Public Summary",
+        type: "paragraph",
+        path: "project.PublicSummary",
+        hideIfEmpty: true,
+        emptyMessage: "No public summary is available."
+      },
+      {
+        key: "documents",
+        title: "Documents",
+        type: "cards",
+        source: "collections.documents",
+        hideIfEmpty: true,
+        emptyMessage: "No documents are available.",
+        cardTitle: "DisplayName",
+        meta: [
+          { label: "Type", key: "DocumentType" },
+          { label: "Status", key: "DocumentStatus" },
+          { label: "Created", key: "CreatedDateTime", format: "date" }
+        ],
+        summary: "ParentType"
+      },
+      {
+        key: "timeEntries",
+        title: "Time Entries",
+        type: "table",
+        source: "collections.timeEntries",
+        hideIfEmpty: true,
+        emptyMessage: "No time entries are available.",
+        columns: [
+          { label: "Date", key: "TimeDate", format: "date" },
+          { label: "Worker", key: "WorkerName" },
+          { label: "Hours", key: "HoursWorked" },
+          { label: "Description", key: "Description" },
+          { label: "Notes", key: "Notes" }
+        ]
+      },
+      {
+        key: "expenses",
+        title: "Expenses",
+        type: "table",
+        source: "collections.expenses",
+        hideIfEmpty: true,
+        emptyMessage: "No expenses are available.",
+        columns: [
+          { label: "Date", key: "ExpenseDate", format: "date" },
+          { label: "Reference", key: "ExpenseRef" },
+          { label: "Description", key: "Description" },
+          { label: "Amount", key: "TotalAmount", format: "currency" },
+          { label: "Notes", key: "Notes" }
+        ]
+      },
+      {
+        key: "expenseAllocations",
+        title: "Expense Allocations",
+        type: "table",
+        source: "collections.expenseAllocations",
+        hideIfEmpty: true,
+        emptyMessage: "No expense allocations are available.",
+        columns: [
+          { label: "Reference", key: "ExpenseAllocationRef" },
+          { label: "Expense ID", key: "ExpenseID" },
+          { label: "Allocated Amount", key: "AllocatedAmount", format: "currency" },
+          { label: "Note", key: "AllocationNote" },
+          { label: "Created", key: "CreatedDate", format: "date" }
+        ]
+      },
+      {
+        key: "serviceRequests",
+        title: "Related Service Requests",
+        type: "cards",
+        source: "collections.serviceRequests",
+        hideIfEmpty: true,
+        emptyMessage: "No related service requests are available.",
+        cardTitle: "ServiceType",
+        meta: [
+          { label: "Created", key: "CreatedDateTime", format: "date" },
+          { label: "Status", key: "Status" },
+          { label: "Urgency", key: "Urgency" }
+        ],
+        summary: "IssueDescription"
+      }
+    ];
 
     function getParams() {
       const params = new URLSearchParams(window.location.search);
@@ -175,17 +304,14 @@
           return;
         }
 
-        const project = data.project || {};
-        const sections = Array.isArray(data.sections) ? data.sections : [];
-
         statusEl.textContent = "Project report";
         bodyEl.innerHTML = `
-          <h1 class="report-title">${escapeHtml(project.projectName || "Project Report")}</h1>
+          <h1 class="report-title">${escapeHtml(read(data, "project.ProjectName") || "Project Report")}</h1>
+          <p class="report-subtitle">${escapeHtml(read(data, "project.ProjectRef") || "")}</p>
           <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
         `;
 
-        sectionsEl.innerHTML = renderSections(sections);
-
+        sectionsEl.innerHTML = renderTemplate(reportTemplate, data);
       } catch (error) {
         statusEl.textContent = "Service unavailable";
         bodyEl.innerHTML = '<p class="report-error">Unable to load report right now.</p>';
@@ -193,7 +319,11 @@
       }
     }
 
-    function renderSections(sections) {
+    function renderTemplate(template, data) {
+      const sections = template
+        .map(section => renderSection(section, data))
+        .filter(Boolean);
+
       if (!sections.length) {
         return `
           <section class="report-section">
@@ -203,163 +333,156 @@
         `;
       }
 
-      return sections.map(renderSection).join("");
+      return sections.join("");
     }
 
-    function renderSection(section) {
-      const type = String(section?.type || "").trim();
-      const renderer = sectionRenderers[type] || renderGenericSection;
-      return renderer(section);
+    function renderSection(section, data) {
+      if (section.type === "fields") {
+        return renderFieldsSection(section, data);
+      }
+
+      if (section.type === "paragraph") {
+        return renderParagraphSection(section, data);
+      }
+
+      if (section.type === "cards") {
+        return renderCardsSection(section, data);
+      }
+
+      if (section.type === "table") {
+        return renderTableSection(section, data);
+      }
+
+      return "";
     }
 
-    function renderOverviewSection(section) {
-      const d = section?.data || {};
+    function renderFieldsSection(section, data) {
+      const fields = (section.fields || []).filter(field => hasValue(read(data, field.path)));
+      if (!fields.length && section.hideIfEmpty) return "";
 
-      return `
-        <section class="report-section">
-          <h2 class="section-title">${escapeHtml(section.title || "Project Overview")}</h2>
-          <div class="overview-grid">
-            <div>
-              <p class="field-label">Project Name</p>
-              <p class="field-value">${escapeHtml(d.projectName || "Not set")}</p>
-            </div>
-            <div>
-              <p class="field-label">Status</p>
-              <p class="field-value">${escapeHtml(d.status || "Not set")}</p>
-            </div>
-            <div>
-              <p class="field-label">Address</p>
-              <p class="field-value">${escapeHtml(d.address || "Not set")}</p>
-            </div>
-            <div>
-              <p class="field-label">Start Date</p>
-              <p class="field-value">${escapeHtml(formatDate(d.startDate))}</p>
-            </div>
-            <div>
-              <p class="field-label">End Date</p>
-              <p class="field-value">${escapeHtml(formatDate(d.endDate))}</p>
-            </div>
+      const content = fields.length
+        ? `
+          <div class="field-grid">
+            ${fields.map(field => `
+              <div>
+                <p class="field-label">${escapeHtml(field.label || "")}</p>
+                <p class="field-value">${escapeHtml(formatValue(read(data, field.path), field.format))}</p>
+              </div>
+            `).join("")}
           </div>
-        </section>
-      `;
-    }
-
-    function renderSummarySection(section) {
-      const d = section?.data || {};
-      return `
-        <section class="report-section">
-          <h2 class="section-title">${escapeHtml(section.title || "Summary")}</h2>
-          <p class="summary-text">${escapeHtml(d.text || "No summary is available.")}</p>
-        </section>
-      `;
-    }
-
-    function renderExpensesSection(section) {
-      const items = Array.isArray(section?.data?.items) ? section.data.items : [];
+        `
+        : `<p class="empty-message">${escapeHtml(section.emptyMessage || "No information is available.")}</p>`;
 
       return `
         <section class="report-section">
-          <h2 class="section-title">${escapeHtml(section.title || "Expenses")}</h2>
-          ${items.length ? `
-            <div class="item-list">
-              ${items.map(item => `
-                <div class="item-card">
-                  <p class="item-title">${escapeHtml(item.description || "Expense")}</p>
-                  ${item.date ? `<p class="item-meta">Date: ${escapeHtml(formatDate(item.date))}</p>` : ""}
-                  ${item.category ? `<p class="item-meta">Category: ${escapeHtml(item.category)}</p>` : ""}
-                  ${item.amount != null ? `<p class="item-meta">Amount: ${escapeHtml(formatCurrency(item.amount))}</p>` : ""}
-                </div>
-              `).join("")}
-            </div>
-          ` : `<p class="empty-message">${escapeHtml(section?.emptyMessage || "No expenses are available.")}</p>`}
+          <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
+          ${content}
         </section>
       `;
     }
 
-    function renderTimeEntriesSection(section) {
-      const items = Array.isArray(section?.data?.items) ? section.data.items : [];
+    function renderParagraphSection(section, data) {
+      const value = read(data, section.path);
+      if (!hasValue(value) && section.hideIfEmpty) return "";
 
       return `
         <section class="report-section">
-          <h2 class="section-title">${escapeHtml(section.title || "Time Entries")}</h2>
-          ${items.length ? `
-            <div class="item-list">
-              ${items.map(item => `
-                <div class="item-card">
-                  <p class="item-title">${escapeHtml(item.staffName || "Time Entry")}</p>
-                  ${item.date ? `<p class="item-meta">Date: ${escapeHtml(formatDate(item.date))}</p>` : ""}
-                  ${item.hours != null ? `<p class="item-meta">Hours: ${escapeHtml(String(item.hours))}</p>` : ""}
-                  ${item.note ? `<p class="item-summary">${escapeHtml(item.note)}</p>` : ""}
-                </div>
-              `).join("")}
-            </div>
-          ` : `<p class="empty-message">${escapeHtml(section?.emptyMessage || "No time entries are available.")}</p>`}
+          <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
+          <p class="paragraph-text">${escapeHtml(hasValue(value) ? String(value) : (section.emptyMessage || "No information is available."))}</p>
         </section>
       `;
     }
 
-    function renderDocumentsSection(section) {
-      const items = Array.isArray(section?.data?.items) ? section.data.items : [];
+    function renderCardsSection(section, data) {
+      const items = read(data, section.source) || [];
+      if ((!Array.isArray(items) || !items.length) && section.hideIfEmpty) return "";
+
+      const content = Array.isArray(items) && items.length
+        ? `
+          <div class="item-list">
+            ${items.map(item => `
+              <div class="item-card">
+                <p class="item-title">${escapeHtml(item[section.cardTitle] || "Item")}</p>
+                ${(section.meta || []).map(meta => {
+                  const value = formatValue(item[meta.key], meta.format);
+                  return hasValue(value)
+                    ? `<p class="item-meta">${escapeHtml(meta.label)}: ${escapeHtml(value)}</p>`
+                    : "";
+                }).join("")}
+                ${hasValue(item[section.summary]) ? `<p class="item-summary">${escapeHtml(item[section.summary])}</p>` : ""}
+              </div>
+            `).join("")}
+          </div>
+        `
+        : `<p class="empty-message">${escapeHtml(section.emptyMessage || "No items are available.")}</p>`;
 
       return `
         <section class="report-section">
-          <h2 class="section-title">${escapeHtml(section.title || "Documents")}</h2>
-          ${items.length ? `
-            <div class="item-list">
-              ${items.map(item => `
-                <div class="item-card">
-                  <p class="item-title">${escapeHtml(item.title || "Document")}</p>
-                  ${item.documentType ? `<p class="item-meta">Type: ${escapeHtml(item.documentType)}</p>` : ""}
-                  ${item.summary ? `<p class="item-summary">${escapeHtml(item.summary)}</p>` : ""}
-                </div>
-              `).join("")}
-            </div>
-          ` : `<p class="empty-message">${escapeHtml(section?.emptyMessage || "No documents are available.")}</p>`}
+          <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
+          ${content}
         </section>
       `;
     }
 
-    function renderUpdatesSection(section) {
-      const items = Array.isArray(section?.data?.items) ? section.data.items : [];
+    function renderTableSection(section, data) {
+      const items = read(data, section.source) || [];
+      if ((!Array.isArray(items) || !items.length) && section.hideIfEmpty) return "";
+
+      const content = Array.isArray(items) && items.length
+        ? `
+          <div class="table-wrap">
+            <table class="report-table">
+              <thead>
+                <tr>
+                  ${(section.columns || []).map(col => `<th>${escapeHtml(col.label)}</th>`).join("")}
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map(item => `
+                  <tr>
+                    ${(section.columns || []).map(col => `
+                      <td>${escapeHtml(formatValue(item[col.key], col.format))}</td>
+                    `).join("")}
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `
+        : `<p class="empty-message">${escapeHtml(section.emptyMessage || "No items are available.")}</p>`;
 
       return `
         <section class="report-section">
-          <h2 class="section-title">${escapeHtml(section.title || "Updates")}</h2>
-          ${items.length ? `
-            <div class="item-list">
-              ${items.map(item => `
-                <div class="item-card">
-                  <p class="item-title">${escapeHtml(item.title || "Update")}</p>
-                  ${item.date ? `<p class="item-meta">Date: ${escapeHtml(formatDate(item.date))}</p>` : ""}
-                  ${item.summary ? `<p class="item-summary">${escapeHtml(item.summary)}</p>` : ""}
-                </div>
-              `).join("")}
-            </div>
-          ` : `<p class="empty-message">${escapeHtml(section?.emptyMessage || "No updates are available.")}</p>`}
+          <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
+          ${content}
         </section>
       `;
     }
 
-    function renderGenericSection(section) {
-      return `
-        <section class="report-section">
-          <h2 class="section-title">${escapeHtml(section?.title || "Section")}</h2>
-          <p class="empty-message">This section type is not yet rendered.</p>
-        </section>
-      `;
+    function read(obj, path) {
+      return String(path || "").split(".").reduce((acc, key) => acc && acc[key], obj);
     }
 
-    function formatDate(value) {
-      if (!value) return "Not set";
-      const d = new Date(value);
-      if (isNaN(d)) return "Not set";
-      return d.toLocaleDateString();
+    function hasValue(value) {
+      return value !== null && value !== undefined && String(value).trim() !== "";
     }
 
-    function formatCurrency(value) {
-      const num = Number(value);
-      if (Number.isNaN(num)) return String(value);
-      return num.toLocaleString(undefined, { style: "currency", currency: "USD" });
+    function formatValue(value, format) {
+      if (!hasValue(value)) return "";
+
+      if (format === "date") {
+        const d = new Date(value);
+        return isNaN(d) ? String(value) : d.toLocaleDateString();
+      }
+
+      if (format === "currency") {
+        const n = Number(value);
+        return Number.isNaN(n)
+          ? String(value)
+          : n.toLocaleString(undefined, { style: "currency", currency: "USD" });
+      }
+
+      return String(value);
     }
 
     function escapeHtml(value) {
