@@ -22,6 +22,19 @@
       margin-bottom: 1rem;
     }
 
+    .menu-status {
+      margin: 0 0 1rem;
+      font-weight: 600;
+    }
+
+    .menu-error {
+      color: #8b1e1e;
+    }
+
+    .menu-muted {
+      color: #666;
+    }
+
     .menu-eyebrow {
       margin: 0 0 .35rem;
       color: #666;
@@ -151,16 +164,8 @@
 <body>
   <main class="menu-wrap">
     <section class="menu-shell">
-      <p class="menu-eyebrow">Project Center</p>
-      <h1 class="menu-title">Menu coming soon</h1>
-      <p class="menu-lead">
-        This area is being prepared for client project navigation. As additional views are added,
-        this page will become the main menu for project reporting and related portal options.
-      </p>
-
-      <div class="menu-actions">
-        <a class="menu-link" href="/portal/">Back to Projects</a>
-      </div>
+      <div id="menu-status" class="menu-status menu-muted">Checking access...</div>
+      <div id="menu-body"></div>
     </section>
 
     <section class="menu-section">
@@ -190,13 +195,63 @@
     </section>
 
     <div class="footer-nav">
-      <a class="footer-menu-link" href="/portal/menu/">
-        <div class="footer-menu-card">
-          <p class="footer-menu-title">Project Center Menu</p>
-          <p class="footer-menu-text">You are here. Full menu options will appear on this page soon.</p>
-        </div>
-      </a>
+      <div class="footer-menu-card">
+        <p class="footer-menu-title">Project Center Menu</p>
+        <p class="footer-menu-text">You are here. Full menu options will appear on this page soon.</p>
+      </div>
     </div>
   </main>
+
+  <script>
+    function getParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        token: (params.get("t") || "").trim()
+      };
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function loadMenu() {
+      const statusEl = document.getElementById("menu-status");
+      const bodyEl = document.getElementById("menu-body");
+      const { token } = getParams();
+
+      if (!token) {
+        statusEl.textContent = "Access link incomplete";
+        statusEl.className = "menu-status menu-error";
+        bodyEl.innerHTML = `
+          <p class="menu-eyebrow">Project Center</p>
+          <h1 class="menu-title">Menu coming soon</h1>
+          <p class="menu-lead">
+            This area is being prepared for client project navigation.
+          </p>
+        `;
+        return;
+      }
+
+      statusEl.style.display = "none";
+      bodyEl.innerHTML = `
+        <p class="menu-eyebrow">Project Center</p>
+        <h1 class="menu-title">Menu coming soon</h1>
+        <p class="menu-lead">
+          This area is being prepared for client project navigation. As additional views are added,
+          this page will become the main menu for project reporting and related portal options.
+        </p>
+        <div class="menu-actions">
+          <a class="menu-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
+        </div>
+      `;
+    }
+
+    loadMenu();
+  </script>
 </body>
 </html>
