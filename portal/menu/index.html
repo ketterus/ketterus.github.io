@@ -121,26 +121,12 @@
       margin-top: 1rem;
     }
 
-    .footer-menu-link {
-      display: block;
-      text-decoration: none;
-      color: inherit;
-    }
-
     .footer-menu-card {
       border: 1px solid #ddd;
       border-radius: 12px;
       padding: 1rem 1.1rem;
       background: #fff;
       box-shadow: 0 2px 8px rgba(0,0,0,.05);
-      transition: border-color .15s ease, box-shadow .15s ease;
-    }
-
-    .footer-menu-link:hover .footer-menu-card,
-    .footer-menu-link:focus .footer-menu-card,
-    .footer-menu-link:focus-visible .footer-menu-card {
-      border-color: #c9c9c9;
-      box-shadow: 0 2px 10px rgba(0,0,0,.06);
     }
 
     .footer-menu-title {
@@ -189,15 +175,14 @@
     <section class="menu-section">
       <h2 class="section-title">Temporary notice</h2>
       <p class="section-text">
-        This placeholder page is active so portal navigation remains intact while the full
-        Project Center menu is being built.
+        This placeholder page keeps portal navigation alive while the full Project Center menu is being built.
       </p>
     </section>
 
     <div class="footer-nav">
       <div class="footer-menu-card">
         <p class="footer-menu-title">Project Center Menu</p>
-        <p class="footer-menu-text">You are here. Full menu options will appear on this page soon.</p>
+        <p class="footer-menu-text">You are here. More menu options will be added to this page.</p>
       </div>
     </div>
   </main>
@@ -225,13 +210,13 @@
       const { token } = getParams();
 
       if (!token) {
-        statusEl.textContent = "Access link incomplete";
+        statusEl.textContent = "Access denied";
         statusEl.className = "menu-status menu-error";
         bodyEl.innerHTML = `
           <p class="menu-eyebrow">Project Center</p>
           <h1 class="menu-title">Menu coming soon</h1>
           <p class="menu-lead">
-            This area is being prepared for client project navigation.
+            This portal link is missing its access token, so secure navigation is unavailable from this page.
           </p>
         `;
         return;

@@ -304,7 +304,7 @@
     </section>
 
     <div class="footer-nav">
-      <a class="footer-menu-link" href="/portal/menu/">
+      <a class="footer-menu-link" id="footer-menu-link" href="#">
         <div class="footer-menu-card">
           <p class="footer-menu-title">Project Center Menu</p>
           <p class="footer-menu-text">Browse all project views and reporting options.</p>
@@ -396,11 +396,24 @@
       };
     }
 
+    function setFooterMenuLink(token) {
+      const link = document.getElementById("footer-menu-link");
+      if (!link) return;
+
+      if (token) {
+        link.href = "/portal/menu/?t=" + encodeURIComponent(token);
+      } else {
+        link.href = "#";
+      }
+    }
+
     async function loadReport() {
       const statusEl = document.getElementById("report-status");
       const bodyEl = document.getElementById("report-body");
       const sectionsEl = document.getElementById("report-sections");
       const { token, projectId } = getParams();
+
+      setFooterMenuLink(token);
 
       if (!token) {
         statusEl.textContent = "Access denied";
