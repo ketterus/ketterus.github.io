@@ -154,7 +154,7 @@
     </div>
 
     <div class="portal-footer-nav">
-      <a class="portal-menu-link" href="/portal/menu/">
+      <a class="portal-menu-link" id="portal-menu-link" href="#">
         <div class="portal-menu-card">
           <p class="portal-menu-title">Project Center Menu</p>
           <p class="portal-menu-text">Browse all project views and reporting options.</p>
@@ -171,9 +171,22 @@
       return (params.get("t") || "").trim();
     }
 
+    function setFooterMenuLink(token) {
+      const link = document.getElementById("portal-menu-link");
+      if (!link) return;
+
+      if (token) {
+        link.href = "/portal/menu/?t=" + encodeURIComponent(token);
+      } else {
+        link.href = "#";
+      }
+    }
+
     async function loadPortal() {
       const bodyEl = document.getElementById("portal-body");
       const token = getToken();
+
+      setFooterMenuLink(token);
 
       if (!token) {
         bodyEl.innerHTML = '<p class="portal-error">This link is missing an access token.</p>';
