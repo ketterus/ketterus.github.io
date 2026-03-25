@@ -9,7 +9,7 @@
     .portal-wrap {
       max-width: 980px;
       margin: 0 auto;
-      padding: 1.5rem 1rem 3rem;
+      padding: 1.25rem 1rem 3rem;
     }
 
     .portal-card {
@@ -19,16 +19,6 @@
       padding: 1.25rem;
       box-shadow: 0 2px 8px rgba(0,0,0,.05);
       margin-bottom: 1rem;
-    }
-
-    .portal-title {
-      margin: 0 0 .5rem;
-      line-height: 1.1;
-    }
-
-    .portal-status {
-      margin: 0 0 .75rem;
-      font-weight: 600;
     }
 
     .portal-muted {
@@ -48,7 +38,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: .75rem;
-      margin-top: .75rem;
+      margin-top: .9rem;
     }
 
     .summary-card {
@@ -77,11 +67,25 @@
       margin-top: 1rem;
     }
 
+    .project-card-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+    }
+
     .project-item {
       border: 1px solid #ddd;
       border-radius: 12px;
       padding: 1rem;
       background: #fafafa;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+
+    .project-card-link:hover .project-item,
+    .project-card-link:focus .project-item,
+    .project-card-link:focus-visible .project-item {
+      border-color: #c9c9c9;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
     }
 
     .project-top {
@@ -90,7 +94,6 @@
       justify-content: space-between;
       align-items: start;
       gap: .75rem;
-      margin-bottom: .75rem;
     }
 
     .project-name {
@@ -106,23 +109,57 @@
       white-space: nowrap;
     }
 
-    .project-link {
-      display: inline-block;
-      padding: .55rem .9rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+    .portal-footer-nav {
+      margin-top: 1rem;
+    }
+
+    .portal-menu-link {
+      display: block;
       text-decoration: none;
-      color: #222;
+      color: inherit;
+    }
+
+    .portal-menu-card {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
       background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .portal-menu-link:hover .portal-menu-card,
+    .portal-menu-link:focus .portal-menu-card,
+    .portal-menu-link:focus-visible .portal-menu-card {
+      border-color: #c9c9c9;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+
+    .portal-menu-title {
+      margin: 0 0 .2rem;
+      font-weight: 700;
+    }
+
+    .portal-menu-text {
+      margin: 0;
+      color: #666;
+      line-height: 1.4;
     }
   </style>
 </head>
 <body>
   <main class="portal-wrap">
     <div class="portal-card">
-      <h1 class="portal-title">Client Portal</h1>
-      <div id="portal-status" class="portal-status">Checking access...</div>
       <div id="portal-body" class="portal-muted">Please wait.</div>
+    </div>
+
+    <div class="portal-footer-nav">
+      <a class="portal-menu-link" href="/portal/menu/">
+        <div class="portal-menu-card">
+          <p class="portal-menu-title">Portal Menu</p>
+          <p class="portal-menu-text">Browse all portal views and reporting options.</p>
+        </div>
+      </a>
     </div>
   </main>
 
@@ -135,12 +172,10 @@
     }
 
     async function loadPortal() {
-      const statusEl = document.getElementById("portal-status");
       const bodyEl = document.getElementById("portal-body");
       const token = getToken();
 
       if (!token) {
-        statusEl.textContent = "Access denied";
         bodyEl.innerHTML = '<p class="portal-error">This link is missing an access token.</p>';
         return;
       }
@@ -151,15 +186,12 @@
         const data = await response.json();
 
         if (!data.success) {
-          statusEl.textContent = "Access denied";
           bodyEl.innerHTML = '<p class="portal-error">' + escapeHtml(data.message || "Access failed.") + '</p>';
           return;
         }
 
         const projects = (data.data && Array.isArray(data.data.projects)) ? data.data.projects : [];
         const statusSummary = summarizeStatuses(projects);
-
-        statusEl.textContent = "Portal active";
 
         bodyEl.innerHTML = `
           <p class="portal-intro">Welcome, <strong>${escapeHtml(data.client.clientName || "Client")}</strong>.</p>
@@ -168,7 +200,6 @@
           ${renderProjects(projects, token)}
         `;
       } catch (error) {
-        statusEl.textContent = "Service unavailable";
         bodyEl.innerHTML = '<p class="portal-error">Unable to load portal right now.</p>';
       }
     }
@@ -227,13 +258,14 @@
       return `
         <div class="project-list">
           ${projects.map(project => `
-            <div class="project-item">
-              <div class="project-top">
-                <p class="project-name">${escapeHtml(project.projectName || "Unnamed Project")}</p>
-                <p class="project-status">Status: ${escapeHtml(project.status || "Not set")}</p>
+            <a class="project-card-link" href="/portal/report/?t=${encodeURIComponent(token)}&p=${encodeURIComponent(project.projectId || "")}">
+              <div class="project-item">
+                <div class="project-top">
+                  <p class="project-name">${escapeHtml(project.projectName || "Unnamed Project")}</p>
+                  <p class="project-status">Status: ${escapeHtml(project.status || "Not set")}</p>
+                </div>
               </div>
-              <a class="project-link" href="/portal/report/?t=${encodeURIComponent(token)}&p=${encodeURIComponent(project.projectId || "")}">View Report</a>
-            </div>
+            </a>
           `).join("")}
         </div>
       `;
