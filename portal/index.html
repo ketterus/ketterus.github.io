@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ketter Home Improvements | Client Portal</title>
+  <title>Ketter Home Improvements | Project Center</title>
   <link href="/assets/css/site.css" rel="stylesheet">
   <style>
     .portal-wrap {
@@ -156,8 +156,8 @@
     <div class="portal-footer-nav">
       <a class="portal-menu-link" href="/portal/menu/">
         <div class="portal-menu-card">
-          <p class="portal-menu-title">Portal Menu</p>
-          <p class="portal-menu-text">Browse all portal views and reporting options.</p>
+          <p class="portal-menu-title">Project Center Menu</p>
+          <p class="portal-menu-text">Browse all project views and reporting options.</p>
         </div>
       </a>
     </div>
@@ -200,7 +200,7 @@
           ${renderProjects(projects, token)}
         `;
       } catch (error) {
-        bodyEl.innerHTML = '<p class="portal-error">Unable to load portal right now.</p>';
+        bodyEl.innerHTML = '<p class="portal-error">Unable to load Project Center right now.</p>';
       }
     }
 
@@ -252,7 +252,7 @@
 
     function renderProjects(projects, token) {
       if (!projects.length) {
-        return '<p class="portal-muted" style="margin-top:1rem;">No projects have been shared to your portal yet.</p>';
+        return '<p class="portal-muted" style="margin-top:1rem;">No projects have been shared to your Project Center yet.</p>';
       }
 
       return `
