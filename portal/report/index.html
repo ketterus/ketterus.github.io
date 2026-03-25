@@ -505,84 +505,91 @@
       `;
     }
 
-    function renderExpensesCombinedSection(section, data) {
-      const expenses = read(data, "collections.expenses") || [];
-      const allocations = read(data, "collections.expenseAllocations") || [];
+function renderExpensesCombinedSection(section, data) {
+  const expenses = read(data, "collections.expenses") || [];
+  const allocations = read(data, "collections.expenseAllocations") || [];
 
-      if ((!Array.isArray(expenses) || !expenses.length) && (!Array.isArray(allocations) || !allocations.length)) {
-        return "";
-      }
+  if ((!Array.isArray(expenses) || !expenses.length) && (!Array.isArray(allocations) || !allocations.length)) {
+    return "";
+  }
 
-      const allocationMap = {};
-      allocations.forEach(item => {
-        const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
-        if (!expenseId) return;
-        if (!allocationMap[expenseId]) allocationMap[expenseId] = [];
-        allocationMap[expenseId].push(item);
-      });
+  const allocationMap = {};
+  allocations.forEach(item => {
+    const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+    if (!expenseId) return;
+    if (!allocationMap[expenseId]) allocationMap[expenseId] = [];
+    allocationMap[expenseId].push(item);
+  });
 
-      const totalExpenses = expenses.reduce((sum, item) => {
-        const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
-        return sum + (Number.isNaN(amount) ? 0 : amount);
-      }, 0);
+  const totalExpenses = expenses.reduce((sum, item) => {
+    const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
+    return sum + (Number.isNaN(amount) ? 0 : amount);
+  }, 0);
 
-      const totalAllocated = allocations.reduce((sum, item) => {
-        const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
-        return sum + (Number.isNaN(amount) ? 0 : amount);
-      }, 0);
+  const totalAllocated = allocations.reduce((sum, item) => {
+    const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+    return sum + (Number.isNaN(amount) ? 0 : amount);
+  }, 0);
 
-      return `
-        <section class="report-section">
-          <h2 class="section-title">Expenses</h2>
-          <p class="section-summary">
-            Total Expenses: ${escapeHtml(formatCurrency(totalExpenses))} •
-            Total Allocated: ${escapeHtml(formatCurrency(totalAllocated))}
-          </p>
-          <div>
-            ${expenses.map(item => {
-              const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
-              const relatedAllocations = allocationMap[expenseId] || [];
-              const vendorLabel = item.VendorID ?? item.vendorId ?? "Vendor not set";
-              const amount = item.TotalAmount ?? item.totalAmount ?? "";
-              const date = item.ExpenseDate ?? item.expenseDate ?? "";
+  return `
+    <section class="report-section">
+      <h2 class="section-title">Expenses</h2>
+      <p class="section-summary">
+        Total Expenses: ${escapeHtml(formatCurrency(totalExpenses))} •
+        Total Allocated: ${escapeHtml(formatCurrency(totalAllocated))}
+      </p>
+      <div>
+        ${expenses.map(item => {
+          const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+          const relatedAllocations = allocationMap[expenseId] || [];
+          const vendorLabel =
+            item.VendorName ||
+            item.vendorName ||
+            item.VendorRef ||
+            item.vendorRef ||
+            item.VendorID ||
+            item.vendorId ||
+            "Vendor not set";
+          const amount = item.TotalAmount ?? item.totalAmount ?? "";
+          const date = item.ExpenseDate ?? item.expenseDate ?? "";
 
-              return `
-                <div class="expense-group">
-                  <div class="expense-header">
-                    <div>
-                      <p class="expense-vendor">${escapeHtml(String(vendorLabel))}</p>
-                    </div>
-                    <div>
-                      <p class="expense-meta">${escapeHtml(formatValue(date, "date"))}</p>
-                    </div>
-                    <div>
-                      <p class="expense-meta">${escapeHtml(formatValue(amount, "currency"))}</p>
-                    </div>
-                  </div>
-
-                  <div class="allocation-list">
-                    ${relatedAllocations.length
-                      ? relatedAllocations.map(allocation => `
-                        <div class="allocation-row">
-                          <p class="allocation-label">${escapeHtml(String(item.Description ?? item.description ?? "Allocation"))}</p>
-                          <p class="allocation-amount">${escapeHtml(formatValue(allocation.AllocatedAmount ?? allocation.allocatedAmount, "currency"))}</p>
-                        </div>
-                      `).join("")
-                      : `
-                        <div class="allocation-row">
-                          <p class="allocation-label">${escapeHtml(String(item.Description ?? item.description ?? "Expense"))}</p>
-                          <p class="allocation-amount">${escapeHtml(formatValue(amount, "currency"))}</p>
-                        </div>
-                      `
-                    }
-                  </div>
+          return `
+            <div class="expense-group">
+              <div class="expense-header">
+                <div>
+                  <p class="expense-vendor">${escapeHtml(String(vendorLabel))}</p>
                 </div>
-              `;
-            }).join("")}
-          </div>
-        </section>
-      `;
-    }
+                <div>
+                  <p class="expense-meta">${escapeHtml(formatValue(date, "date"))}</p>
+                </div>
+                <div>
+                  <p class="expense-meta">${escapeHtml(formatValue(amount, "currency"))}</p>
+                </div>
+              </div>
+
+              <div class="allocation-list">
+                ${relatedAllocations.length
+                  ? relatedAllocations.map(allocation => `
+                    <div class="allocation-row">
+                      <p class="allocation-label">${escapeHtml(String(item.Description ?? item.description ?? "Allocation"))}</p>
+                      <p class="allocation-amount">${escapeHtml(formatValue(allocation.AllocatedAmount ?? allocation.allocatedAmount, "currency"))}</p>
+                    </div>
+                  `).join("")
+                  : `
+                    <div class="allocation-row">
+                      <p class="allocation-label">${escapeHtml(String(item.Description ?? item.description ?? "Expense"))}</p>
+                      <p class="allocation-amount">${escapeHtml(formatValue(amount, "currency"))}</p>
+                    </div>
+                  `
+                }
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
 
     function renderReportTotalsSection(section, data) {
       const timeEntries = read(data, "collections.timeEntries") || [];
