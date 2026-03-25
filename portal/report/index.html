@@ -77,7 +77,7 @@
 
     .field-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 1rem;
     }
 
@@ -130,26 +130,66 @@
       white-space: pre-wrap;
     }
 
-    .table-wrap {
-      overflow-x: auto;
+    .entry-list {
+      display: grid;
+      gap: .85rem;
     }
 
-    .report-table {
-      width: 100%;
-      border-collapse: collapse;
+    .entry-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 1rem;
+      background: #fafafa;
     }
 
-    .report-table th,
-    .report-table td {
-      padding: .7rem;
-      border-bottom: 1px solid #e5e5e5;
-      text-align: left;
-      vertical-align: top;
+    .entry-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: .75rem;
+      margin-bottom: .75rem;
     }
 
-    .report-table th {
+    .entry-title {
+      margin: 0;
       font-weight: 700;
-      white-space: nowrap;
+      line-height: 1.25;
+    }
+
+    .entry-subtitle {
+      margin: 0;
+      color: #555;
+      font-weight: 600;
+    }
+
+    .entry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: .75rem;
+      margin-bottom: .75rem;
+    }
+
+    .entry-label {
+      margin: 0 0 .2rem;
+      font-size: .88rem;
+      color: #666;
+    }
+
+    .entry-value {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .entry-body {
+      margin: 0;
+      color: #444;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .expense-list {
+      display: grid;
+      gap: .85rem;
     }
 
     .expense-group {
@@ -157,14 +197,13 @@
       border-radius: 10px;
       background: #fafafa;
       padding: 1rem;
-      margin-bottom: .85rem;
     }
 
-    .expense-header {
-      display: grid;
-      grid-template-columns: minmax(220px, 1.5fr) minmax(120px, .7fr) minmax(120px, .7fr);
-      gap: 1rem;
-      align-items: start;
+    .expense-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: .75rem;
       margin-bottom: .75rem;
     }
 
@@ -172,39 +211,55 @@
       margin: 0;
       font-weight: 700;
       font-size: 1.05rem;
+      line-height: 1.2;
+    }
+
+    .expense-amount {
+      margin: 0;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .expense-meta {
-      margin: 0;
-      color: #555;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: .75rem;
+      margin-bottom: .8rem;
     }
 
     .allocation-list {
       border-top: 1px solid #e5e5e5;
-      padding-top: .75rem;
+      padding-top: .8rem;
       display: grid;
       gap: .6rem;
     }
 
     .allocation-row {
-      display: grid;
-      grid-template-columns: minmax(220px, 1.5fr) minmax(120px, .7fr);
-      gap: 1rem;
-      align-items: start;
-      padding-left: 1rem;
       border-left: 3px solid #ddd;
+      padding-left: .75rem;
     }
 
-    .allocation-label {
-      margin: 0;
+    .allocation-title {
+      margin: 0 0 .2rem;
       font-weight: 600;
       color: #444;
+      line-height: 1.35;
     }
 
     .allocation-amount {
       margin: 0;
       font-weight: 600;
       color: #222;
+    }
+
+    @media (min-width: 900px) {
+      .entry-grid {
+        grid-template-columns: repeat(3, minmax(140px, 1fr));
+      }
+
+      .expense-meta {
+        grid-template-columns: repeat(3, minmax(140px, 1fr));
+      }
     }
   </style>
 </head>
@@ -245,6 +300,18 @@
         emptyMessage: "No project scope is available."
       },
       {
+        key: "timeEntries",
+        title: "Time Entries",
+        type: "custom",
+        render: renderTimeEntriesSection
+      },
+      {
+        key: "expensesCombined",
+        title: "Expenses",
+        type: "custom",
+        render: renderExpensesCombinedSection
+      },
+      {
         key: "documents",
         title: "Documents",
         type: "cards",
@@ -260,27 +327,6 @@
         summary: ""
       },
       {
-        key: "timeEntries",
-        title: "Time Entries",
-        type: "table",
-        source: "collections.timeEntries",
-        hideIfEmpty: true,
-        emptyMessage: "No time entries are available.",
-        summaryFn: buildTimeEntriesSummary,
-        columns: [
-          { label: "Date", key: "TimeDate", format: "date" },
-          { label: "Worker", key: "WorkerName" },
-          { label: "Hours", key: "HoursWorked" },
-          { label: "Description", key: "Description" }
-        ]
-      },
-      {
-        key: "expensesCombined",
-        title: "Expenses",
-        type: "custom",
-        render: renderExpensesCombinedSection
-      },
-      {
         key: "serviceRequests",
         title: "Related Service Requests",
         type: "cards",
@@ -288,7 +334,6 @@
         hideIfEmpty: true,
         emptyMessage: "No related service requests are available.",
         cardTitle: "ServiceType",
-        condensed: true,
         meta: [
           { label: "Created", key: "CreatedDateTime", format: "date" },
           { label: "Status", key: "Status" },
@@ -389,7 +434,6 @@
       if (section.type === "fields") return renderFieldsSection(section, data);
       if (section.type === "paragraph") return renderParagraphSection(section, data);
       if (section.type === "cards") return renderCardsSection(section, data);
-      if (section.type === "table") return renderTableSection(section, data);
       if (section.type === "custom") return section.render(section, data);
       return "";
     }
@@ -467,129 +511,127 @@
       `;
     }
 
-    function renderTableSection(section, data) {
-      const items = read(data, section.source) || [];
-      if ((!Array.isArray(items) || !items.length) && section.hideIfEmpty) return "";
+    function renderTimeEntriesSection(section, data) {
+      const items = read(data, "collections.timeEntries") || [];
+      if (!Array.isArray(items) || !items.length) return "";
 
-      const summary = typeof section.summaryFn === "function" ? section.summaryFn(items) : "";
-
-      const content = Array.isArray(items) && items.length
-        ? `
-          ${summary ? `<p class="section-summary">${escapeHtml(summary)}</p>` : ""}
-          <div class="table-wrap">
-            <table class="report-table">
-              <thead>
-                <tr>
-                  ${(section.columns || []).map(col => `<th>${escapeHtml(col.label)}</th>`).join("")}
-                </tr>
-              </thead>
-              <tbody>
-                ${items.map(item => `
-                  <tr>
-                    ${(section.columns || []).map(col => `
-                      <td>${escapeHtml(formatValue(item[col.key], col.format))}</td>
-                    `).join("")}
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        `
-        : `<p class="empty-message">${escapeHtml(section.emptyMessage || "No items are available.")}</p>`;
+      const summary = buildTimeEntriesSummary(items);
 
       return `
         <section class="report-section">
-          <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
-          ${content}
+          <h2 class="section-title">Time Entries</h2>
+          <p class="section-summary">${escapeHtml(summary)}</p>
+          <div class="entry-list">
+            ${items.map(item => `
+              <div class="entry-card">
+                <div class="entry-top">
+                  <p class="entry-title">${escapeHtml(formatValue(item.TimeDate ?? item.timeDate, "date"))}</p>
+                  <p class="entry-subtitle">${escapeHtml(item.WorkerName ?? item.workerName ?? "")}</p>
+                </div>
+                <div class="entry-grid">
+                  <div>
+                    <p class="entry-label">Hours</p>
+                    <p class="entry-value">${escapeHtml(formatNumber(item.HoursWorked ?? item.hoursWorked ?? ""))}</p>
+                  </div>
+                </div>
+                <p class="entry-body">${escapeHtml(item.Description ?? item.description ?? "")}</p>
+              </div>
+            `).join("")}
+          </div>
         </section>
       `;
     }
 
-function renderExpensesCombinedSection(section, data) {
-  const expenses = read(data, "collections.expenses") || [];
-  const allocations = read(data, "collections.expenseAllocations") || [];
+    function renderExpensesCombinedSection(section, data) {
+      const expenses = read(data, "collections.expenses") || [];
+      const allocations = read(data, "collections.expenseAllocations") || [];
 
-  if ((!Array.isArray(expenses) || !expenses.length) && (!Array.isArray(allocations) || !allocations.length)) {
-    return "";
-  }
+      if ((!Array.isArray(expenses) || !expenses.length) && (!Array.isArray(allocations) || !allocations.length)) {
+        return "";
+      }
 
-  const allocationMap = {};
-  allocations.forEach(item => {
-    const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
-    if (!expenseId) return;
-    if (!allocationMap[expenseId]) allocationMap[expenseId] = [];
-    allocationMap[expenseId].push(item);
-  });
+      const allocationMap = {};
+      allocations.forEach(item => {
+        const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+        if (!expenseId) return;
+        if (!allocationMap[expenseId]) allocationMap[expenseId] = [];
+        allocationMap[expenseId].push(item);
+      });
 
-  const totalExpenses = expenses.reduce((sum, item) => {
-    const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
-    return sum + (Number.isNaN(amount) ? 0 : amount);
-  }, 0);
+      const totalExpenses = expenses.reduce((sum, item) => {
+        const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
 
-  const totalAllocated = allocations.reduce((sum, item) => {
-    const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
-    return sum + (Number.isNaN(amount) ? 0 : amount);
-  }, 0);
+      const totalAllocated = allocations.reduce((sum, item) => {
+        const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
 
-  return `
-    <section class="report-section">
-      <h2 class="section-title">Expenses</h2>
-      <p class="section-summary">
-        Total Expenses: ${escapeHtml(formatCurrency(totalExpenses))} •
-        Total Allocated: ${escapeHtml(formatCurrency(totalAllocated))}
-      </p>
-      <div>
-        ${expenses.map(item => {
-          const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
-          const relatedAllocations = allocationMap[expenseId] || [];
-          const vendorLabel =
-            item.VendorName ||
-            item.vendorName ||
-            item.VendorRef ||
-            item.vendorRef ||
-            item.VendorID ||
-            item.vendorId ||
-            "Vendor not set";
-          const amount = item.TotalAmount ?? item.totalAmount ?? "";
-          const date = item.ExpenseDate ?? item.expenseDate ?? "";
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Expenses</h2>
+          <p class="section-summary">
+            Total Expenses: ${escapeHtml(formatCurrency(totalExpenses))} •
+            Total Allocated: ${escapeHtml(formatCurrency(totalAllocated))}
+          </p>
+          <div class="expense-list">
+            ${expenses.map(item => {
+              const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+              const relatedAllocations = allocationMap[expenseId] || [];
+              const vendorLabel =
+                item.VendorName ||
+                item.vendorName ||
+                item.VendorRef ||
+                item.vendorRef ||
+                item.VendorID ||
+                item.vendorId ||
+                "Vendor not set";
+              const amount = item.TotalAmount ?? item.totalAmount ?? "";
+              const date = item.ExpenseDate ?? item.expenseDate ?? "";
 
-          return `
-            <div class="expense-group">
-              <div class="expense-header">
-                <div>
-                  <p class="expense-vendor">${escapeHtml(String(vendorLabel))}</p>
-                </div>
-                <div>
-                  <p class="expense-meta">${escapeHtml(formatValue(date, "date"))}</p>
-                </div>
-                <div>
-                  <p class="expense-meta">${escapeHtml(formatValue(amount, "currency"))}</p>
-                </div>
-              </div>
-
-              <div class="allocation-list">
-                ${relatedAllocations.length
-                  ? relatedAllocations.map(allocation => `
-                    <div class="allocation-row">
-                      <p class="allocation-label">${escapeHtml(String(item.Description ?? item.description ?? "Allocation"))}</p>
-                      <p class="allocation-amount">${escapeHtml(formatValue(allocation.AllocatedAmount ?? allocation.allocatedAmount, "currency"))}</p>
+              return `
+                <div class="expense-group">
+                  <div class="expense-top">
+                    <p class="expense-vendor">${escapeHtml(String(vendorLabel))}</p>
+                    <p class="expense-amount">${escapeHtml(formatValue(amount, "currency"))}</p>
+                  </div>
+                  <div class="expense-meta">
+                    <div>
+                      <p class="entry-label">Date</p>
+                      <p class="entry-value">${escapeHtml(formatValue(date, "date"))}</p>
                     </div>
-                  `).join("")
-                  : `
-                    <div class="allocation-row">
-                      <p class="allocation-label">${escapeHtml(String(item.Description ?? item.description ?? "Expense"))}</p>
-                      <p class="allocation-amount">${escapeHtml(formatValue(amount, "currency"))}</p>
+                    <div>
+                      <p class="entry-label">Allocated Total</p>
+                      <p class="entry-value">${escapeHtml(formatCurrency(relatedAllocations.reduce((sum, allocation) => {
+                        const value = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
+                        return sum + (Number.isNaN(value) ? 0 : value);
+                      }, 0)))}</p>
                     </div>
-                  `
-                }
-              </div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    </section>
-  `;
-}
+                  </div>
+                  <div class="allocation-list">
+                    ${relatedAllocations.length
+                      ? relatedAllocations.map(allocation => `
+                        <div class="allocation-row">
+                          <p class="allocation-title">${escapeHtml(String(item.Description ?? item.description ?? "Allocation"))}</p>
+                          <p class="allocation-amount">${escapeHtml(formatValue(allocation.AllocatedAmount ?? allocation.allocatedAmount, "currency"))}</p>
+                        </div>
+                      `).join("")
+                      : `
+                        <div class="allocation-row">
+                          <p class="allocation-title">${escapeHtml(String(item.Description ?? item.description ?? "Expense"))}</p>
+                          <p class="allocation-amount">${escapeHtml(formatValue(amount, "currency"))}</p>
+                        </div>
+                      `
+                    }
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `;
+    }
 
     function renderReportTotalsSection(section, data) {
       const timeEntries = read(data, "collections.timeEntries") || [];
