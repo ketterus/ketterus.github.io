@@ -23,12 +23,13 @@
     }
 
     .report-title {
-      margin: 0 0 .5rem;
+      margin: 0 0 .35rem;
     }
 
     .report-subtitle {
       margin: 0;
       color: #666;
+      font-weight: 600;
     }
 
     .report-status {
@@ -44,6 +45,15 @@
       color: #666;
     }
 
+    .report-header-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
     .report-link {
       display: inline-block;
       padding: .6rem .9rem;
@@ -52,14 +62,19 @@
       text-decoration: none;
       color: #222;
       background: #fff;
-      margin-top: 1rem;
+      margin-bottom: .25rem;
     }
 
     .section-title {
       margin: 0 0 1rem;
     }
 
-    .overview-grid,
+    .section-summary {
+      margin: 0 0 1rem;
+      color: #666;
+      font-weight: 600;
+    }
+
     .field-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -103,13 +118,14 @@
       font-weight: 700;
     }
 
-    .item-meta {
-      margin: 0 0 .25rem;
+    .item-meta-inline {
+      margin: 0;
       color: #555;
+      line-height: 1.45;
     }
 
     .item-summary {
-      margin: 0;
+      margin: .35rem 0 0;
       color: #666;
       white-space: pre-wrap;
     }
@@ -154,12 +170,9 @@
         key: "projectOverview",
         title: "Project Overview",
         type: "fields",
-        source: "project",
         fields: [
           { label: "Project Name", path: "project.ProjectName" },
-          { label: "Reference", path: "project.ProjectRef" },
           { label: "Status", path: "project.Status" },
-          { label: "Public Status", path: "project.PublicStatus" },
           { label: "Address", path: "project.ProjectAddress" },
           { label: "City", path: "project.City" },
           { label: "State", path: "project.State" },
@@ -177,14 +190,6 @@
         emptyMessage: "No project scope is available."
       },
       {
-        key: "publicSummary",
-        title: "Public Summary",
-        type: "paragraph",
-        path: "project.PublicSummary",
-        hideIfEmpty: true,
-        emptyMessage: "No public summary is available."
-      },
-      {
         key: "documents",
         title: "Documents",
         type: "cards",
@@ -197,7 +202,7 @@
           { label: "Status", key: "DocumentStatus" },
           { label: "Created", key: "CreatedDateTime", format: "date" }
         ],
-        summary: "ParentType"
+        summary: ""
       },
       {
         key: "timeEntries",
@@ -206,43 +211,19 @@
         source: "collections.timeEntries",
         hideIfEmpty: true,
         emptyMessage: "No time entries are available.",
+        summaryFn: buildTimeEntriesSummary,
         columns: [
           { label: "Date", key: "TimeDate", format: "date" },
           { label: "Worker", key: "WorkerName" },
           { label: "Hours", key: "HoursWorked" },
-          { label: "Description", key: "Description" },
-          { label: "Notes", key: "Notes" }
+          { label: "Description", key: "Description" }
         ]
       },
       {
-        key: "expenses",
+        key: "expensesCombined",
         title: "Expenses",
-        type: "table",
-        source: "collections.expenses",
-        hideIfEmpty: true,
-        emptyMessage: "No expenses are available.",
-        columns: [
-          { label: "Date", key: "ExpenseDate", format: "date" },
-          { label: "Reference", key: "ExpenseRef" },
-          { label: "Description", key: "Description" },
-          { label: "Amount", key: "TotalAmount", format: "currency" },
-          { label: "Notes", key: "Notes" }
-        ]
-      },
-      {
-        key: "expenseAllocations",
-        title: "Expense Allocations",
-        type: "table",
-        source: "collections.expenseAllocations",
-        hideIfEmpty: true,
-        emptyMessage: "No expense allocations are available.",
-        columns: [
-          { label: "Reference", key: "ExpenseAllocationRef" },
-          { label: "Expense ID", key: "ExpenseID" },
-          { label: "Allocated Amount", key: "AllocatedAmount", format: "currency" },
-          { label: "Note", key: "AllocationNote" },
-          { label: "Created", key: "CreatedDate", format: "date" }
-        ]
+        type: "custom",
+        render: renderExpensesCombinedSection
       },
       {
         key: "serviceRequests",
@@ -252,12 +233,19 @@
         hideIfEmpty: true,
         emptyMessage: "No related service requests are available.",
         cardTitle: "ServiceType",
+        condensed: true,
         meta: [
           { label: "Created", key: "CreatedDateTime", format: "date" },
           { label: "Status", key: "Status" },
           { label: "Urgency", key: "Urgency" }
         ],
         summary: "IssueDescription"
+      },
+      {
+        key: "reportTotals",
+        title: "Report Totals",
+        type: "custom",
+        render: renderReportTotalsSection
       }
     ];
 
@@ -306,9 +294,15 @@
 
         statusEl.textContent = "Project report";
         bodyEl.innerHTML = `
-          <h1 class="report-title">${escapeHtml(read(data, "project.ProjectName") || "Project Report")}</h1>
-          <p class="report-subtitle">${escapeHtml(read(data, "project.ProjectRef") || "")}</p>
-          <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
+          <div class="report-header-bar">
+            <div>
+              <p class="report-subtitle">Project Report for:</p>
+              <h1 class="report-title">${escapeHtml(read(data, "project.ProjectName") || "Project Report")}</h1>
+            </div>
+            <div>
+              <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
+            </div>
+          </div>
         `;
 
         sectionsEl.innerHTML = renderTemplate(reportTemplate, data);
@@ -337,22 +331,11 @@
     }
 
     function renderSection(section, data) {
-      if (section.type === "fields") {
-        return renderFieldsSection(section, data);
-      }
-
-      if (section.type === "paragraph") {
-        return renderParagraphSection(section, data);
-      }
-
-      if (section.type === "cards") {
-        return renderCardsSection(section, data);
-      }
-
-      if (section.type === "table") {
-        return renderTableSection(section, data);
-      }
-
+      if (section.type === "fields") return renderFieldsSection(section, data);
+      if (section.type === "paragraph") return renderParagraphSection(section, data);
+      if (section.type === "cards") return renderCardsSection(section, data);
+      if (section.type === "table") return renderTableSection(section, data);
+      if (section.type === "custom") return section.render(section, data);
       return "";
     }
 
@@ -400,18 +383,23 @@
       const content = Array.isArray(items) && items.length
         ? `
           <div class="item-list">
-            ${items.map(item => `
-              <div class="item-card">
-                <p class="item-title">${escapeHtml(item[section.cardTitle] || "Item")}</p>
-                ${(section.meta || []).map(meta => {
+            ${items.map(item => {
+              const metaText = (section.meta || [])
+                .map(meta => {
                   const value = formatValue(item[meta.key], meta.format);
-                  return hasValue(value)
-                    ? `<p class="item-meta">${escapeHtml(meta.label)}: ${escapeHtml(value)}</p>`
-                    : "";
-                }).join("")}
-                ${hasValue(item[section.summary]) ? `<p class="item-summary">${escapeHtml(item[section.summary])}</p>` : ""}
-              </div>
-            `).join("")}
+                  return hasValue(value) ? `${meta.label}: ${value}` : "";
+                })
+                .filter(Boolean)
+                .join(" • ");
+
+              return `
+                <div class="item-card">
+                  <p class="item-title">${escapeHtml(item[section.cardTitle] || "Item")}</p>
+                  ${metaText ? `<p class="item-meta-inline">${escapeHtml(metaText)}</p>` : ""}
+                  ${section.summary && hasValue(item[section.summary]) ? `<p class="item-summary">${escapeHtml(item[section.summary])}</p>` : ""}
+                </div>
+              `;
+            }).join("")}
           </div>
         `
         : `<p class="empty-message">${escapeHtml(section.emptyMessage || "No items are available.")}</p>`;
@@ -428,8 +416,11 @@
       const items = read(data, section.source) || [];
       if ((!Array.isArray(items) || !items.length) && section.hideIfEmpty) return "";
 
+      const summary = typeof section.summaryFn === "function" ? section.summaryFn(items) : "";
+
       const content = Array.isArray(items) && items.length
         ? `
+          ${summary ? `<p class="section-summary">${escapeHtml(summary)}</p>` : ""}
           <div class="table-wrap">
             <table class="report-table">
               <thead>
@@ -459,6 +450,151 @@
       `;
     }
 
+    function renderExpensesCombinedSection(section, data) {
+      const expenses = read(data, "collections.expenses") || [];
+      const allocations = read(data, "collections.expenseAllocations") || [];
+
+      if ((!Array.isArray(expenses) || !expenses.length) && (!Array.isArray(allocations) || !allocations.length)) {
+        return "";
+      }
+
+      const allocationMap = {};
+      allocations.forEach(item => {
+        const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+        if (!expenseId) return;
+        if (!allocationMap[expenseId]) {
+          allocationMap[expenseId] = {
+            totalAllocated: 0,
+            count: 0
+          };
+        }
+        const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+        allocationMap[expenseId].totalAllocated += Number.isNaN(amount) ? 0 : amount;
+        allocationMap[expenseId].count += 1;
+      });
+
+      const totalExpenses = expenses.reduce((sum, item) => {
+        const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      const totalAllocated = allocations.reduce((sum, item) => {
+        const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Expenses</h2>
+          <p class="section-summary">
+            Total Expenses: ${escapeHtml(formatCurrency(totalExpenses))} •
+            Total Allocated: ${escapeHtml(formatCurrency(totalAllocated))}
+          </p>
+          <div class="table-wrap">
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Allocated</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${expenses.map(item => {
+                  const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+                  const alloc = allocationMap[expenseId] || { totalAllocated: 0 };
+                  return `
+                    <tr>
+                      <td>${escapeHtml(formatValue(item.ExpenseDate ?? item.expenseDate, "date"))}</td>
+                      <td>${escapeHtml(item.Description ?? item.description ?? "")}</td>
+                      <td>${escapeHtml(formatValue(item.TotalAmount ?? item.totalAmount, "currency"))}</td>
+                      <td>${escapeHtml(formatCurrency(alloc.totalAllocated || 0))}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderReportTotalsSection(section, data) {
+      const timeEntries = read(data, "collections.timeEntries") || [];
+      const expenses = read(data, "collections.expenses") || [];
+      const allocations = read(data, "collections.expenseAllocations") || [];
+      const documents = read(data, "collections.documents") || [];
+      const serviceRequests = read(data, "collections.serviceRequests") || [];
+
+      const totalHours = timeEntries.reduce((sum, item) => {
+        const hours = Number(item.HoursWorked ?? item.hoursWorked ?? 0);
+        return sum + (Number.isNaN(hours) ? 0 : hours);
+      }, 0);
+
+      const totalLaborValue = timeEntries.reduce((sum, item) => {
+        const hours = Number(item.HoursWorked ?? item.hoursWorked ?? 0);
+        const rate = Number(item.HourlyRate ?? item.hourlyRate ?? 0);
+        if (Number.isNaN(hours) || Number.isNaN(rate)) return sum;
+        return sum + (hours * rate);
+      }, 0);
+
+      const totalExpenses = expenses.reduce((sum, item) => {
+        const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      const totalAllocated = allocations.reduce((sum, item) => {
+        const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Report Totals</h2>
+          <div class="field-grid">
+            <div>
+              <p class="field-label">Total Time Entries</p>
+              <p class="field-value">${escapeHtml(String(timeEntries.length))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Hours</p>
+              <p class="field-value">${escapeHtml(formatNumber(totalHours))}</p>
+            </div>
+            <div>
+              <p class="field-label">Estimated Labor Value</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalLaborValue))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Expenses</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalExpenses))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Allocated</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalAllocated))}</p>
+            </div>
+            <div>
+              <p class="field-label">Document Count</p>
+              <p class="field-value">${escapeHtml(String(documents.length))}</p>
+            </div>
+            <div>
+              <p class="field-label">Related Service Requests</p>
+              <p class="field-value">${escapeHtml(String(serviceRequests.length))}</p>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function buildTimeEntriesSummary(items) {
+      const totalHours = items.reduce((sum, item) => {
+        const hours = Number(item.HoursWorked ?? item.hoursWorked ?? 0);
+        return sum + (Number.isNaN(hours) ? 0 : hours);
+      }, 0);
+
+      return `${items.length} entries • ${formatNumber(totalHours)} total hours`;
+    }
+
     function read(obj, path) {
       return String(path || "").split(".").reduce((acc, key) => acc && acc[key], obj);
     }
@@ -476,13 +612,22 @@
       }
 
       if (format === "currency") {
-        const n = Number(value);
-        return Number.isNaN(n)
-          ? String(value)
-          : n.toLocaleString(undefined, { style: "currency", currency: "USD" });
+        return formatCurrency(value);
       }
 
       return String(value);
+    }
+
+    function formatCurrency(value) {
+      const n = Number(value);
+      return Number.isNaN(n)
+        ? String(value ?? "")
+        : n.toLocaleString(undefined, { style: "currency", currency: "USD" });
+    }
+
+    function formatNumber(value) {
+      const n = Number(value);
+      return Number.isNaN(n) ? String(value ?? "") : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
     }
 
     function escapeHtml(value) {
