@@ -55,7 +55,8 @@
       margin-bottom: 1rem;
     }
 
-    .report-link {
+    .report-link,
+    .report-button {
       display: inline-block;
       padding: .55rem .9rem;
       border: 1px solid #ccc;
@@ -64,6 +65,8 @@
       color: #222;
       background: #fff;
       margin-bottom: .2rem;
+      cursor: pointer;
+      font: inherit;
     }
 
     .section-title {
@@ -251,14 +254,72 @@
       line-height: 1.25;
     }
 
-    .footer-nav {
-      margin-top: 1rem;
+    .refund-list {
+      display: grid;
+      gap: .7rem;
     }
 
-    .footer-menu-link {
+    .refund-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fafafa;
+      padding: .85rem .95rem;
+    }
+
+    .refund-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: .5rem;
+      margin-bottom: .45rem;
+    }
+
+    .refund-vendor {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    .refund-amount {
+      margin: 0;
+      font-weight: 700;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .refund-inline {
+      margin: 0 0 .35rem;
+      color: #555;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .refund-body {
+      margin: 0;
+      color: #444;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .footer-nav {
+      margin-top: 1rem;
+      display: grid;
+      gap: .75rem;
+    }
+
+    .footer-menu-link,
+    .footer-menu-button {
       display: block;
       text-decoration: none;
       color: inherit;
+      background: none;
+      border: 0;
+      padding: 0;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
     }
 
     .footer-menu-card {
@@ -272,7 +333,10 @@
 
     .footer-menu-link:hover .footer-menu-card,
     .footer-menu-link:focus .footer-menu-card,
-    .footer-menu-link:focus-visible .footer-menu-card {
+    .footer-menu-link:focus-visible .footer-menu-card,
+    .footer-menu-button:hover .footer-menu-card,
+    .footer-menu-button:focus .footer-menu-card,
+    .footer-menu-button:focus-visible .footer-menu-card {
       border-color: #c9c9c9;
       box-shadow: 0 2px 10px rgba(0,0,0,.06);
     }
@@ -310,6 +374,13 @@
           <p class="footer-menu-text">Browse all project views and reporting options.</p>
         </div>
       </a>
+
+      <button class="footer-menu-button" id="footer-logout-button" type="button">
+        <div class="footer-menu-card">
+          <p class="footer-menu-title">Log Out</p>
+          <p class="footer-menu-text">End access now and require a new secure link next time.</p>
+        </div>
+      </button>
     </div>
   </main>
 
@@ -327,7 +398,7 @@
           { label: "State", path: "project.State" },
           { label: "ZIP", path: "project.Zip" },
           { label: "Status", path: "project.Status" },
-          { label: "Start Date", path: "project.StartDate", format: "date" },
+          { label: "Start Date", path: "project.StartDate", format: "date" }
         ]
       },
       {
@@ -349,6 +420,12 @@
         title: "Expenses",
         type: "custom",
         render: renderExpensesCombinedSection
+      },
+      {
+        key: "refunds",
+        title: "Refunds",
+        type: "custom",
+        render: renderRefundsSection
       },
       {
         key: "documents",
@@ -407,6 +484,33 @@
       }
     }
 
+    function setLogoutAction(token) {
+      const button = document.getElementById("footer-logout-button");
+      if (!button) return;
+
+      button.disabled = !token;
+
+      button.addEventListener("click", async function() {
+        if (!token) {
+          window.location.href = "/portal/";
+          return;
+        }
+
+        const confirmed = window.confirm("Log out of Project Center?");
+        if (!confirmed) return;
+
+        try {
+          button.disabled = true;
+          const url = PORTAL_API_URL + "?mode=logout&t=" + encodeURIComponent(token);
+          await fetch(url, { method: "GET" });
+        } catch (error) {
+          // ignore and still redirect out
+        }
+
+        window.location.href = "/portal/";
+      });
+    }
+
     async function loadReport() {
       const statusEl = document.getElementById("report-status");
       const bodyEl = document.getElementById("report-body");
@@ -414,6 +518,7 @@
       const { token, projectId } = getParams();
 
       setFooterMenuLink(token);
+      setLogoutAction(token);
 
       if (!token) {
         statusEl.textContent = "Access denied";
@@ -675,9 +780,57 @@
       `;
     }
 
+    function renderRefundsSection(section, data) {
+      const refunds = read(data, "collections.refunds") || [];
+      if (!Array.isArray(refunds) || !refunds.length) return "";
+
+      const totalRefunds = refunds.reduce((sum, item) => {
+        const amount = Number(item.RefundAmount ?? item.refundAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Refunds</h2>
+          <p class="section-summary">
+            Total Refunds: ${escapeHtml(formatCurrency(totalRefunds))}
+          </p>
+          <div class="refund-list">
+            ${refunds.map(item => {
+              const vendorLabel =
+                item.VendorName ||
+                item.vendorName ||
+                item.VendorRef ||
+                item.vendorRef ||
+                item.VendorID ||
+                item.vendorId ||
+                "Vendor not set";
+
+              return `
+                <div class="refund-card">
+                  <div class="refund-top">
+                    <p class="refund-vendor">${escapeHtml(String(vendorLabel))}</p>
+                    <p class="refund-amount">${escapeHtml(formatValue(item.RefundAmount ?? item.refundAmount, "currency"))}</p>
+                  </div>
+                  <p class="refund-inline">
+                    ${escapeHtml(formatValue(item.RefundDate ?? item.refundDate, "date"))}
+                    ${hasValue(item.RefundRef ?? item.refundRef) ? " • " + escapeHtml(String(item.RefundRef ?? item.refundRef)) : ""}
+                  </p>
+                  ${hasValue(item.RefundReason ?? item.refundReason)
+                    ? `<p class="refund-body">${escapeHtml(String(item.RefundReason ?? item.refundReason))}</p>`
+                    : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `;
+    }
+
     function renderReportTotalsSection(section, data) {
       const timeEntries = read(data, "collections.timeEntries") || [];
       const expenses = read(data, "collections.expenses") || [];
+      const refunds = read(data, "collections.refunds") || [];
       const allocations = read(data, "collections.expenseAllocations") || [];
       const documents = read(data, "collections.documents") || [];
       const serviceRequests = read(data, "collections.serviceRequests") || [];
@@ -696,6 +849,11 @@
 
       const totalExpenses = expenses.reduce((sum, item) => {
         const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      const totalRefunds = refunds.reduce((sum, item) => {
+        const amount = Number(item.RefundAmount ?? item.refundAmount ?? 0);
         return sum + (Number.isNaN(amount) ? 0 : amount);
       }, 0);
 
@@ -723,6 +881,14 @@
             <div>
               <p class="field-label">Total Expenses</p>
               <p class="field-value">${escapeHtml(formatCurrency(totalExpenses))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Refunds</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalRefunds))}</p>
+            </div>
+            <div>
+              <p class="field-label">Net Expenses</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalExpenses - totalRefunds))}</p>
             </div>
             <div>
               <p class="field-label">Total Allocated</p>
