@@ -492,7 +492,7 @@
 
       button.addEventListener("click", async function() {
         if (!token) {
-          window.location.href = "/portal/";
+          window.location.href = "https://ketter.us/portal/sign-in/";
           return;
         }
 
@@ -504,10 +504,9 @@
           const url = PORTAL_API_URL + "?mode=logout&t=" + encodeURIComponent(token);
           await fetch(url, { method: "GET" });
         } catch (error) {
-          // ignore and still redirect out
         }
 
-        window.location.href = "/portal/";
+        window.location.href = "https://ketter.us/portal/sign-in/";
       });
     }
 

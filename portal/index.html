@@ -111,12 +111,22 @@
 
     .portal-footer-nav {
       margin-top: 1rem;
+      display: grid;
+      gap: .75rem;
     }
 
-    .portal-menu-link {
+    .portal-menu-link,
+    .portal-menu-button {
       display: block;
       text-decoration: none;
       color: inherit;
+      background: none;
+      border: 0;
+      padding: 0;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
     }
 
     .portal-menu-card {
@@ -130,7 +140,10 @@
 
     .portal-menu-link:hover .portal-menu-card,
     .portal-menu-link:focus .portal-menu-card,
-    .portal-menu-link:focus-visible .portal-menu-card {
+    .portal-menu-link:focus-visible .portal-menu-card,
+    .portal-menu-button:hover .portal-menu-card,
+    .portal-menu-button:focus .portal-menu-card,
+    .portal-menu-button:focus-visible .portal-menu-card {
       border-color: #c9c9c9;
       box-shadow: 0 2px 10px rgba(0,0,0,.06);
     }
@@ -160,6 +173,13 @@
           <p class="portal-menu-text">Browse all project views and reporting options.</p>
         </div>
       </a>
+
+      <button class="portal-menu-button" id="portal-logout-button" type="button">
+        <div class="portal-menu-card">
+          <p class="portal-menu-title">Log Out</p>
+          <p class="portal-menu-text">End access now and require a new secure link next time.</p>
+        </div>
+      </button>
     </div>
   </main>
 
@@ -182,11 +202,38 @@
       }
     }
 
+    function setLogoutAction(token) {
+      const button = document.getElementById("portal-logout-button");
+      if (!button) return;
+
+      button.disabled = !token;
+
+      button.addEventListener("click", async function() {
+        if (!token) {
+          window.location.href = "https://ketter.us/portal/sign-in/";
+          return;
+        }
+
+        const confirmed = window.confirm("Log out of Project Center?");
+        if (!confirmed) return;
+
+        try {
+          button.disabled = true;
+          const url = PORTAL_API_URL + "?mode=logout&t=" + encodeURIComponent(token);
+          await fetch(url, { method: "GET" });
+        } catch (error) {
+        }
+
+        window.location.href = "https://ketter.us/portal/sign-in/";
+      });
+    }
+
     async function loadPortal() {
       const bodyEl = document.getElementById("portal-body");
       const token = getToken();
 
       setFooterMenuLink(token);
+      setLogoutAction(token);
 
       if (!token) {
         bodyEl.innerHTML = '<p class="portal-error">This link is missing an access token.</p>';
@@ -207,7 +254,7 @@
         const statusSummary = summarizeStatuses(projects);
 
         bodyEl.innerHTML = `
-          <p class="portal-intro">Welcome, <strong>${escapeHtml(data.client.clientName || "Client")}</strong>.</p>
+          <p class="portal-intro">Welcome, <strong>${escapeHtml((data.client && data.client.clientName) || "Client")}</strong>.</p>
           <p class="portal-intro portal-muted" style="margin-top:.25rem;">Select a project to open its report.</p>
           ${renderStatusSummary(statusSummary)}
           ${renderProjects(projects, token)}
