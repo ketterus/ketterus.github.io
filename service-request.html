@@ -345,403 +345,429 @@
     </div>
   </footer>
 
-  <script>
-    let requesterAutocomplete = null;
-    let serviceAutocomplete = null;
-    let billingAutocomplete = null;
+<script>
+  let requesterAutocomplete = null;
+  let serviceAutocomplete = null;
+  let billingAutocomplete = null;
 
-    const form = document.getElementById("serviceRequestForm");
-    const submitBtn = document.getElementById("submitBtn");
+  const form = document.getElementById("serviceRequestForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const hiddenIframe = document.getElementById("hidden_iframe");
 
-    const serviceSameAsRequester = document.getElementById("ServiceSameAsRequester");
-    const serviceAddressFieldsWrap = document.getElementById("serviceAddressFields");
+  const serviceSameAsRequester = document.getElementById("ServiceSameAsRequester");
+  const serviceAddressFieldsWrap = document.getElementById("serviceAddressFields");
 
-    const billingSameAsRequester = document.getElementById("BillingSameAsRequester");
-    const billingAddressFieldsWrap = document.getElementById("billingAddressFields");
+  const billingSameAsRequester = document.getElementById("BillingSameAsRequester");
+  const billingAddressFieldsWrap = document.getElementById("billingAddressFields");
 
-    const requesterAddressFields = {
-      street1: document.getElementById("RequesterStreet1"),
-      street2: document.getElementById("RequesterStreet2"),
-      city: document.getElementById("RequesterCity"),
-      state: document.getElementById("RequesterState"),
-      zip: document.getElementById("RequesterZip")
-    };
+  const requesterAddressFields = {
+    street1: document.getElementById("RequesterStreet1"),
+    street2: document.getElementById("RequesterStreet2"),
+    city: document.getElementById("RequesterCity"),
+    state: document.getElementById("RequesterState"),
+    zip: document.getElementById("RequesterZip")
+  };
 
-    const serviceAddressFields = {
-      street1: document.getElementById("ServiceStreet1"),
-      street2: document.getElementById("ServiceStreet2"),
-      city: document.getElementById("ServiceCity"),
-      state: document.getElementById("ServiceState"),
-      zip: document.getElementById("ServiceZip")
-    };
+  const serviceAddressFields = {
+    street1: document.getElementById("ServiceStreet1"),
+    street2: document.getElementById("ServiceStreet2"),
+    city: document.getElementById("ServiceCity"),
+    state: document.getElementById("ServiceState"),
+    zip: document.getElementById("ServiceZip")
+  };
 
-    const billingAddressFields = {
-      street1: document.getElementById("BillingStreet1"),
-      street2: document.getElementById("BillingStreet2"),
-      city: document.getElementById("BillingCity"),
-      state: document.getElementById("BillingState"),
-      zip: document.getElementById("BillingZip")
-    };
+  const billingAddressFields = {
+    street1: document.getElementById("BillingStreet1"),
+    street2: document.getElementById("BillingStreet2"),
+    city: document.getElementById("BillingCity"),
+    state: document.getElementById("BillingState"),
+    zip: document.getElementById("BillingZip")
+  };
 
-    function digitsOnly(value) {
-      return String(value || "").replace(/\D/g, "");
+  let submitInProgress = false;
+
+  function digitsOnly(value) {
+    return String(value || "").replace(/\D/g, "");
+  }
+
+  function normalizePhoneInput(input) {
+    input.value = digitsOnly(input.value).slice(0, 11);
+  }
+
+  function normalizePhoneForSubmit(value) {
+    let digits = digitsOnly(value);
+
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.slice(1);
     }
 
-    function normalizePhoneInput(input) {
-      input.value = digitsOnly(input.value).slice(0, 10);
+    return digits;
+  }
+
+  function normalizeZipInput(input) {
+    input.value = digitsOnly(input.value).slice(0, 5);
+  }
+
+  function normalizeStateInput(input) {
+    input.value = String(input.value || "").replace(/[^a-z]/gi, "").toUpperCase().slice(0, 2);
+  }
+
+  function buildAddress(street1, street2, city, state, zip) {
+    const line1 = String(street1 || "").trim();
+    const line2 = String(street2 || "").trim();
+    const cityVal = String(city || "").trim();
+    const stateVal = String(state || "").trim();
+    const zipVal = String(zip || "").trim();
+
+    const streetPart = [line1, line2].filter(Boolean).join(", ");
+    const cityStateZipPart = [cityVal, stateVal, zipVal].filter(Boolean).join(", ");
+
+    return [streetPart, cityStateZipPart].filter(Boolean).join(", ");
+  }
+
+  function setCombinedAddresses() {
+    document.getElementById("RequesterAddress").value = buildAddress(
+      requesterAddressFields.street1.value,
+      requesterAddressFields.street2.value,
+      requesterAddressFields.city.value,
+      requesterAddressFields.state.value,
+      requesterAddressFields.zip.value
+    );
+
+    document.getElementById("ServiceAddress").value = buildAddress(
+      serviceAddressFields.street1.value,
+      serviceAddressFields.street2.value,
+      serviceAddressFields.city.value,
+      serviceAddressFields.state.value,
+      serviceAddressFields.zip.value
+    );
+
+    document.getElementById("BillingAddress").value = buildAddress(
+      billingAddressFields.street1.value,
+      billingAddressFields.street2.value,
+      billingAddressFields.city.value,
+      billingAddressFields.state.value,
+      billingAddressFields.zip.value
+    );
+  }
+
+  function copyAddressFields(source, target) {
+    target.street1.value = source.street1.value;
+    target.street2.value = source.street2.value;
+    target.city.value = source.city.value;
+    target.state.value = source.state.value;
+    target.zip.value = source.zip.value;
+    setCombinedAddresses();
+  }
+
+  function copyRequesterAddressToService() {
+    copyAddressFields(requesterAddressFields, serviceAddressFields);
+  }
+
+  function copyRequesterAddressToBilling() {
+    copyAddressFields(requesterAddressFields, billingAddressFields);
+  }
+
+  function toggleServiceAddressState() {
+    const checked = serviceSameAsRequester.checked;
+
+    if (checked) {
+      copyRequesterAddressToService();
+      serviceAddressFieldsWrap.classList.add("d-none");
+      serviceAddressFields.street1.required = false;
+      serviceAddressFields.city.required = false;
+      serviceAddressFields.state.required = false;
+      serviceAddressFields.zip.required = false;
+    } else {
+      serviceAddressFieldsWrap.classList.remove("d-none");
+      serviceAddressFields.street1.required = true;
+      serviceAddressFields.city.required = true;
+      serviceAddressFields.state.required = true;
+      serviceAddressFields.zip.required = true;
     }
 
-    function normalizeZipInput(input) {
-      input.value = digitsOnly(input.value).slice(0, 5);
+    setCombinedAddresses();
+  }
+
+  function toggleBillingAddressState() {
+    const checked = billingSameAsRequester.checked;
+
+    if (checked) {
+      copyRequesterAddressToBilling();
+      billingAddressFieldsWrap.classList.add("d-none");
+      billingAddressFields.street1.required = false;
+      billingAddressFields.city.required = false;
+      billingAddressFields.state.required = false;
+      billingAddressFields.zip.required = false;
+    } else {
+      billingAddressFieldsWrap.classList.remove("d-none");
+      billingAddressFields.street1.required = true;
+      billingAddressFields.city.required = true;
+      billingAddressFields.state.required = true;
+      billingAddressFields.zip.required = true;
     }
 
-    function normalizeStateInput(input) {
-      input.value = String(input.value || "").replace(/[^a-z]/gi, "").toUpperCase().slice(0, 2);
+    setCombinedAddresses();
+  }
+
+  function fillAddressFieldsFromPlace(prefix, place) {
+    if (!place || !place.address_components) return;
+
+    const street1El = document.getElementById(`${prefix}Street1`);
+    const street2El = document.getElementById(`${prefix}Street2`);
+    const cityEl = document.getElementById(`${prefix}City`);
+    const stateEl = document.getElementById(`${prefix}State`);
+    const zipEl = document.getElementById(`${prefix}Zip`);
+    const fullEl = document.getElementById(`${prefix}Address`);
+
+    let streetNumber = "";
+    let route = "";
+    let city = "";
+    let state = "";
+    let zip = "";
+
+    for (const component of place.address_components) {
+      const types = component.types || [];
+
+      if (types.includes("street_number")) streetNumber = component.long_name;
+      if (types.includes("route")) route = component.long_name;
+      if (types.includes("locality")) city = component.long_name;
+      if (types.includes("postal_town") && !city) city = component.long_name;
+      if (types.includes("administrative_area_level_1")) state = component.short_name;
+      if (types.includes("postal_code")) zip = component.long_name;
     }
 
-    function buildAddress(street1, street2, city, state, zip) {
-      const line1 = String(street1 || "").trim();
-      const line2 = String(street2 || "").trim();
-      const cityVal = String(city || "").trim();
-      const stateVal = String(state || "").trim();
-      const zipVal = String(zip || "").trim();
+    if (street1El) street1El.value = [streetNumber, route].filter(Boolean).join(" ").trim();
+    if (street2El && !street2El.value) street2El.value = "";
+    if (cityEl) cityEl.value = city;
+    if (stateEl) stateEl.value = state;
+    if (zipEl) zipEl.value = zip;
 
-      const streetPart = [line1, line2].filter(Boolean).join(", ");
-      const cityStateZipPart = [cityVal, stateVal, zipVal].filter(Boolean).join(", ");
-
-      return [streetPart, cityStateZipPart].filter(Boolean).join(", ");
-    }
-
-    function setCombinedAddresses() {
-      document.getElementById("RequesterAddress").value = buildAddress(
-        requesterAddressFields.street1.value,
-        requesterAddressFields.street2.value,
-        requesterAddressFields.city.value,
-        requesterAddressFields.state.value,
-        requesterAddressFields.zip.value
-      );
-
-      document.getElementById("ServiceAddress").value = buildAddress(
-        serviceAddressFields.street1.value,
-        serviceAddressFields.street2.value,
-        serviceAddressFields.city.value,
-        serviceAddressFields.state.value,
-        serviceAddressFields.zip.value
-      );
-
-      document.getElementById("BillingAddress").value = buildAddress(
-        billingAddressFields.street1.value,
-        billingAddressFields.street2.value,
-        billingAddressFields.city.value,
-        billingAddressFields.state.value,
-        billingAddressFields.zip.value
-      );
-    }
-
-    function copyAddressFields(source, target) {
-      target.street1.value = source.street1.value;
-      target.street2.value = source.street2.value;
-      target.city.value = source.city.value;
-      target.state.value = source.state.value;
-      target.zip.value = source.zip.value;
-      setCombinedAddresses();
-    }
-
-    function copyRequesterAddressToService() {
-      copyAddressFields(requesterAddressFields, serviceAddressFields);
-    }
-
-    function copyRequesterAddressToBilling() {
-      copyAddressFields(requesterAddressFields, billingAddressFields);
-    }
-
-    function toggleServiceAddressState() {
-      const checked = serviceSameAsRequester.checked;
-
-      if (checked) {
-        copyRequesterAddressToService();
-        serviceAddressFieldsWrap.classList.add("d-none");
-        serviceAddressFields.street1.required = false;
-        serviceAddressFields.city.required = false;
-        serviceAddressFields.state.required = false;
-        serviceAddressFields.zip.required = false;
-      } else {
-        serviceAddressFieldsWrap.classList.remove("d-none");
-        serviceAddressFields.street1.required = true;
-        serviceAddressFields.city.required = true;
-        serviceAddressFields.state.required = true;
-        serviceAddressFields.zip.required = true;
-      }
-
-      setCombinedAddresses();
-    }
-
-    function toggleBillingAddressState() {
-      const checked = billingSameAsRequester.checked;
-
-      if (checked) {
-        copyRequesterAddressToBilling();
-        billingAddressFieldsWrap.classList.add("d-none");
-        billingAddressFields.street1.required = false;
-        billingAddressFields.city.required = false;
-        billingAddressFields.state.required = false;
-        billingAddressFields.zip.required = false;
-      } else {
-        billingAddressFieldsWrap.classList.remove("d-none");
-        billingAddressFields.street1.required = true;
-        billingAddressFields.city.required = true;
-        billingAddressFields.state.required = true;
-        billingAddressFields.zip.required = true;
-      }
-
-      setCombinedAddresses();
-    }
-
-    function fillAddressFieldsFromPlace(prefix, place) {
-      if (!place || !place.address_components) return;
-
-      const street1El = document.getElementById(`${prefix}Street1`);
-      const street2El = document.getElementById(`${prefix}Street2`);
-      const cityEl = document.getElementById(`${prefix}City`);
-      const stateEl = document.getElementById(`${prefix}State`);
-      const zipEl = document.getElementById(`${prefix}Zip`);
-      const fullEl = document.getElementById(`${prefix}Address`);
-
-      let streetNumber = "";
-      let route = "";
-      let city = "";
-      let state = "";
-      let zip = "";
-
-      for (const component of place.address_components) {
-        const types = component.types || [];
-
-        if (types.includes("street_number")) {
-          streetNumber = component.long_name;
-        }
-        if (types.includes("route")) {
-          route = component.long_name;
-        }
-        if (types.includes("locality")) {
-          city = component.long_name;
-        }
-        if (types.includes("postal_town") && !city) {
-          city = component.long_name;
-        }
-        if (types.includes("administrative_area_level_1")) {
-          state = component.short_name;
-        }
-        if (types.includes("postal_code")) {
-          zip = component.long_name;
-        }
-      }
-
-      if (street1El) street1El.value = [streetNumber, route].filter(Boolean).join(" ").trim();
-      if (street2El && !street2El.value) street2El.value = "";
-      if (cityEl) cityEl.value = city;
-      if (stateEl) stateEl.value = state;
-      if (zipEl) zipEl.value = zip;
-
-      if (fullEl) {
-        fullEl.value = buildAddress(
-          street1El ? street1El.value : "",
-          street2El ? street2El.value : "",
-          cityEl ? cityEl.value : "",
-          stateEl ? stateEl.value : "",
-          zipEl ? zipEl.value : ""
-        );
-      }
-
-      if (prefix === "Requester") {
-        if (serviceSameAsRequester.checked) {
-          copyRequesterAddressToService();
-        }
-        if (billingSameAsRequester.checked) {
-          copyRequesterAddressToBilling();
-        }
-      }
-
-      setCombinedAddresses();
-    }
-
-    function createAutocomplete(prefix) {
-      const street1El = document.getElementById(`${prefix}Street1`);
-      if (!street1El || !window.google || !google.maps || !google.maps.places) {
-        return null;
-      }
-
-      const autocomplete = new google.maps.places.Autocomplete(street1El, {
-        types: ["address"],
-        componentRestrictions: { country: "us" },
-        fields: ["address_components", "formatted_address"]
-      });
-
-      autocomplete.addListener("place_changed", function () {
-        const place = autocomplete.getPlace();
-        fillAddressFieldsFromPlace(prefix, place);
-      });
-
-      return autocomplete;
-    }
-
-    function initAddressAutocomplete() {
-      requesterAutocomplete = createAutocomplete("Requester");
-      serviceAutocomplete = createAutocomplete("Service");
-      billingAutocomplete = createAutocomplete("Billing");
-    }
-
-    window.initAddressAutocomplete = initAddressAutocomplete;
-
-    function addressLooksComplete(addressFields) {
-      return !!(
-        String(addressFields.street1.value || "").trim() &&
-        String(addressFields.city.value || "").trim() &&
-        String(addressFields.state.value || "").trim() &&
-        digitsOnly(addressFields.zip.value).length === 5
+    if (fullEl) {
+      fullEl.value = buildAddress(
+        street1El ? street1El.value : "",
+        street2El ? street2El.value : "",
+        cityEl ? cityEl.value : "",
+        stateEl ? stateEl.value : "",
+        zipEl ? zipEl.value : ""
       );
     }
 
-    document.querySelectorAll(".phone-input").forEach(function (input) {
-      input.addEventListener("input", function () {
-        normalizePhoneInput(input);
-      });
-    });
-
-    document.querySelectorAll(".zip-input").forEach(function (input) {
-      input.addEventListener("input", function () {
-        normalizeZipInput(input);
-      });
-    });
-
-    ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
-      const input = document.getElementById(id);
-      input.addEventListener("input", function () {
-        normalizeStateInput(input);
-      });
-    });
-
-    Object.values(requesterAddressFields).forEach(function (input) {
-      input.addEventListener("input", function () {
-        if (serviceSameAsRequester.checked) {
-          copyRequesterAddressToService();
-        }
-        if (billingSameAsRequester.checked) {
-          copyRequesterAddressToBilling();
-        }
-        setCombinedAddresses();
-      });
-    });
-
-    Object.values(serviceAddressFields).forEach(function (input) {
-      input.addEventListener("input", function () {
-        setCombinedAddresses();
-      });
-    });
-
-    Object.values(billingAddressFields).forEach(function (input) {
-      input.addEventListener("input", function () {
-        setCombinedAddresses();
-      });
-    });
-
-    serviceSameAsRequester.addEventListener("change", function () {
-      toggleServiceAddressState();
-    });
-
-    billingSameAsRequester.addEventListener("change", function () {
-      toggleBillingAddressState();
-    });
-
-    form.addEventListener("submit", function (e) {
-      document.querySelectorAll(".phone-input").forEach(function (input) {
-        normalizePhoneInput(input);
-      });
-
-      document.querySelectorAll(".zip-input").forEach(function (input) {
-        normalizeZipInput(input);
-      });
-
-      ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
-        normalizeStateInput(document.getElementById(id));
-      });
-
+    if (prefix === "Requester") {
       if (serviceSameAsRequester.checked) {
         copyRequesterAddressToService();
       }
-
       if (billingSameAsRequester.checked) {
         copyRequesterAddressToBilling();
       }
+    }
 
-      const requesterPhone = document.getElementById("RequesterPhone");
-      const onSitePhone = document.getElementById("OnSiteContactPhone");
+    setCombinedAddresses();
+  }
 
-      if (digitsOnly(requesterPhone.value).length !== 10) {
-        requesterPhone.setCustomValidity("Enter a valid 10-digit phone number.");
-      } else {
-        requesterPhone.setCustomValidity("");
+  function createAutocomplete(prefix) {
+    const street1El = document.getElementById(`${prefix}Street1`);
+    if (!street1El || !window.google || !google.maps || !google.maps.places) {
+      return null;
+    }
+
+    const autocomplete = new google.maps.places.Autocomplete(street1El, {
+      types: ["address"],
+      componentRestrictions: { country: "us" },
+      fields: ["address_components", "formatted_address"]
+    });
+
+    autocomplete.addListener("place_changed", function () {
+      const place = autocomplete.getPlace();
+      fillAddressFieldsFromPlace(prefix, place);
+    });
+
+    return autocomplete;
+  }
+
+  function initAddressAutocomplete() {
+    requesterAutocomplete = createAutocomplete("Requester");
+    serviceAutocomplete = createAutocomplete("Service");
+    billingAutocomplete = createAutocomplete("Billing");
+  }
+
+  window.initAddressAutocomplete = initAddressAutocomplete;
+
+  function addressLooksComplete(addressFields) {
+    return !!(
+      String(addressFields.street1.value || "").trim() &&
+      String(addressFields.city.value || "").trim() &&
+      String(addressFields.state.value || "").trim() &&
+      digitsOnly(addressFields.zip.value).length === 5
+    );
+  }
+
+  function clearCustomValidity() {
+    document.querySelectorAll("input, select, textarea").forEach(function(el) {
+      el.setCustomValidity("");
+    });
+  }
+
+  function resetSubmitButton() {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Submit Request";
+    submitInProgress = false;
+  }
+
+  document.querySelectorAll(".phone-input").forEach(function (input) {
+    input.addEventListener("input", function () {
+      normalizePhoneInput(input);
+    });
+  });
+
+  document.querySelectorAll(".zip-input").forEach(function (input) {
+    input.addEventListener("input", function () {
+      normalizeZipInput(input);
+    });
+  });
+
+  ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
+    const input = document.getElementById(id);
+    input.addEventListener("input", function () {
+      normalizeStateInput(input);
+    });
+  });
+
+  Object.values(requesterAddressFields).forEach(function (input) {
+    input.addEventListener("input", function () {
+      if (serviceSameAsRequester.checked) {
+        copyRequesterAddressToService();
       }
-
-      if (onSitePhone.value && digitsOnly(onSitePhone.value).length !== 10) {
-        onSitePhone.setCustomValidity("Enter a valid 10-digit phone number.");
-      } else {
-        onSitePhone.setCustomValidity("");
+      if (billingSameAsRequester.checked) {
+        copyRequesterAddressToBilling();
       }
-
-      const requesterZip = document.getElementById("RequesterZip");
-      const serviceZip = document.getElementById("ServiceZip");
-      const billingZip = document.getElementById("BillingZip");
-
-      requesterZip.setCustomValidity(digitsOnly(requesterZip.value).length === 5 ? "" : "Enter a 5-digit ZIP code.");
-      serviceZip.setCustomValidity(digitsOnly(serviceZip.value).length === 5 ? "" : "Enter a 5-digit ZIP code.");
-
-      if (!billingSameAsRequester.checked) {
-        billingZip.setCustomValidity(digitsOnly(billingZip.value).length === 5 ? "" : "Enter a 5-digit ZIP code.");
-      } else {
-        billingZip.setCustomValidity("");
-      }
-
       setCombinedAddresses();
+    });
+  });
 
-      if (!addressLooksComplete(requesterAddressFields)) {
-        e.preventDefault();
-        requesterAddressFields.street1.setCustomValidity("Please select or complete a valid requester address.");
-      } else {
-        requesterAddressFields.street1.setCustomValidity("");
-      }
+  Object.values(serviceAddressFields).forEach(function (input) {
+    input.addEventListener("input", function () {
+      setCombinedAddresses();
+    });
+  });
 
-      if (!serviceSameAsRequester.checked && !addressLooksComplete(serviceAddressFields)) {
-        e.preventDefault();
-        serviceAddressFields.street1.setCustomValidity("Please select or complete a valid service address.");
-      } else {
-        serviceAddressFields.street1.setCustomValidity("");
-      }
+  Object.values(billingAddressFields).forEach(function (input) {
+    input.addEventListener("input", function () {
+      setCombinedAddresses();
+    });
+  });
 
-      if (!billingSameAsRequester.checked && !addressLooksComplete(billingAddressFields)) {
-        e.preventDefault();
-        billingAddressFields.street1.setCustomValidity("Please select or complete a valid billing address.");
-      } else {
-        billingAddressFields.street1.setCustomValidity("");
-      }
+  serviceSameAsRequester.addEventListener("change", function () {
+    toggleServiceAddressState();
+  });
 
-      if (!form.checkValidity()) {
-        e.preventDefault();
-        form.classList.add("was-validated");
+  billingSameAsRequester.addEventListener("change", function () {
+    toggleBillingAddressState();
+  });
+
+  hiddenIframe.addEventListener("load", function () {
+    if (!submitInProgress) return;
+
+    try {
+      const doc = hiddenIframe.contentWindow.document;
+      const responseText = doc && doc.body ? doc.body.innerText.trim() : "";
+
+      if (responseText === "OK") {
+        window.location.href = "/request-confirmation.html";
         return;
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Submitting...";
+      resetSubmitButton();
+      alert("There was a problem submitting your request. Please try again or contact us directly.");
+    } catch (err) {
+      resetSubmitButton();
+      alert("We could not confirm your request was submitted. Please try again or contact us directly.");
+    }
+  });
 
-      setTimeout(function () {
-        window.location.href = "/request-confirmation.html";
-      }, 1200);
+  form.addEventListener("submit", function (e) {
+    clearCustomValidity();
+
+    document.querySelectorAll(".phone-input").forEach(function (input) {
+      normalizePhoneInput(input);
     });
 
-    toggleServiceAddressState();
-    toggleBillingAddressState();
+    document.querySelectorAll(".zip-input").forEach(function (input) {
+      normalizeZipInput(input);
+    });
+
+    ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
+      normalizeStateInput(document.getElementById(id));
+    });
+
+    if (serviceSameAsRequester.checked) {
+      copyRequesterAddressToService();
+    }
+
+    if (billingSameAsRequester.checked) {
+      copyRequesterAddressToBilling();
+    }
+
+    const requesterPhone = document.getElementById("RequesterPhone");
+    const onSitePhone = document.getElementById("OnSiteContactPhone");
+
+    requesterPhone.value = normalizePhoneForSubmit(requesterPhone.value);
+    onSitePhone.value = normalizePhoneForSubmit(onSitePhone.value);
+
+    if (requesterPhone.value.length !== 10) {
+      requesterPhone.setCustomValidity("Enter a valid 10-digit US phone number, or 11 digits starting with 1.");
+    }
+
+    if (onSitePhone.value && onSitePhone.value.length !== 10) {
+      onSitePhone.setCustomValidity("Enter a valid 10-digit US phone number, or 11 digits starting with 1.");
+    }
+
+    const requesterZip = document.getElementById("RequesterZip");
+    const serviceZip = document.getElementById("ServiceZip");
+    const billingZip = document.getElementById("BillingZip");
+
+    if (digitsOnly(requesterZip.value).length !== 5) {
+      requesterZip.setCustomValidity("Enter a 5-digit ZIP code.");
+    }
+
+    if (!serviceSameAsRequester.checked && digitsOnly(serviceZip.value).length !== 5) {
+      serviceZip.setCustomValidity("Enter a 5-digit ZIP code.");
+    }
+
+    if (!billingSameAsRequester.checked && digitsOnly(billingZip.value).length !== 5) {
+      billingZip.setCustomValidity("Enter a 5-digit ZIP code.");
+    }
+
     setCombinedAddresses();
-  </script>
+
+    if (!addressLooksComplete(requesterAddressFields)) {
+      requesterAddressFields.street1.setCustomValidity("Please select or complete a valid requester address.");
+    }
+
+    if (!serviceSameAsRequester.checked && !addressLooksComplete(serviceAddressFields)) {
+      serviceAddressFields.street1.setCustomValidity("Please select or complete a valid service address.");
+    }
+
+    if (!billingSameAsRequester.checked && !addressLooksComplete(billingAddressFields)) {
+      billingAddressFields.street1.setCustomValidity("Please select or complete a valid billing address.");
+    }
+
+    if (!form.checkValidity()) {
+      e.preventDefault();
+      form.classList.add("was-validated");
+      resetSubmitButton();
+      return;
+    }
+
+    submitInProgress = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+  });
+
+  toggleServiceAddressState();
+  toggleBillingAddressState();
+  setCombinedAddresses();
+</script>
 
   <script
     async
