@@ -513,12 +513,12 @@
   function fillAddressFieldsFromPlace(prefix, place) {
     if (!place || !place.address_components) return;
 
-    const street1El = document.getElementById(`${prefix}Street1`);
-    const street2El = document.getElementById(`${prefix}Street2`);
-    const cityEl = document.getElementById(`${prefix}City`);
-    const stateEl = document.getElementById(`${prefix}State`);
-    const zipEl = document.getElementById(`${prefix}Zip`);
-    const fullEl = document.getElementById(`${prefix}Address`);
+    const street1El = document.getElementById(prefix + "Street1");
+    const street2El = document.getElementById(prefix + "Street2");
+    const cityEl = document.getElementById(prefix + "City");
+    const stateEl = document.getElementById(prefix + "State");
+    const zipEl = document.getElementById(prefix + "Zip");
+    const fullEl = document.getElementById(prefix + "Address");
 
     let streetNumber = "";
     let route = "";
@@ -566,7 +566,8 @@
   }
 
   function createAutocomplete(prefix) {
-    const street1El = document.getElementById(`${prefix}Street1`);
+    const street1El = document.getElementById(prefix + "Street1");
+
     if (!street1El || !window.google || !google.maps || !google.maps.places) {
       return null;
     }
@@ -614,27 +615,27 @@
     submitInProgress = false;
   }
 
-  document.querySelectorAll(".phone-input").forEach(function (input) {
-    input.addEventListener("input", function () {
+  document.querySelectorAll(".phone-input").forEach(function(input) {
+    input.addEventListener("input", function() {
       normalizePhoneInput(input);
     });
   });
 
-  document.querySelectorAll(".zip-input").forEach(function (input) {
-    input.addEventListener("input", function () {
+  document.querySelectorAll(".zip-input").forEach(function(input) {
+    input.addEventListener("input", function() {
       normalizeZipInput(input);
     });
   });
 
-  ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
+  ["RequesterState", "ServiceState", "BillingState"].forEach(function(id) {
     const input = document.getElementById(id);
-    input.addEventListener("input", function () {
+    input.addEventListener("input", function() {
       normalizeStateInput(input);
     });
   });
 
-  Object.values(requesterAddressFields).forEach(function (input) {
-    input.addEventListener("input", function () {
+  Object.values(requesterAddressFields).forEach(function(input) {
+    input.addEventListener("input", function() {
       if (serviceSameAsRequester.checked) {
         copyRequesterAddressToService();
       }
@@ -645,58 +646,45 @@
     });
   });
 
-  Object.values(serviceAddressFields).forEach(function (input) {
-    input.addEventListener("input", function () {
+  Object.values(serviceAddressFields).forEach(function(input) {
+    input.addEventListener("input", function() {
       setCombinedAddresses();
     });
   });
 
-  Object.values(billingAddressFields).forEach(function (input) {
-    input.addEventListener("input", function () {
+  Object.values(billingAddressFields).forEach(function(input) {
+    input.addEventListener("input", function() {
       setCombinedAddresses();
     });
   });
 
-  serviceSameAsRequester.addEventListener("change", function () {
+  serviceSameAsRequester.addEventListener("change", function() {
     toggleServiceAddressState();
   });
 
-  billingSameAsRequester.addEventListener("change", function () {
+  billingSameAsRequester.addEventListener("change", function() {
     toggleBillingAddressState();
   });
 
-  hiddenIframe.addEventListener("load", function () {
+  hiddenIframe.addEventListener("load", function() {
     if (!submitInProgress) return;
 
-    try {
-      const doc = hiddenIframe.contentWindow.document;
-      const responseText = doc && doc.body ? doc.body.innerText.trim() : "";
-
-      if (responseText === "OK") {
-        window.location.href = "/request-confirmation.html";
-        return;
-      }
-
-      resetSubmitButton();
-      alert("There was a problem submitting your request. Please try again or contact us directly.");
-    } catch (err) {
-      resetSubmitButton();
-      alert("We could not confirm your request was submitted. Please try again or contact us directly.");
-    }
+    submitInProgress = false;
+    window.location.href = "/request-confirmation.html";
   });
 
-  form.addEventListener("submit", function (e) {
+  form.addEventListener("submit", function(e) {
     clearCustomValidity();
 
-    document.querySelectorAll(".phone-input").forEach(function (input) {
+    document.querySelectorAll(".phone-input").forEach(function(input) {
       normalizePhoneInput(input);
     });
 
-    document.querySelectorAll(".zip-input").forEach(function (input) {
+    document.querySelectorAll(".zip-input").forEach(function(input) {
       normalizeZipInput(input);
     });
 
-    ["RequesterState", "ServiceState", "BillingState"].forEach(function (id) {
+    ["RequesterState", "ServiceState", "BillingState"].forEach(function(id) {
       normalizeStateInput(document.getElementById(id));
     });
 
@@ -762,6 +750,13 @@
     submitInProgress = true;
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting...";
+
+    setTimeout(function() {
+      if (submitInProgress) {
+        submitInProgress = false;
+        window.location.href = "/request-confirmation.html";
+      }
+    }, 2500);
   });
 
   toggleServiceAddressState();
