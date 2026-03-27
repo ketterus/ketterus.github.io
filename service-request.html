@@ -66,8 +66,8 @@
               </div>
 
               <div class="col-md-6">
-                <label class="form-label" for="RequesterRelationship">Relationship to Property</label>
-                <select class="form-select" id="RequesterRelationship" name="RequesterRelationship">
+                <label class="form-label required" for="RequesterRelationship">Relationship to Property</label>
+                <select class="form-select" id="RequesterRelationship" name="RequesterRelationship" required>
                   <option value="">Select...</option>
                   <option value="Owner">Owner</option>
                   <option value="Tenant">Tenant</option>
@@ -76,11 +76,12 @@
                   <option value="Agent">Agent</option>
                   <option value="Other">Other</option>
                 </select>
+                <div class="invalid-feedback">Please select your relationship to the property.</div>
               </div>
 
               <div class="col-md-6">
-                <label class="form-label" for="RequesterEmail">Email</label>
-                <input class="form-control" id="RequesterEmail" name="RequesterEmail" type="email" autocomplete="email">
+                <label class="form-label required" for="RequesterEmail">Email</label>
+                <input class="form-control" id="RequesterEmail" name="RequesterEmail" type="email" autocomplete="email" required>
                 <div class="invalid-feedback">Enter a valid email address.</div>
               </div>
 
@@ -98,16 +99,17 @@
                   required
                 >
                 <div class="form-text">US numbers only. Include area code.</div>
-                <div class="invalid-feedback">Enter a valid 10-digit phone number.</div>
+                <div class="invalid-feedback">Enter a valid 10-digit US phone number.</div>
               </div>
 
               <div class="col-md-4">
-                <label class="form-label" for="TextOK">Text OK</label>
-                <select class="form-select" id="TextOK" name="TextOK">
+                <label class="form-label required" for="TextOK">Text OK</label>
+                <select class="form-select" id="TextOK" name="TextOK" required>
                   <option value="">Select...</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </select>
+                <div class="invalid-feedback">Please select Yes or No.</div>
               </div>
 
               <div class="col-12 pt-2">
@@ -150,13 +152,14 @@
               </div>
 
               <div class="col-md-4">
-                <label class="form-label" for="Urgency">Urgency</label>
-                <select class="form-select" id="Urgency" name="Urgency">
+                <label class="form-label required" for="Urgency">Urgency</label>
+                <select class="form-select" id="Urgency" name="Urgency" required>
                   <option value="">Select...</option>
                   <option value="Routine">Routine</option>
                   <option value="Soon">Soon</option>
                   <option value="Urgent">Urgent</option>
                 </select>
+                <div class="invalid-feedback">Please select urgency.</div>
               </div>
 
               <div class="col-md-4">
@@ -186,23 +189,25 @@
               </div>
 
               <div class="col-md-6">
-                <label class="form-label" for="PropertyOccupied">Property Occupied</label>
-                <select class="form-select" id="PropertyOccupied" name="PropertyOccupied">
+                <label class="form-label required" for="PropertyOccupied">Property Occupied</label>
+                <select class="form-select" id="PropertyOccupied" name="PropertyOccupied" required>
                   <option value="">Select...</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                   <option value="Unknown">Unknown</option>
                 </select>
+                <div class="invalid-feedback">Please select property occupied status.</div>
               </div>
 
               <div class="col-md-6">
-                <label class="form-label" for="PermissionToEnter">Permission to Enter</label>
-                <select class="form-select" id="PermissionToEnter" name="PermissionToEnter">
+                <label class="form-label required" for="PermissionToEnter">Permission to Enter</label>
+                <select class="form-select" id="PermissionToEnter" name="PermissionToEnter" required>
                   <option value="">Select...</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                   <option value="Call First">Call First</option>
                 </select>
+                <div class="invalid-feedback">Please select permission to enter.</div>
               </div>
 
               <div class="col-12">
@@ -251,12 +256,13 @@
               </div>
 
               <div class="col-md-6">
-                <label class="form-label" for="OnSiteContactName">On-Site Contact Name</label>
-                <input class="form-control" id="OnSiteContactName" name="OnSiteContactName" autocomplete="name">
+                <label class="form-label required" for="OnSiteContactName">On-Site Contact Name</label>
+                <input class="form-control" id="OnSiteContactName" name="OnSiteContactName" autocomplete="name" required>
+                <div class="invalid-feedback">Please enter the on-site contact name.</div>
               </div>
 
               <div class="col-md-6">
-                <label class="form-label" for="OnSiteContactPhone">On-Site Contact Phone</label>
+                <label class="form-label required" for="OnSiteContactPhone">On-Site Contact Phone</label>
                 <input
                   class="form-control phone-input"
                   id="OnSiteContactPhone"
@@ -266,8 +272,9 @@
                   autocomplete="tel"
                   maxlength="14"
                   placeholder="3045551212"
+                  required
                 >
-                <div class="invalid-feedback">Enter a valid 10-digit phone number.</div>
+                <div class="invalid-feedback">Enter a valid 10-digit US phone number.</div>
               </div>
 
               <div class="col-12">
@@ -396,11 +403,9 @@
 
   function normalizePhoneForSubmit(value) {
     let digits = digitsOnly(value);
-
     if (digits.length === 11 && digits.startsWith("1")) {
       digits = digits.slice(1);
     }
-
     return digits;
   }
 
@@ -538,7 +543,6 @@
     }
 
     if (street1El) street1El.value = [streetNumber, route].filter(Boolean).join(" ").trim();
-    if (street2El && !street2El.value) street2El.value = "";
     if (cityEl) cityEl.value = city;
     if (stateEl) stateEl.value = state;
     if (zipEl) zipEl.value = zip;
@@ -668,7 +672,6 @@
 
   hiddenIframe.addEventListener("load", function() {
     if (!submitInProgress) return;
-
     submitInProgress = false;
     window.location.href = "/request-confirmation.html";
   });
@@ -698,6 +701,13 @@
 
     const requesterPhone = document.getElementById("RequesterPhone");
     const onSitePhone = document.getElementById("OnSiteContactPhone");
+    const requesterRelationship = document.getElementById("RequesterRelationship");
+    const requesterEmail = document.getElementById("RequesterEmail");
+    const textOk = document.getElementById("TextOK");
+    const urgency = document.getElementById("Urgency");
+    const propertyOccupied = document.getElementById("PropertyOccupied");
+    const permissionToEnter = document.getElementById("PermissionToEnter");
+    const onSiteContactName = document.getElementById("OnSiteContactName");
 
     requesterPhone.value = normalizePhoneForSubmit(requesterPhone.value);
     onSitePhone.value = normalizePhoneForSubmit(onSitePhone.value);
@@ -706,8 +716,36 @@
       requesterPhone.setCustomValidity("Enter a valid 10-digit US phone number, or 11 digits starting with 1.");
     }
 
-    if (onSitePhone.value && onSitePhone.value.length !== 10) {
+    if (onSitePhone.value.length !== 10) {
       onSitePhone.setCustomValidity("Enter a valid 10-digit US phone number, or 11 digits starting with 1.");
+    }
+
+    if (!requesterRelationship.value) {
+      requesterRelationship.setCustomValidity("Please select your relationship to the property.");
+    }
+
+    if (!requesterEmail.value.trim()) {
+      requesterEmail.setCustomValidity("Enter a valid email address.");
+    }
+
+    if (!textOk.value) {
+      textOk.setCustomValidity("Please select Yes or No.");
+    }
+
+    if (!urgency.value) {
+      urgency.setCustomValidity("Please select urgency.");
+    }
+
+    if (!propertyOccupied.value) {
+      propertyOccupied.setCustomValidity("Please select property occupied status.");
+    }
+
+    if (!permissionToEnter.value) {
+      permissionToEnter.setCustomValidity("Please select permission to enter.");
+    }
+
+    if (!onSiteContactName.value.trim()) {
+      onSiteContactName.setCustomValidity("Please enter the on-site contact name.");
     }
 
     const requesterZip = document.getElementById("RequesterZip");
