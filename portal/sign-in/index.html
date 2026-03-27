@@ -58,7 +58,7 @@
       <div class="portal-card">
         <div class="mb-4">
           <h1 class="h2 mb-2">Client Login</h1>
-          <p class="text-muted mb-0">Enter the email address and ZIP code associated with your account. If we find a matching portal account, we will send a secure access link to your email.</p>
+          <p class="text-muted mb-0">Enter the email address and ZIP code associated with your account. If we find a matching Project Center account, we will send a secure access link to your email.</p>
         </div>
 
         <form id="portalLookupForm" novalidate>
@@ -186,7 +186,7 @@
         }
 
         showStatus(
-          data.message || "If we found a matching portal account, we sent a secure access link to your email."
+          data.message || "If we found a matching Project Center account, we sent a secure access link to your email."
         );
       } catch (error) {
         showStatus("Unable to complete request right now.", true);
