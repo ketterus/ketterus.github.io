@@ -712,14 +712,17 @@
       allocations.forEach(item => {
         const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
         if (!expenseId) return;
-        if (!allocationMap[expenseId]) allocationMap[expenseId] = [];
-        allocationMap[expenseId].push(item);
+
+        if (!allocationMap[expenseId]) {
+          allocationMap[expenseId] = item;
+        }
       });
 
-      const groupedExpenseIds = Object.keys(allocationMap);
+      const expenseIds = Object.keys(allocationMap);
 
-      const totalAllocated = allocations.reduce((sum, item) => {
-        const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+      const totalAllocated = expenseIds.reduce((sum, expenseId) => {
+        const allocation = allocationMap[expenseId];
+        const amount = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
         return sum + (Number.isNaN(amount) ? 0 : amount);
       }, 0);
 
@@ -730,9 +733,9 @@
             Total Project Expenses: ${escapeHtml(formatCurrency(totalAllocated))}
           </p>
           <div class="expense-list">
-            ${groupedExpenseIds.map(expenseId => {
-              const relatedAllocations = allocationMap[expenseId] || [];
+            ${expenseIds.map(expenseId => {
               const expense = expenseMap[expenseId] || {};
+              const allocation = allocationMap[expenseId] || {};
 
               const vendorLabel =
                 expense.VendorName ||
@@ -744,36 +747,28 @@
                 "Vendor not set";
 
               const date = expense.ExpenseDate ?? expense.expenseDate ?? "";
-              const description = expense.Description ?? expense.description ?? "Allocation";
-
-              const allocatedTotal = relatedAllocations.reduce((sum, allocation) => {
-                const value = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
-                return sum + (Number.isNaN(value) ? 0 : value);
-              }, 0);
+              const allocationAmount = allocation.AllocatedAmount ?? allocation.allocatedAmount ?? "";
+              const allocationLabel =
+                allocation.Description ??
+                allocation.description ??
+                expense.Description ??
+                expense.description ??
+                "Project allocation";
 
               return `
                 <div class="expense-group">
                   <div class="expense-top">
                     <p class="expense-vendor">${escapeHtml(String(vendorLabel))}</p>
-                    <p class="expense-amount">${escapeHtml(formatCurrency(allocatedTotal))}</p>
+                    <p class="expense-amount">${escapeHtml(formatValue(allocationAmount, "currency"))}</p>
                   </div>
                   <p class="expense-inline">
                     ${escapeHtml(formatValue(date, "date"))}
                   </p>
                   <div class="allocation-list">
-                    ${relatedAllocations.map(allocation => `
-                      <div class="allocation-row">
-                        <p class="allocation-title">${escapeHtml(String(
-                          allocation.Description ??
-                          allocation.description ??
-                          description
-                        ))}</p>
-                        <p class="allocation-amount">${escapeHtml(formatValue(
-                          allocation.AllocatedAmount ?? allocation.allocatedAmount,
-                          "currency"
-                        ))}</p>
-                      </div>
-                    `).join("")}
+                    <div class="allocation-row">
+                      <p class="allocation-title">${escapeHtml(String(allocationLabel))}</p>
+                      <p class="allocation-amount">${escapeHtml(formatValue(allocationAmount, "currency"))}</p>
+                    </div>
                   </div>
                 </div>
               `;
