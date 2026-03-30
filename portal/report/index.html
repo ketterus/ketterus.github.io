@@ -187,119 +187,51 @@
       white-space: pre-wrap;
     }
 
-    .expense-list {
-      display: grid;
-      gap: .7rem;
-    }
-
-    .expense-group {
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background: #fafafa;
-      padding: .85rem .95rem;
-    }
-
-    .expense-top {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: .5rem;
-      margin-bottom: .45rem;
-    }
-
-    .expense-vendor {
-      margin: 0;
-      font-weight: 700;
-      font-size: 1rem;
-      line-height: 1.2;
-    }
-
-    .expense-amount {
-      margin: 0;
-      font-weight: 700;
-      white-space: nowrap;
-      line-height: 1.2;
-    }
-
-    .expense-inline {
-      margin: 0 0 .45rem;
-      color: #555;
-      font-weight: 600;
-      line-height: 1.35;
-    }
-
-    .allocation-list {
-      border-top: 1px solid #e5e5e5;
-      padding-top: .55rem;
+    .expense-list,
+    .refund-list {
       display: grid;
       gap: .45rem;
     }
 
-    .allocation-row {
-      border-left: 3px solid #ddd;
-      padding-left: .65rem;
-    }
-
-    .allocation-title {
-      margin: 0 0 .15rem;
-      font-weight: 600;
-      color: #444;
-      line-height: 1.35;
-    }
-
-    .allocation-amount {
-      margin: 0;
-      font-weight: 600;
-      color: #222;
-      line-height: 1.25;
-    }
-
-    .refund-list {
-      display: grid;
-      gap: .7rem;
-    }
-
+    .expense-group,
     .refund-card {
       border: 1px solid #ddd;
       border-radius: 10px;
       background: #fafafa;
-      padding: .85rem .95rem;
+      padding: .7rem .85rem;
     }
 
-    .refund-top {
+    .expense-row,
+    .refund-row {
       display: flex;
-      flex-wrap: wrap;
       justify-content: space-between;
-      gap: .5rem;
-      margin-bottom: .45rem;
+      align-items: baseline;
+      gap: .75rem;
+      flex-wrap: wrap;
     }
 
-    .refund-vendor {
+    .expense-main,
+    .refund-main {
       margin: 0;
       font-weight: 700;
-      font-size: 1rem;
-      line-height: 1.2;
+      line-height: 1.3;
+      color: #222;
     }
 
+    .expense-note,
+    .refund-note {
+      margin: .2rem 0 0;
+      color: #555;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+
+    .expense-amount,
     .refund-amount {
       margin: 0;
       font-weight: 700;
       white-space: nowrap;
       line-height: 1.2;
-    }
-
-    .refund-inline {
-      margin: 0 0 .35rem;
-      color: #555;
-      font-weight: 600;
-      line-height: 1.35;
-    }
-
-    .refund-body {
-      margin: 0;
-      color: #444;
-      line-height: 1.4;
-      white-space: pre-wrap;
     }
 
     .footer-nav {
@@ -704,18 +636,14 @@
       const expenseMap = {};
       expenses.forEach(item => {
         const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
-        if (!expenseId) return;
-        expenseMap[expenseId] = item;
+        if (expenseId) expenseMap[expenseId] = item;
       });
 
       const allocationMap = {};
       allocations.forEach(item => {
         const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
         if (!expenseId) return;
-
-        if (!allocationMap[expenseId]) {
-          allocationMap[expenseId] = item;
-        }
+        if (!allocationMap[expenseId]) allocationMap[expenseId] = item;
       });
 
       const expenseIds = Object.keys(allocationMap);
@@ -746,30 +674,24 @@
                 expense.vendorId ||
                 "Vendor not set";
 
-              const date = expense.ExpenseDate ?? expense.expenseDate ?? "";
+              const date = formatValue(expense.ExpenseDate ?? expense.expenseDate ?? "", "date");
               const allocationAmount = allocation.AllocatedAmount ?? allocation.allocatedAmount ?? "";
-              const allocationLabel =
+              const allocationNote =
                 allocation.Description ??
                 allocation.description ??
                 expense.Description ??
                 expense.description ??
-                "Project allocation";
+                "";
 
               return `
                 <div class="expense-group">
-                  <div class="expense-top">
-                    <p class="expense-vendor">${escapeHtml(String(vendorLabel))}</p>
+                  <div class="expense-row">
+                    <p class="expense-main">${escapeHtml(String(vendorLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
                     <p class="expense-amount">${escapeHtml(formatValue(allocationAmount, "currency"))}</p>
                   </div>
-                  <p class="expense-inline">
-                    ${escapeHtml(formatValue(date, "date"))}
-                  </p>
-                  <div class="allocation-list">
-                    <div class="allocation-row">
-                      <p class="allocation-title">${escapeHtml(String(allocationLabel))}</p>
-                      <p class="allocation-amount">${escapeHtml(formatValue(allocationAmount, "currency"))}</p>
-                    </div>
-                  </div>
+                  ${hasValue(allocationNote)
+                    ? `<p class="expense-note">${escapeHtml(String(allocationNote))}</p>`
+                    : ""}
                 </div>
               `;
             }).join("")}
@@ -804,18 +726,18 @@
                 item.vendorId ||
                 "Vendor not set";
 
+              const date = formatValue(item.RefundDate ?? item.refundDate ?? "", "date");
+              const refundAmount = item.RefundAmount ?? item.refundAmount ?? "";
+              const refundReason = item.RefundReason ?? item.refundReason ?? "";
+
               return `
                 <div class="refund-card">
-                  <div class="refund-top">
-                    <p class="refund-vendor">${escapeHtml(String(vendorLabel))}</p>
-                    <p class="refund-amount">${escapeHtml(formatValue(item.RefundAmount ?? item.refundAmount, "currency"))}</p>
+                  <div class="refund-row">
+                    <p class="refund-main">${escapeHtml(String(vendorLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="refund-amount">${escapeHtml(formatValue(refundAmount, "currency"))}</p>
                   </div>
-                  <p class="refund-inline">
-                    ${escapeHtml(formatValue(item.RefundDate ?? item.refundDate, "date"))}
-                    ${hasValue(item.RefundRef ?? item.refundRef) ? " • " + escapeHtml(String(item.RefundRef ?? item.refundRef)) : ""}
-                  </p>
-                  ${hasValue(item.RefundReason ?? item.refundReason)
-                    ? `<p class="refund-body">${escapeHtml(String(item.RefundReason ?? item.refundReason))}</p>`
+                  ${hasValue(refundReason)
+                    ? `<p class="refund-note">${escapeHtml(String(refundReason))}</p>`
                     : ""}
                 </div>
               `;
