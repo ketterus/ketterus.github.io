@@ -697,9 +697,16 @@
       const expenses = read(data, "collections.expenses") || [];
       const allocations = read(data, "collections.expenseAllocations") || [];
 
-      if ((!Array.isArray(expenses) || !expenses.length) && (!Array.isArray(allocations) || !allocations.length)) {
+      if (!Array.isArray(allocations) || !allocations.length) {
         return "";
       }
+
+      const expenseMap = {};
+      expenses.forEach(item => {
+        const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+        if (!expenseId) return;
+        expenseMap[expenseId] = item;
+      });
 
       const allocationMap = {};
       allocations.forEach(item => {
@@ -709,10 +716,7 @@
         allocationMap[expenseId].push(item);
       });
 
-      const totalExpenses = expenses.reduce((sum, item) => {
-        const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
-        return sum + (Number.isNaN(amount) ? 0 : amount);
-      }, 0);
+      const groupedExpenseIds = Object.keys(allocationMap);
 
       const totalAllocated = allocations.reduce((sum, item) => {
         const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
@@ -723,23 +727,25 @@
         <section class="report-section">
           <h2 class="section-title">Expenses</h2>
           <p class="section-summary">
-            Total Expenses: ${escapeHtml(formatCurrency(totalExpenses))} •
-            Total Allocated: ${escapeHtml(formatCurrency(totalAllocated))}
+            Total Project Expenses: ${escapeHtml(formatCurrency(totalAllocated))}
           </p>
           <div class="expense-list">
-            ${expenses.map(item => {
-              const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+            ${groupedExpenseIds.map(expenseId => {
               const relatedAllocations = allocationMap[expenseId] || [];
+              const expense = expenseMap[expenseId] || {};
+
               const vendorLabel =
-                item.VendorName ||
-                item.vendorName ||
-                item.VendorRef ||
-                item.vendorRef ||
-                item.VendorID ||
-                item.vendorId ||
+                expense.VendorName ||
+                expense.vendorName ||
+                expense.VendorRef ||
+                expense.vendorRef ||
+                expense.VendorID ||
+                expense.vendorId ||
                 "Vendor not set";
-              const amount = item.TotalAmount ?? item.totalAmount ?? "";
-              const date = item.ExpenseDate ?? item.expenseDate ?? "";
+
+              const date = expense.ExpenseDate ?? expense.expenseDate ?? "";
+              const description = expense.Description ?? expense.description ?? "Allocation";
+
               const allocatedTotal = relatedAllocations.reduce((sum, allocation) => {
                 const value = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
                 return sum + (Number.isNaN(value) ? 0 : value);
@@ -749,27 +755,25 @@
                 <div class="expense-group">
                   <div class="expense-top">
                     <p class="expense-vendor">${escapeHtml(String(vendorLabel))}</p>
-                    <p class="expense-amount">${escapeHtml(formatValue(amount, "currency"))}</p>
+                    <p class="expense-amount">${escapeHtml(formatCurrency(allocatedTotal))}</p>
                   </div>
                   <p class="expense-inline">
                     ${escapeHtml(formatValue(date, "date"))}
-                    ${relatedAllocations.length ? " • Allocated: " + escapeHtml(formatCurrency(allocatedTotal)) : ""}
                   </p>
                   <div class="allocation-list">
-                    ${relatedAllocations.length
-                      ? relatedAllocations.map(allocation => `
-                        <div class="allocation-row">
-                          <p class="allocation-title">${escapeHtml(String(item.Description ?? item.description ?? "Allocation"))}</p>
-                          <p class="allocation-amount">${escapeHtml(formatValue(allocation.AllocatedAmount ?? allocation.allocatedAmount, "currency"))}</p>
-                        </div>
-                      `).join("")
-                      : `
-                        <div class="allocation-row">
-                          <p class="allocation-title">${escapeHtml(String(item.Description ?? item.description ?? "Expense"))}</p>
-                          <p class="allocation-amount">${escapeHtml(formatValue(amount, "currency"))}</p>
-                        </div>
-                      `
-                    }
+                    ${relatedAllocations.map(allocation => `
+                      <div class="allocation-row">
+                        <p class="allocation-title">${escapeHtml(String(
+                          allocation.Description ??
+                          allocation.description ??
+                          description
+                        ))}</p>
+                        <p class="allocation-amount">${escapeHtml(formatValue(
+                          allocation.AllocatedAmount ?? allocation.allocatedAmount,
+                          "currency"
+                        ))}</p>
+                      </div>
+                    `).join("")}
                   </div>
                 </div>
               `;
@@ -828,7 +832,6 @@
 
     function renderReportTotalsSection(section, data) {
       const timeEntries = read(data, "collections.timeEntries") || [];
-      const expenses = read(data, "collections.expenses") || [];
       const refunds = read(data, "collections.refunds") || [];
       const allocations = read(data, "collections.expenseAllocations") || [];
       const documents = read(data, "collections.documents") || [];
@@ -846,18 +849,13 @@
         return sum + (hours * rate);
       }, 0);
 
-      const totalExpenses = expenses.reduce((sum, item) => {
-        const amount = Number(item.TotalAmount ?? item.totalAmount ?? 0);
+      const totalProjectExpenses = allocations.reduce((sum, item) => {
+        const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
         return sum + (Number.isNaN(amount) ? 0 : amount);
       }, 0);
 
       const totalRefunds = refunds.reduce((sum, item) => {
         const amount = Number(item.RefundAmount ?? item.refundAmount ?? 0);
-        return sum + (Number.isNaN(amount) ? 0 : amount);
-      }, 0);
-
-      const totalAllocated = allocations.reduce((sum, item) => {
-        const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
         return sum + (Number.isNaN(amount) ? 0 : amount);
       }, 0);
 
@@ -878,20 +876,16 @@
               <p class="field-value">${escapeHtml(formatCurrency(totalLaborValue))}</p>
             </div>
             <div>
-              <p class="field-label">Total Expenses</p>
-              <p class="field-value">${escapeHtml(formatCurrency(totalExpenses))}</p>
+              <p class="field-label">Total Project Expenses</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses))}</p>
             </div>
             <div>
               <p class="field-label">Total Refunds</p>
               <p class="field-value">${escapeHtml(formatCurrency(totalRefunds))}</p>
             </div>
             <div>
-              <p class="field-label">Net Expenses</p>
-              <p class="field-value">${escapeHtml(formatCurrency(totalExpenses - totalRefunds))}</p>
-            </div>
-            <div>
-              <p class="field-label">Total Allocated</p>
-              <p class="field-value">${escapeHtml(formatCurrency(totalAllocated))}</p>
+              <p class="field-label">Net Project Expenses</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses - totalRefunds))}</p>
             </div>
             <div>
               <p class="field-label">Document Count</p>
