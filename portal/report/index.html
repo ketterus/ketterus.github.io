@@ -9,7 +9,7 @@
     .report-wrap {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 1.25rem 1rem 2rem;
+      padding: 1rem .9rem 1.5rem;
     }
 
     .report-shell,
@@ -17,13 +17,13 @@
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 12px;
-      padding: 1.25rem;
+      padding: 1rem;
       box-shadow: 0 2px 8px rgba(0,0,0,.05);
-      margin-bottom: 1rem;
+      margin-bottom: .8rem;
     }
 
     .report-title {
-      margin: 0 0 .35rem;
+      margin: 0 0 .25rem;
       line-height: 1.1;
     }
 
@@ -51,31 +51,31 @@
       flex-wrap: wrap;
       align-items: end;
       justify-content: space-between;
-      gap: .85rem;
-      margin-bottom: 1rem;
+      gap: .75rem;
+      margin-bottom: .9rem;
     }
 
     .report-link,
     .report-button {
       display: inline-block;
-      padding: .55rem .9rem;
+      padding: .5rem .85rem;
       border: 1px solid #ccc;
       border-radius: 8px;
       text-decoration: none;
       color: #222;
       background: #fff;
-      margin-bottom: .2rem;
+      margin-bottom: .15rem;
       cursor: pointer;
       font: inherit;
     }
 
     .section-title {
-      margin: 0 0 .9rem;
+      margin: 0 0 .65rem;
       line-height: 1.15;
     }
 
     .section-summary {
-      margin: 0 0 .85rem;
+      margin: 0 0 .6rem;
       color: #666;
       font-weight: 600;
       line-height: 1.35;
@@ -84,11 +84,11 @@
     .field-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: .85rem;
+      gap: .75rem;
     }
 
     .field-label {
-      margin: 0 0 .2rem;
+      margin: 0 0 .15rem;
       font-size: .88rem;
       color: #666;
     }
@@ -110,18 +110,18 @@
 
     .item-list {
       display: grid;
-      gap: .65rem;
+      gap: .5rem;
     }
 
     .item-card {
       border: 1px solid #ddd;
       border-radius: 10px;
-      padding: .85rem .95rem;
+      padding: .7rem .85rem;
       background: #fafafa;
     }
 
     .item-title {
-      margin: 0 0 .3rem;
+      margin: 0 0 .2rem;
       font-weight: 700;
       line-height: 1.25;
     }
@@ -129,70 +129,25 @@
     .item-meta-inline {
       margin: 0;
       color: #555;
-      line-height: 1.4;
+      line-height: 1.35;
       font-size: .95rem;
     }
 
     .item-summary {
-      margin: .25rem 0 0;
+      margin: .2rem 0 0;
       color: #666;
       white-space: pre-wrap;
-      line-height: 1.4;
-    }
-
-    .entry-list {
-      display: grid;
-      gap: .65rem;
-    }
-
-    .entry-card {
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: .85rem .95rem;
-      background: #fafafa;
-    }
-
-    .entry-top {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: .5rem;
-      margin-bottom: .45rem;
-    }
-
-    .entry-title {
-      margin: 0;
-      font-weight: 700;
-      line-height: 1.2;
-    }
-
-    .entry-subtitle {
-      margin: 0;
-      color: #555;
-      font-weight: 600;
-      line-height: 1.2;
-    }
-
-    .entry-inline {
-      margin: 0 0 .35rem;
-      color: #555;
-      font-weight: 600;
       line-height: 1.35;
     }
 
-    .entry-body {
-      margin: 0;
-      color: #444;
-      line-height: 1.4;
-      white-space: pre-wrap;
-    }
-
+    .entry-list,
     .expense-list,
     .refund-list {
       display: grid;
       gap: .45rem;
     }
 
+    .entry-card,
     .expense-group,
     .refund-card {
       border: 1px solid #ddd;
@@ -201,6 +156,7 @@
       padding: .7rem .85rem;
     }
 
+    .entry-row,
     .expense-row,
     .refund-row {
       display: flex;
@@ -210,6 +166,7 @@
       flex-wrap: wrap;
     }
 
+    .entry-main,
     .expense-main,
     .refund-main {
       margin: 0;
@@ -218,6 +175,7 @@
       color: #222;
     }
 
+    .entry-meta,
     .expense-note,
     .refund-note {
       margin: .2rem 0 0;
@@ -226,6 +184,7 @@
       white-space: pre-wrap;
     }
 
+    .entry-amount,
     .expense-amount,
     .refund-amount {
       margin: 0;
@@ -235,9 +194,9 @@
     }
 
     .footer-nav {
-      margin-top: 1rem;
+      margin-top: .8rem;
       display: grid;
-      gap: .75rem;
+      gap: .6rem;
     }
 
     .footer-menu-link,
@@ -257,7 +216,7 @@
     .footer-menu-card {
       border: 1px solid #ddd;
       border-radius: 12px;
-      padding: 1rem 1.1rem;
+      padding: .7rem .85rem;
       background: #fff;
       box-shadow: 0 2px 8px rgba(0,0,0,.05);
       transition: border-color .15s ease, box-shadow .15s ease;
@@ -274,14 +233,14 @@
     }
 
     .footer-menu-title {
-      margin: 0 0 .2rem;
+      margin: 0 0 .15rem;
       font-weight: 700;
     }
 
     .footer-menu-text {
       margin: 0;
       color: #666;
-      line-height: 1.4;
+      line-height: 1.35;
     }
 
     @media (min-width: 900px) {
@@ -610,16 +569,24 @@
           <h2 class="section-title">Time Entries</h2>
           <p class="section-summary">${escapeHtml(summary)}</p>
           <div class="entry-list">
-            ${items.map(item => `
-              <div class="entry-card">
-                <div class="entry-top">
-                  <p class="entry-title">${escapeHtml(item.WorkerName ?? item.workerName ?? "")}</p>
-                  <p class="entry-subtitle">${escapeHtml(formatValue(item.TimeDate ?? item.timeDate, "date"))}</p>
+            ${items.map(item => {
+              const workerName = item.WorkerName ?? item.workerName ?? "Worker";
+              const date = formatValue(item.TimeDate ?? item.timeDate ?? "", "date");
+              const hours = item.HoursWorked ?? item.hoursWorked ?? "";
+              const description = item.Description ?? item.description ?? "";
+
+              return `
+                <div class="entry-card">
+                  <div class="entry-row">
+                    <p class="entry-main">${escapeHtml(String(workerName))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="entry-amount">${escapeHtml(formatNumber(hours))} hrs</p>
+                  </div>
+                  ${hasValue(description)
+                    ? `<p class="entry-meta">${escapeHtml(String(description))}</p>`
+                    : ""}
                 </div>
-                <p class="entry-inline">Hours: ${escapeHtml(formatNumber(item.HoursWorked ?? item.hoursWorked ?? ""))}</p>
-                <p class="entry-body">${escapeHtml(item.Description ?? item.description ?? "")}</p>
-              </div>
-            `).join("")}
+              `;
+            }).join("")}
           </div>
         </section>
       `;
