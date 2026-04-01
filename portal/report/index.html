@@ -29,7 +29,7 @@
 
     .report-subtitle {
       margin: 0;
-      color: #666;
+      color: #555;
       font-weight: 600;
     }
 
@@ -43,7 +43,7 @@
     }
 
     .report-muted {
-      color: #666;
+      color: #555;
     }
 
     .report-header-bar {
@@ -76,7 +76,7 @@
 
     .section-summary {
       margin: 0 0 .6rem;
-      color: #666;
+      color: #555;
       font-weight: 600;
       line-height: 1.35;
     }
@@ -90,7 +90,7 @@
     .field-label {
       margin: 0 0 .15rem;
       font-size: .88rem;
-      color: #666;
+      color: #555;
     }
 
     .field-value {
@@ -135,7 +135,7 @@
 
     .item-summary {
       margin: .2rem 0 0;
-      color: #666;
+      color: #555;
       white-space: pre-wrap;
       line-height: 1.35;
     }
@@ -239,7 +239,7 @@
 
     .footer-menu-text {
       margin: 0;
-      color: #666;
+      color: #555;
       line-height: 1.35;
     }
 
@@ -284,7 +284,8 @@
         title: "Project Overview",
         type: "fields",
         fields: [
-          { label: "Address", path: "project.Address" },
+          { label: "Street 1", path: "project.Street1" },
+          { label: "Street 2", path: "project.Street2" },
           { label: "City", path: "project.City" },
           { label: "State", path: "project.State" },
           { label: "ZIP", path: "project.Zip" },
@@ -296,7 +297,7 @@
         key: "projectScope",
         title: "Project Scope",
         type: "paragraph",
-        path: "project.Notes",
+        path: "project.Description",
         hideIfEmpty: true,
         emptyMessage: "No project scope is available."
       },
@@ -331,7 +332,7 @@
           { label: "Status", key: "DocumentStatus" },
           { label: "Created", key: "CreatedDateTime", format: "date" }
         ],
-        summary: ""
+        summary: "Description"
       },
       {
         key: "serviceRequests",
