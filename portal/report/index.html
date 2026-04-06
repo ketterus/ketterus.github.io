@@ -142,14 +142,16 @@
 
     .entry-list,
     .expense-list,
-    .refund-list {
+    .refund-list,
+    .payment-list {
       display: grid;
       gap: .45rem;
     }
 
     .entry-card,
     .expense-group,
-    .refund-card {
+    .refund-card,
+    .payment-card {
       border: 1px solid #ddd;
       border-radius: 10px;
       background: #fafafa;
@@ -158,7 +160,8 @@
 
     .entry-row,
     .expense-row,
-    .refund-row {
+    .refund-row,
+    .payment-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
@@ -168,7 +171,8 @@
 
     .entry-main,
     .expense-main,
-    .refund-main {
+    .refund-main,
+    .payment-main {
       margin: 0;
       font-weight: 700;
       line-height: 1.3;
@@ -177,7 +181,8 @@
 
     .entry-meta,
     .expense-note,
-    .refund-note {
+    .refund-note,
+    .payment-note {
       margin: .2rem 0 0;
       color: #555;
       line-height: 1.35;
@@ -186,7 +191,8 @@
 
     .entry-amount,
     .expense-amount,
-    .refund-amount {
+    .refund-amount,
+    .payment-amount {
       margin: 0;
       font-weight: 700;
       white-space: nowrap;
@@ -318,6 +324,12 @@
         title: "Refunds",
         type: "custom",
         render: renderRefundsSection
+      },
+      {
+        key: "payments",
+        title: "Payments",
+        type: "custom",
+        render: renderPaymentsSection
       },
       {
         key: "documents",
@@ -607,19 +619,23 @@
         if (expenseId) expenseMap[expenseId] = item;
       });
 
-      const allocationMap = {};
+      const allocationGroups = {};
       allocations.forEach(item => {
         const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
         if (!expenseId) return;
-        if (!allocationMap[expenseId]) allocationMap[expenseId] = item;
+        if (!allocationGroups[expenseId]) allocationGroups[expenseId] = [];
+        allocationGroups[expenseId].push(item);
       });
 
-      const expenseIds = Object.keys(allocationMap);
+      const expenseIds = Object.keys(allocationGroups);
 
       const totalAllocated = expenseIds.reduce((sum, expenseId) => {
-        const allocation = allocationMap[expenseId];
-        const amount = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
-        return sum + (Number.isNaN(amount) ? 0 : amount);
+        const allocationItems = allocationGroups[expenseId] || [];
+        const expenseTotal = allocationItems.reduce((groupSum, allocation) => {
+          const amount = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
+          return groupSum + (Number.isNaN(amount) ? 0 : amount);
+        }, 0);
+        return sum + expenseTotal;
       }, 0);
 
       return `
@@ -631,7 +647,7 @@
           <div class="expense-list">
             ${expenseIds.map(expenseId => {
               const expense = expenseMap[expenseId] || {};
-              const allocation = allocationMap[expenseId] || {};
+              const allocationItems = allocationGroups[expenseId] || [];
 
               const vendorLabel =
                 expense.VendorName ||
@@ -643,22 +659,37 @@
                 "Vendor not set";
 
               const date = formatValue(expense.ExpenseDate ?? expense.expenseDate ?? "", "date");
-              const allocationAmount = allocation.AllocatedAmount ?? allocation.allocatedAmount ?? "";
-              const allocationNote =
-                allocation.Description ??
-                allocation.description ??
+
+              const expenseTotal = allocationItems.reduce((sum, allocation) => {
+                const amount = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
+                return sum + (Number.isNaN(amount) ? 0 : amount);
+              }, 0);
+
+              const allocationNotes = allocationItems
+                .map(allocation =>
+                  allocation.Description ??
+                  allocation.description ??
+                  ""
+                )
+                .filter(value => hasValue(value));
+
+              const fallbackNote =
                 expense.Description ??
                 expense.description ??
                 "";
+
+              const noteText = allocationNotes.length
+                ? allocationNotes.join("\n")
+                : fallbackNote;
 
               return `
                 <div class="expense-group">
                   <div class="expense-row">
                     <p class="expense-main">${escapeHtml(String(vendorLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
-                    <p class="expense-amount">${escapeHtml(formatValue(allocationAmount, "currency"))}</p>
+                    <p class="expense-amount">${escapeHtml(formatCurrency(expenseTotal))}</p>
                   </div>
-                  ${hasValue(allocationNote)
-                    ? `<p class="expense-note">${escapeHtml(String(allocationNote))}</p>`
+                  ${hasValue(noteText)
+                    ? `<p class="expense-note">${escapeHtml(String(noteText))}</p>`
                     : ""}
                 </div>
               `;
@@ -715,10 +746,59 @@
       `;
     }
 
+    function renderPaymentsSection(section, data) {
+      const payments = read(data, "collections.payments") || [];
+      if (!Array.isArray(payments) || !payments.length) return "";
+
+      const totalPayments = payments.reduce((sum, item) => {
+        const amount = Number(item.PaymentAmount ?? item.paymentAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Payments</h2>
+          <p class="section-summary">
+            Total Payments Received: ${escapeHtml(formatCurrency(totalPayments))}
+          </p>
+          <div class="payment-list">
+            ${payments.map(item => {
+              const paymentMethod =
+                item.PaymentMethod ||
+                item.paymentMethod ||
+                "Payment";
+
+              const date = formatValue(item.PaymentDate ?? item.paymentDate ?? "", "date");
+              const paymentAmount = item.PaymentAmount ?? item.paymentAmount ?? "";
+              const paymentReference = item.PaymentReference ?? item.paymentReference ?? "";
+              const notes = item.Notes ?? item.notes ?? "";
+
+              const noteParts = [];
+              if (hasValue(paymentReference)) noteParts.push("Reference: " + String(paymentReference));
+              if (hasValue(notes)) noteParts.push(String(notes));
+
+              return `
+                <div class="payment-card">
+                  <div class="payment-row">
+                    <p class="payment-main">${escapeHtml(String(paymentMethod))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="payment-amount">${escapeHtml(formatValue(paymentAmount, "currency"))}</p>
+                  </div>
+                  ${noteParts.length
+                    ? `<p class="payment-note">${escapeHtml(noteParts.join("\n"))}</p>`
+                    : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `;
+    }
+
     function renderReportTotalsSection(section, data) {
       const timeEntries = read(data, "collections.timeEntries") || [];
       const refunds = read(data, "collections.refunds") || [];
       const allocations = read(data, "collections.expenseAllocations") || [];
+      const payments = read(data, "collections.payments") || [];
       const documents = read(data, "collections.documents") || [];
       const serviceRequests = read(data, "collections.serviceRequests") || [];
 
@@ -741,6 +821,11 @@
 
       const totalRefunds = refunds.reduce((sum, item) => {
         const amount = Number(item.RefundAmount ?? item.refundAmount ?? 0);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      const totalPayments = payments.reduce((sum, item) => {
+        const amount = Number(item.PaymentAmount ?? item.paymentAmount ?? 0);
         return sum + (Number.isNaN(amount) ? 0 : amount);
       }, 0);
 
@@ -771,6 +856,14 @@
             <div>
               <p class="field-label">Net Project Expenses</p>
               <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses - totalRefunds))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Payments Received</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalPayments))}</p>
+            </div>
+            <div>
+              <p class="field-label">Payment Count</p>
+              <p class="field-value">${escapeHtml(String(payments.length))}</p>
             </div>
             <div>
               <p class="field-label">Document Count</p>
