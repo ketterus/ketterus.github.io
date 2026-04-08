@@ -7,7 +7,7 @@
 
       <div class="topbar-actions">
         {% if projectCenterHeader %}
-          <a href="/portal/" class="btn btn-outline-brand">Back to Projects</a>
+          <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
         {% else %}
           <a href="{{ site.cta_url }}" class="btn btn-brand">{{ site.cta_label }}</a>
           <a href="/portal/sign-in/" class="btn btn-outline-brand">{{ site.project_center_label }}</a>
@@ -17,3 +17,17 @@
     </div>
   </div>
 </nav>
+
+{% if projectCenterHeader %}
+<script>
+  (function () {
+    const link = document.getElementById("projectCenterBackLink");
+    if (!link) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const token = (params.get("t") || "").trim();
+
+    link.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+  })();
+</script>
+{% endif %}

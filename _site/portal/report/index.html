@@ -18,12 +18,26 @@
 
       <div class="topbar-actions">
         
-          <a href="/portal/" class="btn btn-outline-brand">Back to Projects</a>
+          <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
         
       </div>
     </div>
   </div>
 </nav>
+
+
+<script>
+  (function () {
+    const link = document.getElementById("projectCenterBackLink");
+    if (!link) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const token = (params.get("t") || "").trim();
+
+    link.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+  })();
+</script>
+
 
   
 <style>
