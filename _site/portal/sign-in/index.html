@@ -29,22 +29,11 @@
 <main class="page-wrap">
   <div class="site-shell">
     <div class="content-shell">
-      <div class="card-block">
+      <div class="card-block portal-card">
         <div class="card-block-body">
           <div class="mb-4">
-            <h1 class="home-title mb-3">Project Center Sign In</h1>
-            <p class="support-text mb-0">
-              Enter the email address and ZIP code associated with your account. If we find a matching Project Center account, we will send a secure access link to your email.
-            </p>
-          </div>
-
-          <div class="card-block mb-4 portal-note-card">
-            <div class="card-block-body">
-              <p class="mb-0">
-                If you are trying to send project details or request work, use the
-                <a href="/service-request.html">service request form</a>.
-              </p>
-            </div>
+            <h1 class="h2 mb-2">Project Center Sign In</h1>
+            <p class="text-muted mb-0">Enter the email address and ZIP code associated with your account. If we find a matching Project Center account, we will send a secure access link to your email.</p>
           </div>
 
           <form id="portalLookupForm" novalidate>
@@ -81,20 +70,102 @@
               </div>
             </div>
           </form>
+        </div>
+      </div>
 
-          <div id="portalStatusCard" class="card-block portal-hidden portal-status-card mt-4">
-            <div class="card-block-body">
-              <h2 class="h5 mb-3">Status</h2>
-              <div id="portalStatusMessage" class="text-muted">Please wait.</div>
-            </div>
-          </div>
+      <div id="portalStatusCard" class="card-block portal-card portal-hidden mt-3">
+        <div class="card-block-body">
+          <h2 class="h5 mb-3">Status</h2>
+          <div id="portalStatusMessage" class="text-muted">Please wait.</div>
         </div>
       </div>
     </div>
   </div>
 </main>
 
+<script>
+  const PORTAL_LOOKUP_API_URL = "https://script.google.com/macros/s/AKfycbwEJZwTBLy56OvlOLdICxNhePNZPNODmn3rELZ39ogw1VRBg1RGKLwOz3c2ny2G88WAlA/exec";
 
+  const form = document.getElementById("portalLookupForm");
+  const emailInput = document.getElementById("lookupEmail");
+  const zipInput = document.getElementById("lookupZip");
+  const submitBtn = document.getElementById("lookupSubmitBtn");
+
+  const statusCard = document.getElementById("portalStatusCard");
+  const statusMessage = document.getElementById("portalStatusMessage");
+
+  function digitsOnly(value) {
+    return String(value || "").replace(/\D/g, "");
+  }
+
+  function normalizeZipInput() {
+    zipInput.value = digitsOnly(zipInput.value).slice(0, 5);
+  }
+
+  function showStatus(message, isError = false) {
+    statusCard.classList.remove("portal-hidden");
+    statusMessage.textContent = message;
+    statusMessage.className = isError ? "text-danger" : "text-muted";
+  }
+
+  function hideStatus() {
+    statusCard.classList.add("portal-hidden");
+    statusMessage.textContent = "";
+    statusMessage.className = "text-muted";
+  }
+
+  async function submitLookup(event) {
+    event.preventDefault();
+
+    normalizeZipInput();
+    hideStatus();
+
+    emailInput.setCustomValidity("");
+    zipInput.setCustomValidity("");
+
+    if (digitsOnly(zipInput.value).length !== 5) {
+      zipInput.setCustomValidity("Enter a 5-digit ZIP code.");
+    }
+
+    if (!form.checkValidity()) {
+      form.classList.add("was-validated");
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
+
+    showStatus("Please wait...");
+
+    try {
+      const lookupUrl =
+        PORTAL_LOOKUP_API_URL +
+        "?mode=lookup" +
+        "&email=" + encodeURIComponent(String(emailInput.value || "").trim()) +
+        "&zip=" + encodeURIComponent(digitsOnly(zipInput.value));
+
+      const response = await fetch(lookupUrl, { method: "GET" });
+      const data = await response.json();
+
+      if (!data.success) {
+        showStatus(data.message || "Unable to complete request right now.", true);
+        return;
+      }
+
+      showStatus(
+        data.message || "If we found a matching Project Center account, we sent a secure access link to your email."
+      );
+    } catch (error) {
+      showStatus("Unable to complete request right now.", true);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send Secure Link";
+    }
+  }
+
+  zipInput.addEventListener("input", normalizeZipInput);
+  form.addEventListener("submit", submitLookup);
+</script>
 
   <footer class="border-top py-4 mt-5">
   <div class="container-fluid px-3 px-lg-4 text-center">
