@@ -17,9 +17,9 @@
       </a>
 
       <div class="topbar-actions">
-        <a href="/service-request.html" class="btn btn-brand">Request Service</a>
-        <a href="/portal/sign-in/" class="btn btn-outline-brand">Project Center</a>
-        <a href="/menu.html" class="btn btn-menu">Menu</a>
+        
+          <a href="/portal/" class="btn btn-outline-brand">Back to Projects</a>
+        
       </div>
     </div>
   </div>
@@ -45,18 +45,25 @@
 
   .report-title {
     margin: 0 0 .25rem;
-    line-height: 1.1;
+    line-height: 1.08;
+    font-size: 2.1rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    color: #222;
   }
 
   .report-subtitle {
-    margin: 0;
+    margin: 0 0 .2rem;
     color: #555;
     font-weight: 600;
+    font-size: .95rem;
+    line-height: 1.25;
   }
 
   .report-status {
     margin: 0 0 1rem;
     font-weight: 600;
+    color: #222;
   }
 
   .report-error {
@@ -68,12 +75,11 @@
   }
 
   .report-header-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: end;
-    justify-content: space-between;
-    gap: .75rem;
     margin-bottom: .9rem;
+  }
+
+  .report-header-copy {
+    min-width: 0;
   }
 
   .report-link,
@@ -93,6 +99,9 @@
   .section-title {
     margin: 0 0 .65rem;
     line-height: 1.15;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #222;
   }
 
   .section-summary {
@@ -119,6 +128,8 @@
     font-weight: 600;
     word-break: break-word;
     line-height: 1.3;
+    font-size: 1rem;
+    color: #222;
   }
 
   .paragraph-text,
@@ -127,6 +138,7 @@
     line-height: 1.5;
     color: #444;
     white-space: pre-wrap;
+    font-size: 1rem;
   }
 
   .item-list {
@@ -145,6 +157,8 @@
     margin: 0 0 .2rem;
     font-weight: 700;
     line-height: 1.25;
+    font-size: 1rem;
+    color: #222;
   }
 
   .item-meta-inline {
@@ -198,6 +212,7 @@
     font-weight: 700;
     line-height: 1.3;
     color: #222;
+    font-size: 1rem;
   }
 
   .entry-meta,
@@ -208,6 +223,7 @@
     color: #555;
     line-height: 1.35;
     white-space: pre-wrap;
+    font-size: 1rem;
   }
 
   .entry-amount,
@@ -218,6 +234,8 @@
     font-weight: 700;
     white-space: nowrap;
     line-height: 1.2;
+    font-size: 1rem;
+    color: #222;
   }
 
   .footer-nav {
@@ -273,6 +291,31 @@
   @media (min-width: 900px) {
     .field-grid {
       grid-template-columns: repeat(4, minmax(140px, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .report-title {
+      font-size: 1.7rem;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+    }
+
+    .entry-row,
+    .expense-row,
+    .refund-row,
+    .payment-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .entry-amount,
+    .expense-amount,
+    .refund-amount,
+    .payment-amount {
+      white-space: normal;
     }
   }
 </style>
@@ -479,12 +522,9 @@
       statusEl.style.display = "none";
       bodyEl.innerHTML = `
         <div class="report-header-bar">
-          <div>
+          <div class="report-header-copy">
             <p class="report-subtitle">Project Report for:</p>
             <h1 class="report-title">${escapeHtml(read(data, "project.ProjectName") || "Project Report")}</h1>
-          </div>
-          <div>
-            <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
           </div>
         </div>
       `;
