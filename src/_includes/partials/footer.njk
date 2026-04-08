@@ -1,0 +1,16 @@
+<footer class="border-top py-4 mt-5">
+  <div class="container-fluid px-3 px-lg-4 text-center">
+    <div class="fw-semibold">{{ site.name }}</div>
+    <div class="text-muted small">{{ site.address_line1 }}, {{ site.city_state_zip }}</div>
+
+    <div class="small mt-2">
+      {% for item in site.footer_links %}
+        <a href="{{ item.url }}" class="text-decoration-none text-reset{% if not loop.last %} me-3{% endif %}">
+          {{ item.label }}
+        </a>
+      {% endfor %}
+    </div>
+
+    <div class="text-muted small mt-2">© 2026 {{ site.name }}. All rights reserved.</div>
+  </div>
+</footer>

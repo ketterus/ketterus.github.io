@@ -1,0 +1,672 @@
+---
+layout: layouts/base.njk
+title: Ketter Home Improvements | Project Report
+permalink: /portal/report/index.html
+---
+
+<main class="page-wrap">
+  <div class="site-shell report-wrap">
+    <section class="report-shell card-block">
+      <div class="card-block-body">
+        <div id="report-status" class="report-status">Checking access...</div>
+        <div id="report-body" class="text-muted">Please wait.</div>
+        <div id="report-sections"></div>
+      </div>
+    </section>
+
+    <div class="footer-nav">
+      <a class="footer-menu-link" id="footer-menu-link" href="#">
+        <div class="card-block">
+          <div class="card-block-body">
+            <p class="footer-menu-title">Project Center Menu</p>
+            <p class="footer-menu-text">Browse all project views and reporting options.</p>
+          </div>
+        </div>
+      </a>
+
+      <button class="footer-menu-button" id="footer-logout-button" type="button">
+        <div class="card-block">
+          <div class="card-block-body">
+            <p class="footer-menu-title">Log Out</p>
+            <p class="footer-menu-text">End access now and require a new secure link next time.</p>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+</main>
+
+<script>
+  const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycbwEJZwTBLy56OvlOLdICxNhePNZPNODmn3rELZ39ogw1VRBg1RGKLwOz3c2ny2G88WAlA/exec";
+
+  const reportTemplate = [
+    {
+      key: "projectOverview",
+      title: "Project Overview",
+      type: "fields",
+      fields: [
+        { label: "Street 1", path: "project.Street1" },
+        { label: "Street 2", path: "project.Street2" },
+        { label: "City", path: "project.City" },
+        { label: "State", path: "project.State" },
+        { label: "ZIP", path: "project.Zip" },
+        { label: "Status", path: "project.Status" },
+        { label: "Last Activity On", path: "project.LastActivityOn", format: "date" }
+      ]
+    },
+    {
+      key: "projectScope",
+      title: "Project Scope",
+      type: "paragraph",
+      path: "project.Description",
+      hideIfEmpty: true,
+      emptyMessage: "No project scope is available."
+    },
+    {
+      key: "timeEntries",
+      title: "Time Entries",
+      type: "custom",
+      render: renderTimeEntriesSection
+    },
+    {
+      key: "expensesCombined",
+      title: "Expenses",
+      type: "custom",
+      render: renderExpensesCombinedSection
+    },
+    {
+      key: "refunds",
+      title: "Refunds",
+      type: "custom",
+      render: renderRefundsSection
+    },
+    {
+      key: "payments",
+      title: "Payments",
+      type: "custom",
+      render: renderPaymentsSection
+    },
+    {
+      key: "documents",
+      title: "Documents",
+      type: "cards",
+      source: "collections.documents",
+      hideIfEmpty: true,
+      emptyMessage: "No documents are available.",
+      cardTitle: "DisplayName",
+      meta: [
+        { label: "Type", key: "DocumentType" },
+        { label: "Status", key: "DocumentStatus" },
+        { label: "Created", key: "CreatedDateTime", format: "date" }
+      ],
+      summary: "Description"
+    },
+    {
+      key: "serviceRequests",
+      title: "Related Service Requests",
+      type: "cards",
+      source: "collections.serviceRequests",
+      hideIfEmpty: true,
+      emptyMessage: "No related service requests are available.",
+      cardTitle: "ServiceType",
+      meta: [
+        { label: "Created", key: "CreatedDateTime", format: "date" },
+        { label: "Status", key: "Status" },
+        { label: "Urgency", key: "Urgency" }
+      ],
+      summary: "IssueDescription"
+    },
+    {
+      key: "reportTotals",
+      title: "Report Totals",
+      type: "custom",
+      render: renderReportTotalsSection
+    }
+  ];
+
+  function getParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      token: (params.get("t") || "").trim(),
+      projectId: (params.get("p") || "").trim()
+    };
+  }
+
+  function setFooterMenuLink(token) {
+    const link = document.getElementById("footer-menu-link");
+    if (!link) return;
+
+    link.href = token ? "/portal/menu/?t=" + encodeURIComponent(token) : "#";
+  }
+
+  function setLogoutAction(token) {
+    const button = document.getElementById("footer-logout-button");
+    if (!button) return;
+
+    button.disabled = !token;
+
+    button.addEventListener("click", async function() {
+      if (!token) {
+        window.location.href = "https://ketter.us/portal/sign-in/";
+        return;
+      }
+
+      const confirmed = window.confirm("Log out of Project Center?");
+      if (!confirmed) return;
+
+      try {
+        button.disabled = true;
+        const url = PORTAL_API_URL + "?mode=logout&t=" + encodeURIComponent(token);
+        await fetch(url, { method: "GET" });
+      } catch (error) {
+      }
+
+      window.location.href = "https://ketter.us/portal/sign-in/";
+    });
+  }
+
+  async function loadReport() {
+    const statusEl = document.getElementById("report-status");
+    const bodyEl = document.getElementById("report-body");
+    const sectionsEl = document.getElementById("report-sections");
+    const { token, projectId } = getParams();
+
+    setFooterMenuLink(token);
+    setLogoutAction(token);
+
+    if (!token) {
+      statusEl.textContent = "Access denied";
+      bodyEl.innerHTML = '<p class="report-error">This link is missing an access token.</p>';
+      sectionsEl.innerHTML = "";
+      return;
+    }
+
+    if (!projectId) {
+      statusEl.textContent = "Project not found";
+      bodyEl.innerHTML = `
+        <p class="report-error">This link is missing a project selection.</p>
+        <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
+      `;
+      sectionsEl.innerHTML = "";
+      return;
+    }
+
+    try {
+      const url = PORTAL_API_URL + "?t=" + encodeURIComponent(token) + "&p=" + encodeURIComponent(projectId);
+      const response = await fetch(url, { method: "GET" });
+      const data = await response.json();
+
+      if (!data.success) {
+        statusEl.textContent = "Access denied";
+        bodyEl.innerHTML = '<p class="report-error">' + escapeHtml(data.message || "Access failed.") + '</p>';
+        sectionsEl.innerHTML = "";
+        return;
+      }
+
+      statusEl.style.display = "none";
+      bodyEl.innerHTML = `
+        <div class="report-header-bar">
+          <div class="report-header-copy">
+            <p class="report-subtitle">Project Report for:</p>
+            <h1 class="report-title">${escapeHtml(read(data, "project.ProjectName") || "Project Report")}</h1>
+          </div>
+          <div class="report-header-actions">
+            <a class="report-link" href="/portal/?t=${encodeURIComponent(token)}">Back to Projects</a>
+          </div>
+        </div>
+      `;
+
+      sectionsEl.innerHTML = renderTemplate(reportTemplate, data);
+    } catch (error) {
+      statusEl.textContent = "Service unavailable";
+      bodyEl.innerHTML = '<p class="report-error">Unable to load report right now.</p>';
+      sectionsEl.innerHTML = "";
+    }
+  }
+
+  function renderTemplate(template, data) {
+    const sections = template.map(section => renderSection(section, data)).filter(Boolean);
+
+    if (!sections.length) {
+      return `
+        <section class="report-section card-block">
+          <div class="card-block-body">
+            <h2 class="section-title">Report</h2>
+            <p class="empty-message">No report sections are available yet.</p>
+          </div>
+        </section>
+      `;
+    }
+
+    return sections.join("");
+  }
+
+  function renderSection(section, data) {
+    if (section.type === "fields") return renderFieldsSection(section, data);
+    if (section.type === "paragraph") return renderParagraphSection(section, data);
+    if (section.type === "cards") return renderCardsSection(section, data);
+    if (section.type === "custom") return section.render(section, data);
+    return "";
+  }
+
+  function renderFieldsSection(section, data) {
+    const fields = (section.fields || []).filter(field => hasValue(read(data, field.path)));
+    if (!fields.length && section.hideIfEmpty) return "";
+
+    const content = fields.length
+      ? `
+        <div class="field-grid">
+          ${fields.map(field => `
+            <div>
+              <p class="field-label">${escapeHtml(field.label || "")}</p>
+              <p class="field-value">${escapeHtml(formatValue(read(data, field.path), field.format))}</p>
+            </div>
+          `).join("")}
+        </div>
+      `
+      : `<p class="empty-message">${escapeHtml(section.emptyMessage || "No information is available.")}</p>`;
+
+    return `
+      <section class="report-section card-block">
+        <div class="card-block-body">
+          <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
+          ${content}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderParagraphSection(section, data) {
+    const value = read(data, section.path);
+    if (!hasValue(value) && section.hideIfEmpty) return "";
+
+    return `
+      <section class="report-section card-block">
+        <div class="card-block-body">
+          <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
+          <p class="paragraph-text">${escapeHtml(hasValue(value) ? String(value) : (section.emptyMessage || "No information is available."))}</p>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderCardsSection(section, data) {
+    const items = read(data, section.source) || [];
+    if ((!Array.isArray(items) || !items.length) && section.hideIfEmpty) return "";
+
+    const content = Array.isArray(items) && items.length
+      ? `
+        <div class="item-list">
+          ${items.map(item => {
+            const metaText = (section.meta || [])
+              .map(meta => {
+                const value = formatValue(item[meta.key], meta.format);
+                return hasValue(value) ? `${meta.label}: ${value}` : "";
+              })
+              .filter(Boolean)
+              .join(" • ");
+
+            return `
+              <div class="item-card">
+                <p class="item-title">${escapeHtml(item[section.cardTitle] || "Item")}</p>
+                ${metaText ? `<p class="item-meta-inline">${escapeHtml(metaText)}</p>` : ""}
+                ${section.summary && hasValue(item[section.summary]) ? `<p class="item-summary">${escapeHtml(item[section.summary])}</p>` : ""}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `
+      : `<p class="empty-message">${escapeHtml(section.emptyMessage || "No items are available.")}</p>`;
+
+    return `
+      <section class="report-section card-block">
+        <div class="card-block-body">
+          <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
+          ${content}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderTimeEntriesSection(section, data) {
+    const items = read(data, "collections.timeEntries") || [];
+    if (!Array.isArray(items) || !items.length) return "";
+
+    const summary = buildTimeEntriesSummary(items);
+
+    return `
+      <section class="report-section card-block">
+        <div class="card-block-body">
+          <h2 class="section-title">Time Entries</h2>
+          <p class="section-summary">${escapeHtml(summary)}</p>
+          <div class="entry-list">
+            ${items.map(item => {
+              const workerName = item.WorkerName ?? item.workerName ?? "Worker";
+              const date = formatValue(item.TimeDate ?? item.timeDate ?? "", "date");
+              const hours = item.HoursWorked ?? item.hoursWorked ?? "";
+              const description = item.Description ?? item.description ?? "";
+
+              return `
+                <div class="entry-card">
+                  <div class="entry-row">
+                    <p class="entry-main">${escapeHtml(String(workerName))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="entry-amount">${escapeHtml(formatNumber(hours))} hrs</p>
+                  </div>
+                  ${hasValue(description) ? `<p class="entry-meta">${escapeHtml(String(description))}</p>` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderExpensesCombinedSection(section, data) {
+    const expenses = read(data, "collections.expenses") || [];
+    const allocations = read(data, "collections.expenseAllocations") || [];
+
+    if (!Array.isArray(allocations) || !allocations.length) return "";
+
+    const expenseMap = {};
+    expenses.forEach(item => {
+      const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+      if (expenseId) expenseMap[expenseId] = item;
+    });
+
+    const allocationGroups = {};
+    allocations.forEach(item => {
+      const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
+      if (!expenseId) return;
+      if (!allocationGroups[expenseId]) allocationGroups[expenseId] = [];
+      allocationGroups[expenseId].push(item);
+    });
+
+    const expenseIds = Object.keys(allocationGroups);
+
+    const totalAllocated = expenseIds.reduce((sum, expenseId) => {
+      const allocationItems = allocationGroups[expenseId] || [];
+      const expenseTotal = allocationItems.reduce((groupSum, allocation) => {
+        const amount = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
+        return groupSum + (Number.isNaN(amount) ? 0 : amount);
+      }, 0);
+      return sum + expenseTotal;
+    }, 0);
+
+    return `
+      <section class="report-section card-block">
+        <div class="card-block-body">
+          <h2 class="section-title">Expenses</h2>
+          <p class="section-summary">Total Project Expenses: ${escapeHtml(formatCurrency(totalAllocated))}</p>
+          <div class="expense-list">
+            ${expenseIds.map(expenseId => {
+              const expense = expenseMap[expenseId] || {};
+              const allocationItems = allocationGroups[expenseId] || [];
+
+              const vendorLabel =
+                expense.VendorName ||
+                expense.vendorName ||
+                expense.VendorRef ||
+                expense.vendorRef ||
+                expense.VendorID ||
+                expense.vendorId ||
+                "Vendor not set";
+
+              const date = formatValue(expense.ExpenseDate ?? expense.expenseDate ?? "", "date");
+
+              const expenseTotal = allocationItems.reduce((sum, allocation) => {
+                const amount = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
+                return sum + (Number.isNaN(amount) ? 0 : amount);
+              }, 0);
+
+              const allocationNotes = allocationItems
+                .map(allocation => allocation.Description ?? allocation.description ?? "")
+                .filter(value => hasValue(value));
+
+              const fallbackNote = expense.Description ?? expense.description ?? "";
+              const noteText = allocationNotes.length ? allocationNotes.join("\n") : fallbackNote;
+
+              return `
+                <div class="expense-group">
+                  <div class="expense-row">
+                    <p class="expense-main">${escapeHtml(String(vendorLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="expense-amount">${escapeHtml(formatCurrency(expenseTotal))}</p>
+                  </div>
+                  ${hasValue(noteText) ? `<p class="expense-note">${escapeHtml(String(noteText))}</p>` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderRefundsSection(section, data) {
+    const refunds = read(data, "collections.refunds") || [];
+    if (!Array.isArray(refunds) || !refunds.length) return "";
+
+    const totalRefunds = refunds.reduce((sum, item) => {
+      const amount = Number(item.RefundAmount ?? item.refundAmount ?? 0);
+      return sum + (Number.isNaN(amount) ? 0 : amount);
+    }, 0);
+
+    return `
+      <section class="report-section card-block">
+        <div class="card-block-body">
+          <h2 class="section-title">Refunds</h2>
+          <p class="section-summary">Total Refunds: ${escapeHtml(formatCurrency(totalRefunds))}</p>
+          <div class="refund-list">
+            ${refunds.map(item => {
+              const vendorLabel =
+                item.VendorName ||
+                item.vendorName ||
+                item.VendorRef ||
+                item.vendorRef ||
+                item.VendorID ||
+                item.vendorId ||
+                "Vendor not set";
+
+              const date = formatValue(item.RefundDate ?? item.refundDate ?? "", "date");
+              const refundAmount = item.RefundAmount ?? item.refundAmount ?? "";
+              const refundReason = item.RefundReason ?? item.refundReason ?? "";
+
+              return `
+                <div class="refund-card">
+                  <div class="refund-row">
+                    <p class="refund-main">${escapeHtml(String(vendorLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="refund-amount">${escapeHtml(formatValue(refundAmount, "currency"))}</p>
+                  </div>
+                  ${hasValue(refundReason) ? `<p class="refund-note">${escapeHtml(String(refundReason))}</p>` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderPaymentsSection(section, data) {
+    const payments = read(data, "collections.payments") || [];
+    if (!Array.isArray(payments) || !payments.length) return "";
+
+    const totalPayments = payments.reduce((sum, item) => {
+      const amount = Number(item.PaymentAmount ?? item.paymentAmount ?? 0);
+      return sum + (Number.isNaN(amount) ? 0 : amount);
+    }, 0);
+
+    return `
+      <section class="report-section card-block">
+        <div class="card-block-body">
+          <h2 class="section-title">Payments</h2>
+          <p class="section-summary">Total Payments Received: ${escapeHtml(formatCurrency(totalPayments))}</p>
+          <div class="payment-list">
+            ${payments.map(item => {
+              const paymentMethod = item.PaymentMethod || item.paymentMethod || "Payment";
+              const date = formatValue(item.PaymentDate ?? item.paymentDate ?? "", "date");
+              const paymentAmount = item.PaymentAmount ?? item.paymentAmount ?? "";
+              const paymentReference = item.PaymentReference ?? item.paymentReference ?? "";
+              const notes = item.Notes ?? item.notes ?? "";
+
+              const noteParts = [];
+              if (hasValue(paymentReference)) noteParts.push("Reference: " + String(paymentReference));
+              if (hasValue(notes)) noteParts.push(String(notes));
+
+              return `
+                <div class="payment-card">
+                  <div class="payment-row">
+                    <p class="payment-main">${escapeHtml(String(paymentMethod))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="payment-amount">${escapeHtml(formatValue(paymentAmount, "currency"))}</p>
+                  </div>
+                  ${noteParts.length ? `<p class="payment-note">${escapeHtml(noteParts.join("\n"))}</p>` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderReportTotalsSection(section, data) {
+    const timeEntries = read(data, "collections.timeEntries") || [];
+    const refunds = read(data, "collections.refunds") || [];
+    const allocations = read(data, "collections.expenseAllocations") || [];
+    const payments = read(data, "collections.payments") || [];
+    const documents = read(data, "collections.documents") || [];
+    const serviceRequests = read(data, "collections.serviceRequests") || [];
+
+    const totalHours = timeEntries.reduce((sum, item) => {
+      const hours = Number(item.HoursWorked ?? item.hoursWorked ?? 0);
+      return sum + (Number.isNaN(hours) ? 0 : hours);
+    }, 0);
+
+    const totalLaborValue = timeEntries.reduce((sum, item) => {
+      const hours = Number(item.HoursWorked ?? item.hoursWorked ?? 0);
+      const rate = Number(item.HourlyRate ?? item.hourlyRate ?? 0);
+      if (Number.isNaN(hours) || Number.isNaN(rate)) return sum;
+      return sum + (hours * rate);
+    }, 0);
+
+    const totalProjectExpenses = allocations.reduce((sum, item) => {
+      const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+      return sum + (Number.isNaN(amount) ? 0 : amount);
+    }, 0);
+
+    const totalRefunds = refunds.reduce((sum, item) => {
+      const amount = Number(item.RefundAmount ?? item.refundAmount ?? 0);
+      return sum + (Number.isNaN(amount) ? 0 : amount);
+    }, 0);
+
+    const totalPayments = payments.reduce((sum, item) => {
+      const amount = Number(item.PaymentAmount ?? item.paymentAmount ?? 0);
+      return sum + (Number.isNaN(amount) ? 0 : amount);
+    }, 0);
+
+    return `
+      <section class="report-section card-block">
+        <div class="card-block-body">
+          <h2 class="section-title">Report Totals</h2>
+          <div class="field-grid">
+            <div>
+              <p class="field-label">Total Time Entries</p>
+              <p class="field-value">${escapeHtml(String(timeEntries.length))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Hours</p>
+              <p class="field-value">${escapeHtml(formatNumber(totalHours))}</p>
+            </div>
+            <div>
+              <p class="field-label">Estimated Labor Value</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalLaborValue))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Project Expenses</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Refunds</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalRefunds))}</p>
+            </div>
+            <div>
+              <p class="field-label">Net Project Expenses</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses - totalRefunds))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Payments Received</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalPayments))}</p>
+            </div>
+            <div>
+              <p class="field-label">Payment Count</p>
+              <p class="field-value">${escapeHtml(String(payments.length))}</p>
+            </div>
+            <div>
+              <p class="field-label">Document Count</p>
+              <p class="field-value">${escapeHtml(String(documents.length))}</p>
+            </div>
+            <div>
+              <p class="field-label">Related Service Requests</p>
+              <p class="field-value">${escapeHtml(String(serviceRequests.length))}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  function buildTimeEntriesSummary(items) {
+    const totalHours = items.reduce((sum, item) => {
+      const hours = Number(item.HoursWorked ?? item.hoursWorked ?? 0);
+      return sum + (Number.isNaN(hours) ? 0 : hours);
+    }, 0);
+
+    return `${items.length} entries • ${formatNumber(totalHours)} total hours`;
+  }
+
+  function read(obj, path) {
+    return String(path || "").split(".").reduce((acc, key) => acc && acc[key], obj);
+  }
+
+  function hasValue(value) {
+    return value !== null && value !== undefined && String(value).trim() !== "";
+  }
+
+  function formatValue(value, format) {
+    if (!hasValue(value)) return "";
+
+    if (format === "date") {
+      const d = new Date(value);
+      return isNaN(d) ? String(value) : d.toLocaleDateString();
+    }
+
+    if (format === "currency") {
+      return formatCurrency(value);
+    }
+
+    return String(value);
+  }
+
+  function formatCurrency(value) {
+    const n = Number(value);
+    return Number.isNaN(n)
+      ? String(value ?? "")
+      : n.toLocaleString(undefined, { style: "currency", currency: "USD" });
+  }
+
+  function formatNumber(value) {
+    const n = Number(value);
+    return Number.isNaN(n) ? String(value ?? "") : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  loadReport();
+</script>

@@ -1,0 +1,44 @@
+---
+layout: layouts/base.njk
+title: Ketter Home Improvements | Menu
+permalink: /menu.html
+---
+
+<main class="page-wrap">
+  <div class="site-shell">
+    <div class="content-shell">
+      <div class="card-block">
+        <div class="card-block-body">
+          <h1 class="mb-4">Menu</h1>
+
+          <div class="menu-group">
+            <h2>Main Actions</h2>
+            <ul class="menu-list">
+              <li><a href="/service-request.html">Request Service</a></li>
+              <li><a href="/portal/sign-in/">Project Center Sign In</a></li>
+              <li><a href="/portal/">Project Center Home</a></li>
+            </ul>
+          </div>
+
+          <div class="menu-group">
+            <h2>Information</h2>
+            <ul class="menu-list">
+              <li><a href="/">Home</a></li>
+              <li><a href="/privacy.html">Privacy Policy</a></li>
+              <li><a href="/terms.html">Terms and Conditions</a></li>
+            </ul>
+          </div>
+
+          <div class="menu-group">
+            <h2>Contact</h2>
+            <ul class="menu-list">
+              <li><a href="tel:{{ site.phone_href }}">Call or text {{ site.phone_display }}</a></li>
+              <li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+              <li><a href="/service-request.html">Use the service request form</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

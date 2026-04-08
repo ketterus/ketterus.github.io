@@ -1,0 +1,132 @@
+---
+layout: layouts/base.njk
+title: Ketter Home Improvements
+description: Ketter Home Improvements provides reliable repair, maintenance, and improvement services in Cleveland, Tennessee and surrounding areas.
+permalink: /index.html
+---
+
+<main class="page-wrap">
+  <div class="site-shell">
+    <section class="home-intro-card card-block">
+      <div class="card-block-body">
+        <h1 class="home-title mb-3">Reliable repair, maintenance, and improvement services.</h1>
+        <p class="lead-text mb-3">
+          We help homeowners and property owners with practical repairs, ongoing maintenance, and straightforward improvement work in Cleveland, Tennessee and surrounding areas.
+        </p>
+        <p class="support-text mb-4">
+          Text communication is preferred. If you are contacting us about a project, completing the service request form is the best way to send the details.
+        </p>
+
+        <div class="action-grid">
+          <a href="/service-request.html" class="action-card action-card-primary">
+            <span class="action-card-title">Request Service</span>
+            <span class="action-card-text">Best way to send project details.</span>
+          </a>
+
+          <a href="/portal/sign-in/" class="action-card">
+            <span class="action-card-title">Project Center</span>
+            <span class="action-card-text">Sign in to view project information.</span>
+          </a>
+        </div>
+
+        <div class="contact-strip">
+          <div class="contact-strip-item">
+            <span class="contact-label">Call or text</span>
+            <a href="tel:{{ site.phone_href }}">{{ site.phone_display }}</a>
+            <div class="contact-note">{{ site.contact_preference }}</div>
+          </div>
+
+          <div class="contact-strip-item">
+            <span class="contact-label">Email</span>
+            <a href="mailto:{{ site.email }}">{{ site.email }}</a>
+          </div>
+
+          <div class="contact-strip-item">
+            <span class="contact-label">Service Area</span>
+            <span>{{ site.service_area }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="section-head">
+        <h2>Services</h2>
+        <p>
+          We focus on practical work, clear communication, and dependable follow-through.
+        </p>
+      </div>
+
+      <div class="card-grid card-grid-3">
+        <div class="card-block">
+          <div class="card-block-body">
+            <h3>General Repairs</h3>
+            <p>Drywall, trim, doors, fixtures, hardware, minor plumbing repairs, and everyday household fixes.</p>
+          </div>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-body">
+            <h3>Property Maintenance</h3>
+            <p>Ongoing maintenance for homeowners, landlords, and rental properties to keep things running smoothly.</p>
+          </div>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-body">
+            <h3>Installations</h3>
+            <p>Appliance hookups, fixtures, shelving, hardware, and other basic home installation projects.</p>
+          </div>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-body">
+            <h3>Interior Improvements</h3>
+            <p>Small upgrades that improve function, appearance, and value without overcomplicating the process.</p>
+          </div>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-body">
+            <h3>Rental Turnover Work</h3>
+            <p>Punch-list items, touch-ups, repairs, and readying properties for new tenants.</p>
+          </div>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-body">
+            <h3>Custom Requests</h3>
+            <p>Have a project in mind? Send the details and we will let you know if it is a good fit.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="card-grid card-grid-2">
+        <div class="card-block">
+          <div class="card-block-body">
+            <h2>Why work with us</h2>
+            <ul class="plain-list">
+              <li>Clear communication</li>
+              <li>Dependable scheduling</li>
+              <li>Practical solutions</li>
+              <li>Quality workmanship</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-body">
+            <h2>How to contact us</h2>
+            <p><strong>Text is usually the fastest way to reach us.</strong></p>
+            <p>Clients can choose the contact method that works best for them, but completing the service request form is highly encouraged when sending project details.</p>
+            <p class="mb-2"><strong>Call or text:</strong> <a href="tel:{{ site.phone_href }}">{{ site.phone_display }}</a></p>
+            <p class="mb-2"><strong>Email:</strong> <a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+            <p class="mb-0"><strong>Service area:</strong> {{ site.service_area }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>

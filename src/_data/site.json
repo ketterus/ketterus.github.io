@@ -1,0 +1,23 @@
+{
+  "name": "Ketter Home Improvements",
+  "domain": "https://ketter.us",
+  "phone_display": "304-582-0759",
+  "phone_href": "+13045820759",
+  "email": "Robert@Ketter.us",
+  "address_line1": "5561 Mouse Creek Road NW",
+  "address_line2": "",
+  "city_state_zip": "Cleveland, TN 37312",
+  "service_area": "Cleveland, TN and surrounding areas",
+  "contact_preference": "Text preferred",
+  "project_center_label": "Project Center",
+  "cta_label": "Request Service",
+  "cta_url": "/service-request.html",
+  "menu_url": "/menu.html",
+  "footer_links": [
+    { "label": "Privacy Policy", "url": "/privacy.html" },
+    { "label": "Terms and Conditions", "url": "/terms.html" },
+    { "label": "Project Center", "url": "/portal/" },
+    { "label": "Sign In", "url": "/portal/sign-in/" },
+    { "label": "Menu", "url": "/menu.html" }
+  ]
+}
