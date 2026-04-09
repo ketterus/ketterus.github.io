@@ -43,7 +43,7 @@
 
         <form
           id="portalServiceRequestForm"
-          action="https://script.google.com/macros/s/AKfycbwEJZwTBLy56OvlOLdICxNhePNZPNODmn3rELZ39ogw1VRBg1RGKLwOz3c2ny2G88WAlA/exec"
+          action="https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec"
           method="post"
           target="hidden_iframe"
           novalidate
@@ -189,7 +189,14 @@
           </div>
         </form>
 
-        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+        <div class="mt-4">
+          <div class="small text-muted mb-2">Debug response</div>
+          <iframe
+            name="hidden_iframe"
+            id="hidden_iframe"
+            style="display:block; width:100%; min-height:360px; border:1px solid #ccc; background:#fff;"
+          ></iframe>
+        </div>
       </div>
     </div>
   </div>
@@ -357,8 +364,8 @@
 
   hiddenIframe.addEventListener("load", function() {
     if (!submitInProgress) return;
-    submitInProgress = false;
-    window.location.href = "/request-confirmation.html";
+    resetSubmitButton();
+    alert("Submission returned. Read the JSON in the box below.");
   });
 
   form.addEventListener("submit", function(e) {
@@ -397,37 +404,14 @@
     const issueDescription = document.getElementById("IssueDescription");
     const serviceZip = document.getElementById("ServiceZip");
 
-    if (!urgency.value) {
-      urgency.setCustomValidity("Please select urgency.");
-    }
-
-    if (!propertyOccupied.value) {
-      propertyOccupied.setCustomValidity("Please select property occupied status.");
-    }
-
-    if (!permissionToEnter.value) {
-      permissionToEnter.setCustomValidity("Please select permission to enter.");
-    }
-
-    if (!bestContactTime.value) {
-      bestContactTime.setCustomValidity("Please select the best contact time.");
-    }
-
-    if (!serviceType.value) {
-      serviceType.setCustomValidity("Please select a service type.");
-    }
-
-    if (!onSiteContactName.value.trim()) {
-      onSiteContactName.setCustomValidity("Please enter the on-site contact name.");
-    }
-
-    if (!issueDescription.value.trim()) {
-      issueDescription.setCustomValidity("Please describe the issue.");
-    }
-
-    if (digitsOnly(serviceZip.value).length !== 5) {
-      serviceZip.setCustomValidity("Enter a 5-digit ZIP code.");
-    }
+    if (!urgency.value) urgency.setCustomValidity("Please select urgency.");
+    if (!propertyOccupied.value) propertyOccupied.setCustomValidity("Please select property occupied status.");
+    if (!permissionToEnter.value) permissionToEnter.setCustomValidity("Please select permission to enter.");
+    if (!bestContactTime.value) bestContactTime.setCustomValidity("Please select the best contact time.");
+    if (!serviceType.value) serviceType.setCustomValidity("Please select a service type.");
+    if (!onSiteContactName.value.trim()) onSiteContactName.setCustomValidity("Please enter the on-site contact name.");
+    if (!issueDescription.value.trim()) issueDescription.setCustomValidity("Please describe the issue.");
+    if (digitsOnly(serviceZip.value).length !== 5) serviceZip.setCustomValidity("Enter a 5-digit ZIP code.");
 
     setCombinedAddress();
 
