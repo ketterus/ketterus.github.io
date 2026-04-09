@@ -1,1753 +1,352 @@
-const CONFIG = getPortalConfig_();
+---
+layout: layouts/base.njk
+title: Ketter Home Improvements | Project Center Service Request TEST
+permalink: /portal/portal-service-request.html
+---
 
-function doGet(e) {
-  try {
-    const mode = param_(e, "mode");
-    const token = param_(e, "t");
-    const projectId = param_(e, "p");
-    const email = param_(e, "email");
-    const zip = digitsOnly_(param_(e, "zip"));
+<main class="page-wrap">
+  <div class="content-shell">
+    <div class="card page-card">
+      <div class="card-body p-4 p-md-5">
+        <div class="mb-4">
+          <h1 class="h2 mb-2">Request Service</h1>
+          <p class="text-muted mb-0">
+            Submit a new service request from Project Center. We will review it as a new request and route it through normal review.
+          </p>
+        </div>
 
-    let result;
+        <form
+          id="portalServiceRequestForm"
+          action="https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec"
+          method="post"
+          target="hidden_iframe"
+          novalidate
+        >
+          <input type="hidden" name="mode" value="create_service_request">
+          <input type="hidden" id="PortalToken" name="t">
+          <input type="hidden" id="ServiceAddress" name="ServiceAddress">
 
-    switch (mode) {
-      case "lookup":
-        result = buildPortalLookupResponse_(email, zip);
-        break;
+          <div class="row g-3">
+            <div class="col-12">
+              <h2 class="h5 mb-1">Service Details</h2>
+              <p class="text-muted small mb-0">
+                Tell us what needs attention and where the work is needed.
+              </p>
+            </div>
 
-      case "logout":
-        result = buildPortalLogoutResponse_(token);
-        break;
+            <div class="col-md-4">
+              <label class="form-label required" for="Urgency">Urgency</label>
+              <select class="form-select" id="Urgency" name="Urgency" required>
+                <option value="">Select...</option>
+                <option value="Routine">Routine</option>
+                <option value="Soon">Soon</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+              <div class="invalid-feedback">Please select urgency.</div>
+            </div>
 
-      default:
-        result = projectId
-          ? buildProjectReportResponse_(token, projectId)
-          : buildPortalListResponse_(token);
-        break;
+            <div class="col-md-4">
+              <label class="form-label required" for="BestContactTime">Best Contact Time</label>
+              <select class="form-select" id="BestContactTime" name="BestContactTime" required>
+                <option value="">Select...</option>
+                <option value="8 AM - 12 PM">8 AM - 12 PM</option>
+                <option value="12 PM - 4 PM">12 PM - 4 PM</option>
+                <option value="4 PM - 8 PM">4 PM - 8 PM</option>
+                <option value="Anytime">Anytime</option>
+              </select>
+              <div class="invalid-feedback">Please select the best contact time.</div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label required" for="ServiceType">Service Type</label>
+              <select class="form-select" id="ServiceType" name="ServiceType" required>
+                <option value="">Select service...</option>
+                <option value="General Repair">General Repair</option>
+                <option value="Property Maintenance">Property Maintenance</option>
+                <option value="Installations">Installations</option>
+                <option value="Interior Improvements">Interior Improvements</option>
+                <option value="Rental Turnover Work">Rental Turnover Work</option>
+                <option value="Custom Request">Custom Request</option>
+              </select>
+              <div class="invalid-feedback">Please select a service type.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label required" for="PropertyOccupied">Property Occupied</label>
+              <select class="form-select" id="PropertyOccupied" name="PropertyOccupied" required>
+                <option value="">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+                <option value="Unknown">Unknown</option>
+              </select>
+              <div class="invalid-feedback">Please select property occupied status.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label required" for="PermissionToEnter">Permission to Enter</label>
+              <select class="form-select" id="PermissionToEnter" name="PermissionToEnter" required>
+                <option value="">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+                <option value="Call First">Call First</option>
+              </select>
+              <div class="invalid-feedback">Please select permission to enter.</div>
+            </div>
+
+            <div class="col-12 pt-2">
+              <h3 class="h6 mb-1">Service Address</h3>
+              <p class="text-muted small mb-0">
+                This is the property address where the work is needed.
+              </p>
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label required" for="ServiceStreet1">Street Address</label>
+              <input class="form-control" id="ServiceStreet1" name="ServiceStreet1" autocomplete="address-line1" required>
+              <div class="invalid-feedback">Please enter the service street address.</div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="ServiceStreet2">Address Line 2</label>
+              <input class="form-control" id="ServiceStreet2" name="ServiceStreet2" autocomplete="address-line2">
+            </div>
+
+            <div class="col-md-5">
+              <label class="form-label required" for="ServiceCity">City</label>
+              <input class="form-control" id="ServiceCity" name="ServiceCity" autocomplete="address-level2" required>
+              <div class="invalid-feedback">Please enter the service city.</div>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label required" for="ServiceState">State</label>
+              <input class="form-control text-uppercase" id="ServiceState" name="ServiceState" maxlength="2" autocomplete="address-level1" required>
+              <div class="invalid-feedback">Enter the 2-letter state code.</div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label required" for="ServiceZip">ZIP</label>
+              <input class="form-control zip-input" id="ServiceZip" name="ServiceZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required>
+              <div class="invalid-feedback">Enter a 5-digit ZIP code.</div>
+            </div>
+
+            <div class="col-md-6 pt-2">
+              <label class="form-label required" for="OnSiteContactName">On-Site Contact Name</label>
+              <input class="form-control" id="OnSiteContactName" name="OnSiteContactName" autocomplete="name" required>
+              <div class="invalid-feedback">Please enter the on-site contact name.</div>
+            </div>
+
+            <div class="col-md-6 pt-2">
+              <label class="form-label required" for="OnSiteContactPhone">On-Site Contact Phone</label>
+              <input
+                class="form-control phone-input"
+                id="OnSiteContactPhone"
+                name="OnSiteContactPhone"
+                type="tel"
+                inputmode="numeric"
+                autocomplete="tel"
+                maxlength="14"
+                placeholder="3045551212"
+                required
+              >
+              <div class="invalid-feedback">Enter a valid 10-digit US phone number.</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label required" for="IssueDescription">Describe the Issue</label>
+              <textarea class="form-control" id="IssueDescription" name="IssueDescription" rows="5" required></textarea>
+              <div class="invalid-feedback">Please describe the issue.</div>
+            </div>
+
+            <div class="col-12 pt-2">
+              <button type="submit" class="btn btn-brand btn-lg" id="submitBtn">Submit Request</button>
+            </div>
+          </div>
+        </form>
+
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  let serviceAutocomplete = null;
+
+  const form = document.getElementById("portalServiceRequestForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const hiddenIframe = document.getElementById("hidden_iframe");
+  const tokenInput = document.getElementById("PortalToken");
+
+  const serviceAddressFields = {
+    street1: document.getElementById("ServiceStreet1"),
+    street2: document.getElementById("ServiceStreet2"),
+    city: document.getElementById("ServiceCity"),
+    state: document.getElementById("ServiceState"),
+    zip: document.getElementById("ServiceZip")
+  };
+
+  let submitInProgress = false;
+
+  function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return String(params.get(name) || "").trim();
+  }
+
+  function digitsOnly(value) {
+    return String(value || "").replace(/\D/g, "");
+  }
+
+  function normalizePhoneInput(input) {
+    input.value = digitsOnly(input.value).slice(0, 11);
+  }
+
+  function normalizePhoneForSubmit(value) {
+    let digits = digitsOnly(value);
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.slice(1);
+    }
+    return digits;
+  }
+
+  function normalizeZipInput(input) {
+    input.value = digitsOnly(input.value).slice(0, 5);
+  }
+
+  function normalizeStateInput(input) {
+    input.value = String(input.value || "").replace(/[^a-z]/gi, "").toUpperCase().slice(0, 2);
+  }
+
+  function buildAddress(street1, street2, city, state, zip) {
+    const line1 = String(street1 || "").trim();
+    const line2 = String(street2 || "").trim();
+    const cityVal = String(city || "").trim();
+    const stateVal = String(state || "").trim();
+    const zipVal = String(zip || "").trim();
+
+    const streetPart = [line1, line2].filter(Boolean).join(", ");
+    const cityStateZipPart = [cityVal, stateVal, zipVal].filter(Boolean).join(", ");
+
+    return [streetPart, cityStateZipPart].filter(Boolean).join(", ");
+  }
+
+  function setCombinedAddress() {
+    document.getElementById("ServiceAddress").value = buildAddress(
+      serviceAddressFields.street1.value,
+      serviceAddressFields.street2.value,
+      serviceAddressFields.city.value,
+      serviceAddressFields.state.value,
+      serviceAddressFields.zip.value
+    );
+  }
+
+  function fillAddressFieldsFromPlace(place) {
+    if (!place || !place.address_components) return;
+
+    let streetNumber = "";
+    let route = "";
+    let city = "";
+    let state = "";
+    let zip = "";
+
+    for (const component of place.address_components) {
+      const types = component.types || [];
+
+      if (types.includes("street_number")) streetNumber = component.long_name;
+      if (types.includes("route")) route = component.long_name;
+      if (types.includes("locality")) city = component.long_name;
+      if (types.includes("postal_town") && !city) city = component.long_name;
+      if (types.includes("administrative_area_level_1")) state = component.short_name;
+      if (types.includes("postal_code")) zip = component.long_name;
     }
 
-    return jsonResponse_(result);
-  } catch (error) {
-    return jsonResponse_({
-      success: false,
-      code: "SERVER_ERROR",
-      message: error && error.message ? error.message : "Unexpected server error."
-    });
-  }
-}
+    serviceAddressFields.street1.value = [streetNumber, route].filter(Boolean).join(" ").trim();
+    serviceAddressFields.city.value = city;
+    serviceAddressFields.state.value = state;
+    serviceAddressFields.zip.value = zip;
 
-function doPost(e) {
-  try {
-    if (!e || !e.parameter) {
-      throw new Error("No form data was received.");
+    setCombinedAddress();
+  }
+
+  function initAddressAutocomplete() {
+    if (!window.google || !google.maps || !google.maps.places) {
+      return;
     }
 
-    const mode = String(e.parameter.mode || "").trim();
-
-    switch (mode) {
-      case "create_service_request":
-        return jsonResponse_(buildCreateServiceRequestResponse_(e));
-
-      default:
-        return jsonResponse_({
-          success: false,
-          code: "INVALID_MODE",
-          message: "Unsupported POST mode."
-        });
-    }
-  } catch (error) {
-    return jsonResponse_({
-      success: false,
-      code: "SERVER_ERROR",
-      message: error && error.message ? error.message : "Unexpected server error."
-    });
-  }
-}
-
-function buildCreateServiceRequestResponse_(e) {
-  const p = e.parameter || {};
-  const token = String(p.t || "").trim();
-
-  const context = getPortalContext_(token);
-  if (!context.success) {
-    return context;
-  }
-
-  if (!context.client) {
-    return {
-      success: false,
-      code: "CLIENT_NOT_FOUND",
-      message: "Unable to resolve the logged-in client."
-    };
-  }
-
-  const client = context.client;
-
-  const serviceType = srRequireEnum_(
-    p.ServiceType,
-    [
-      "General Repair",
-      "Property Maintenance",
-      "Installations",
-      "Interior Improvements",
-      "Rental Turnover Work",
-      "Custom Request"
-    ],
-    "Service type is required."
-  );
-
-  const urgency = srRequireEnum_(
-    p.Urgency,
-    ["Routine", "Soon", "Urgent"],
-    "Urgency is required."
-  );
-
-  const propertyOccupied = srRequireEnum_(
-    p.PropertyOccupied,
-    ["Yes", "No", "Unknown"],
-    "Property occupied is required."
-  );
-
-  const permissionToEnter = srRequireEnum_(
-    p.PermissionToEnter,
-    ["Yes", "No", "Call First"],
-    "Permission to enter is required."
-  );
-
-  const bestContactTime = srRequireEnum_(
-    p.BestContactTime,
-    ["8 AM - 12 PM", "12 PM - 4 PM", "4 PM - 8 PM", "Anytime"],
-    "Best contact time is required."
-  );
-
-  const issueDescription = srRequireText_(
-    p.IssueDescription,
-    "Issue description is required."
-  );
-
-  const onSiteContactName = srRequireText_(
-    p.OnSiteContactName,
-    "On-site contact name is required."
-  );
-
-  const onSiteContactPhone = srCleanPhone_(p.OnSiteContactPhone, true);
-
-  const serviceStreet1 = srRequireText_(
-    p.ServiceStreet1,
-    "Service street address is required."
-  );
-  const serviceStreet2 = String(p.ServiceStreet2 || "").trim();
-  const serviceCity = srRequireText_(p.ServiceCity, "Service city is required.");
-  const serviceState = srCleanState_(p.ServiceState, true);
-  const serviceZip = srCleanZip_(p.ServiceZip, true);
-
-  const serviceAddressInput = String(p.ServiceAddress || "").trim();
-  const serviceAddress = serviceAddressInput || srBuildAddress_(
-    serviceStreet1,
-    serviceStreet2,
-    serviceCity,
-    serviceState,
-    serviceZip
-  );
-
-  const requesterName = srRequireText_(
-    client.ContactName || client.ClientName,
-    "Requester name could not be resolved from portal client."
-  );
-
-  const requesterEmail = srCleanEmail_(client.Email, true);
-  const requesterPhone = srCleanPhone_(client.Phone, false);
-
-  const requesterStreet1 = srRequireText_(
-    client.Street1,
-    "Requester street address could not be resolved from portal client."
-  );
-  const requesterStreet2 = String(client.Street2 || "").trim();
-  const requesterCity = srRequireText_(
-    client.City,
-    "Requester city could not be resolved from portal client."
-  );
-  const requesterState = srCleanState_(client.State, true);
-  const requesterZip = srCleanZip_(client.Zip, true);
-
-  const requesterAddress = srBuildAddress_(
-    requesterStreet1,
-    requesterStreet2,
-    requesterCity,
-    requesterState,
-    requesterZip
-  );
-
-  const billingStreet1 = requesterStreet1;
-  const billingStreet2 = requesterStreet2;
-  const billingCity = requesterCity;
-  const billingState = requesterState;
-  const billingZip = requesterZip;
-  const billingAddress = requesterAddress;
-
-  const row = {
-    RequesterName: requesterName,
-    RequesterEmail: requesterEmail,
-    RequesterPhone: requesterPhone,
-    RequesterAddress: requesterAddress,
-    RequesterStreet1: requesterStreet1,
-    RequesterStreet2: requesterStreet2,
-    RequesterCity: requesterCity,
-    RequesterState: requesterState,
-    RequesterZip: requesterZip,
-
-    ServiceType: serviceType,
-    IssueDescription: issueDescription,
-    Urgency: urgency,
-    ServiceAddress: serviceAddress,
-    ServiceStreet1: serviceStreet1,
-    ServiceStreet2: serviceStreet2,
-    ServiceCity: serviceCity,
-    ServiceState: serviceState,
-    ServiceZip: serviceZip,
-    PropertyOccupied: propertyOccupied,
-    PermissionToEnter: permissionToEnter,
-    OnSiteContactName: onSiteContactName,
-    OnSiteContactPhone: onSiteContactPhone,
-    BestContactTime: bestContactTime,
-
-    BillingAddress: billingAddress,
-    BillingStreet1: billingStreet1,
-    BillingStreet2: billingStreet2,
-    BillingCity: billingCity,
-    BillingState: billingState,
-    BillingZip: billingZip,
-
-    PayingClientID: "",
-    PropertyClientID: "",
-    ProjectID: "",
-    RelatedProjectID: ""
-  };
-
-  const apiResult = addServiceRequestViaAppSheet_(row);
-
-  return {
-    success: true,
-    code: "SERVICE_REQUEST_CREATED",
-    message: "Your service request was submitted successfully.",
-    result: apiResult
-  };
-}
-
-function addServiceRequestViaAppSheet_(row) {
-  const cfg = getAppSheetConfig_();
-  const url =
-    "https://" + cfg.region +
-    "/api/v2/apps/" + encodeURIComponent(cfg.appId) +
-    "/tables/ServiceRequests/Action";
-
-  const payload = {
-    Action: "Add",
-    Properties: {
-      Locale: "en-US",
-      Timezone: "America/Chicago"
-    },
-    Rows: [row]
-  };
-
-  const response = UrlFetchApp.fetch(url, {
-    method: "post",
-    contentType: "application/json",
-    headers: {
-      ApplicationAccessKey: cfg.applicationAccessKey
-    },
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
-  });
-
-  const code = response.getResponseCode();
-  const body = response.getContentText();
-
-  let parsed = null;
-  try {
-    parsed = JSON.parse(body);
-  } catch (err) {
-    parsed = null;
-  }
-
-  if (code < 200 || code >= 300) {
-    throw new Error("AppSheet API failed with HTTP " + code + ": " + body);
-  }
-
-  return parsed || { raw: body };
-}
-
-function getAppSheetConfig_() {
-  const props = PropertiesService.getScriptProperties();
-
-  const appId = String(props.getProperty("APPSHEET_APP_ID") || "").trim();
-  const applicationAccessKey = String(props.getProperty("APPSHEET_APP_ACCESS_KEY") || "").trim();
-  const region = String(props.getProperty("APPSHEET_REGION") || "www.appsheet.com").trim();
-
-  if (!appId) {
-    throw new Error("Missing script property: APPSHEET_APP_ID");
-  }
-
-  if (!applicationAccessKey) {
-    throw new Error("Missing script property: APPSHEET_APP_ACCESS_KEY");
-  }
-
-  return {
-    appId: appId,
-    applicationAccessKey: applicationAccessKey,
-    region: region
-  };
-}
-
-function srRequireText_(value, message) {
-  const text = String(value || "").trim();
-  if (!text) {
-    throw new Error(message);
-  }
-  return text;
-}
-
-function srRequireEnum_(value, allowedValues, message) {
-  const normalized = String(value || "").trim();
-  if (!normalized || allowedValues.indexOf(normalized) === -1) {
-    throw new Error(message);
-  }
-  return normalized;
-}
-
-function srCleanPhone_(value, required) {
-  const raw = String(value || "").trim();
-  let digits = raw.replace(/\D/g, "");
-
-  if (!digits) {
-    if (required) {
-      throw new Error("A required phone number is missing.");
-    }
-    return "";
-  }
-
-  if (digits.length === 11 && digits.startsWith("1")) {
-    digits = digits.substring(1);
-  }
-
-  if (digits.length !== 10) {
-    throw new Error("Phone numbers must be 10 digits, or 11 digits starting with 1.");
-  }
-
-  return digits;
-}
-
-function srCleanZip_(value, required) {
-  const digits = String(value || "").trim().replace(/\D/g, "");
-
-  if (!digits) {
-    if (required) {
-      throw new Error("A required ZIP code is missing.");
-    }
-    return "";
-  }
-
-  if (digits.length !== 5) {
-    throw new Error("ZIP codes must be 5 digits.");
-  }
-
-  return digits;
-}
-
-function srCleanState_(value, required) {
-  const state = String(value || "")
-    .trim()
-    .replace(/[^A-Za-z]/g, "")
-    .toUpperCase();
-
-  if (!state) {
-    if (required) {
-      throw new Error("A required state code is missing.");
-    }
-    return "";
-  }
-
-  if (state.length !== 2) {
-    throw new Error("State codes must be 2 letters.");
-  }
-
-  return state;
-}
-
-function srCleanEmail_(value, required) {
-  const email = String(value || "").trim();
-
-  if (!email) {
-    if (required) {
-      throw new Error("A required email address is missing.");
-    }
-    return "";
-  }
-
-  const basicEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!basicEmailPattern.test(email)) {
-    throw new Error("Email address is not valid.");
-  }
-
-  return email;
-}
-
-function srBuildAddress_(street1, street2, city, state, zip) {
-  const line1 = String(street1 || "").trim();
-  const line2 = String(street2 || "").trim();
-  const cityVal = String(city || "").trim();
-  const stateVal = String(state || "").trim();
-  const zipVal = String(zip || "").trim();
-
-  const streetPart = [line1, line2].filter(Boolean).join(", ");
-  const cityStateZipPart = [cityVal, stateVal, zipVal].filter(Boolean).join(", ");
-
-  return [streetPart, cityStateZipPart].filter(Boolean).join(", ");
-}
-
-function buildPortalLookupResponse_(email, zip) {
-  const neutralMessage = "If we found a matching project account, we sent a secure access link to your email.";
-
-  if (!email) {
-    return {
-      success: false,
-      code: "MISSING_EMAIL",
-      message: "Email is required."
-    };
-  }
-
-  if (zip.length !== 5) {
-    return {
-      success: false,
-      code: "INVALID_ZIP",
-      message: "A valid 5-digit ZIP code is required."
-    };
-  }
-
-  const ss = openPortalSpreadsheet_();
-  const clientSheet = getRequiredSheet_(ss, "Clients");
-  const portalGroupSheet = getRequiredSheet_(ss, "PortalGroups");
-
-  const clientRows = getSheetObjects_(clientSheet);
-  const portalGroupRows = getSheetObjects_(portalGroupSheet);
-
-  assertRequiredColumns_(
-    clientRows.headers,
-    [
-      "ClientID",
-      "ClientName",
-      "ContactName",
-      "Email",
-      "Street1",
-      "Street2",
-      "City",
-      "State",
-      "Zip",
-      "IsActive",
-      "PortalGroupID"
-    ],
-    "client"
-  );
-
-  assertRequiredColumns_(
-    portalGroupRows.headers,
-    [
-      "PortalGroupID",
-      "ClientID",
-      "GroupName",
-      "IsActive",
-      "Token",
-      "Notes",
-      "TokenIssuedDateTime",
-      "TokenExpiresDateTime",
-      "LastAccessDateTime"
-    ],
-    "portal group"
-  );
-
-  const normalizedEmail = String(email || "").trim().toLowerCase();
-
-  const matches = clientRows.items
-    .map(function(row, index) {
-      return {
-        rowIndex: index,
-        rowNumber: index + 2,
-        clientId: String(row.ClientID || "").trim(),
-        clientName: String(row.ClientName || "").trim(),
-        contactName: String(row.ContactName || "").trim(),
-        email: String(row.Email || "").trim().toLowerCase(),
-        zip: digitsOnly_(row.Zip),
-        isActive: toBoolean_(row.IsActive),
-        portalGroupId: String(row.PortalGroupID || "").trim(),
-        address: buildClientAddress_(row)
-      };
-    })
-    .filter(function(client) {
-      return client.email === normalizedEmail
-        && client.zip === zip
-        && client.isActive;
-    })
-    .sort(function(a, b) {
-      return String(a.clientName || "").localeCompare(String(b.clientName || ""));
+    serviceAutocomplete = new google.maps.places.Autocomplete(serviceAddressFields.street1, {
+      types: ["address"],
+      componentRestrictions: { country: "us" },
+      fields: ["address_components", "formatted_address"]
     });
 
-  if (!matches.length) {
-    return {
-      success: true,
-      code: "LOOKUP_ACCEPTED",
-      message: neutralMessage
-    };
-  }
-
-  const validation = validateMatchedClientsForPortal_(matches, portalGroupRows.items);
-
-  if (!validation.valid) {
-    return {
-      success: true,
-      code: "LOOKUP_ACCEPTED",
-      message: neutralMessage
-    };
-  }
-
-  const portalGroup = issueOrReusePortalGroupToken_(
-    portalGroupSheet,
-    portalGroupRows.headers,
-    validation.portalGroup
-  );
-
-  sendPortalAccessEmail_(email, portalGroup);
-
-  return {
-    success: true,
-    code: "LOOKUP_ACCEPTED",
-    message: neutralMessage
-  };
-}
-
-function validateMatchedClientsForPortal_(matches, portalGroupItems) {
-  if (!matches || !matches.length) {
-    return { valid: false };
-  }
-
-  const hasBlankPortalGroupId = matches.some(function(match) {
-    return !String(match.portalGroupId || "").trim();
-  });
-
-  if (hasBlankPortalGroupId) {
-    return { valid: false };
-  }
-
-  const distinctPortalGroupIds = uniqueValues_(
-    matches.map(function(match) {
-      return String(match.portalGroupId || "").trim();
-    }).filter(Boolean)
-  );
-
-  if (distinctPortalGroupIds.length !== 1) {
-    return { valid: false };
-  }
-
-  const portalGroupId = distinctPortalGroupIds[0];
-  const portalGroupRowIndex = portalGroupItems.findIndex(function(row) {
-    return String(row.PortalGroupID || "").trim() === portalGroupId;
-  });
-
-  if (portalGroupRowIndex === -1) {
-    return { valid: false };
-  }
-
-  const portalGroup = portalGroupItems[portalGroupRowIndex];
-  if (!toBoolean_(portalGroup.IsActive)) {
-    return { valid: false };
-  }
-
-  const anchorClientId = String(portalGroup.ClientID || "").trim();
-  if (!anchorClientId) {
-    return { valid: false };
-  }
-
-  return {
-    valid: true,
-    portalGroup: {
-      rowIndex: portalGroupRowIndex,
-      rowNumber: portalGroupRowIndex + 2,
-      portalGroupId: String(portalGroup.PortalGroupID || "").trim(),
-      clientId: anchorClientId,
-      groupName: String(portalGroup.GroupName || "").trim(),
-      isActive: toBoolean_(portalGroup.IsActive),
-      token: String(portalGroup.Token || "").trim(),
-      tokenIssuedDateTime: portalGroup.TokenIssuedDateTime,
-      tokenExpiresDateTime: portalGroup.TokenExpiresDateTime,
-      lastAccessDateTime: portalGroup.LastAccessDateTime,
-      notes: portalGroup.Notes
-    }
-  };
-}
-
-function issueOrReusePortalGroupToken_(portalGroupSheet, headers, portalGroup) {
-  const tokenCol = columnNumber_(headers, "Token");
-  const issuedCol = columnNumber_(headers, "TokenIssuedDateTime");
-  const expiresCol = columnNumber_(headers, "TokenExpiresDateTime");
-
-  const existingToken = String(portalGroup.token || "").trim();
-  const existingExpiry = toDate_(portalGroup.tokenExpiresDateTime);
-
-  if (existingToken && existingExpiry && existingExpiry.getTime() > new Date().getTime()) {
-    return {
-      portalGroupId: portalGroup.portalGroupId,
-      clientId: portalGroup.clientId,
-      groupName: portalGroup.groupName,
-      token: existingToken,
-      tokenIssuedDateTime: portalGroup.tokenIssuedDateTime,
-      tokenExpiresDateTime: portalGroup.tokenExpiresDateTime
-    };
-  }
-
-  const issuedAt = new Date();
-  const expiresAt = new Date(issuedAt.getTime() + CONFIG.portalTokenLifetimeHours * 60 * 60 * 1000);
-  const newToken = generatePortalToken_();
-
-  setCellValueIfChanged_(portalGroupSheet, portalGroup.rowNumber, tokenCol, newToken);
-  setCellValueIfChanged_(portalGroupSheet, portalGroup.rowNumber, issuedCol, issuedAt);
-  setCellValueIfChanged_(portalGroupSheet, portalGroup.rowNumber, expiresCol, expiresAt);
-
-  return {
-    portalGroupId: portalGroup.portalGroupId,
-    clientId: portalGroup.clientId,
-    groupName: portalGroup.groupName,
-    token: newToken,
-    tokenIssuedDateTime: issuedAt,
-    tokenExpiresDateTime: expiresAt
-  };
-}
-
-function buildPortalLogoutResponse_(token) {
-  if (!token) {
-    return {
-      success: false,
-      code: "MISSING_TOKEN",
-      message: "Access token is required."
-    };
-  }
-
-  const ss = openPortalSpreadsheet_();
-  const portalGroupSheet = getRequiredSheet_(ss, "PortalGroups");
-  const portalGroupRows = getSheetObjects_(portalGroupSheet);
-
-  assertRequiredColumns_(
-    portalGroupRows.headers,
-    [
-      "PortalGroupID",
-      "ClientID",
-      "GroupName",
-      "IsActive",
-      "Token",
-      "Notes",
-      "TokenIssuedDateTime",
-      "TokenExpiresDateTime",
-      "LastAccessDateTime"
-    ],
-    "portal group"
-  );
-
-  const rowIndex = portalGroupRows.items.findIndex(function(row) {
-    return String(row.Token || "").trim() === String(token || "").trim();
-  });
-
-  if (rowIndex === -1) {
-    return {
-      success: true,
-      code: "LOGOUT_COMPLETE",
-      message: "You have been signed out."
-    };
-  }
-
-  const rowNumber = rowIndex + 2;
-
-  setCellValueIfChanged_(portalGroupSheet, rowNumber, columnNumber_(portalGroupRows.headers, "Token"), "");
-  setCellValueIfChanged_(portalGroupSheet, rowNumber, columnNumber_(portalGroupRows.headers, "TokenIssuedDateTime"), "");
-  setCellValueIfChanged_(portalGroupSheet, rowNumber, columnNumber_(portalGroupRows.headers, "TokenExpiresDateTime"), "");
-
-  return {
-    success: true,
-    code: "LOGOUT_COMPLETE",
-    message: "You have been signed out."
-  };
-}
-
-function generatePortalToken_() {
-  const bytes = Utilities.getUuid().replace(/-/g, "") + Utilities.getUuid().replace(/-/g, "");
-  return bytes.slice(0, 48);
-}
-
-function sendPortalAccessEmail_(email, portalGroup) {
-  const safeEmail = String(email || "").trim();
-  if (!safeEmail || !portalGroup || !portalGroup.token) return;
-
-  const subject = "Your Ketter Home Improvements project access link";
-
-  const lines = [];
-  lines.push("Ketter Home Improvements");
-  lines.push("");
-  lines.push("Use the secure link below to access your Project Center:");
-  lines.push("");
-  lines.push(toAbsolutePortalUrl_(buildPortalUrl_(portalGroup.token)));
-  lines.push("");
-  lines.push("This link expires in " + CONFIG.portalTokenLifetimeHours + " hours.");
-  lines.push("");
-  lines.push("If you did not request this email, you can ignore it.");
-
-  MailApp.sendEmail({
-    to: safeEmail,
-    subject: subject,
-    body: lines.join("\n")
-  });
-}
-
-function buildPortalListResponse_(token) {
-  const context = getPortalContext_(token);
-  if (!context.success) return context;
-
-  return {
-    success: true,
-    code: "ACCESS_GRANTED",
-    message: "Project Center access active.",
-    client: context.client ? {
-      clientId: context.client.ClientID,
-      clientName: context.client.ClientName,
-      contactName: context.client.ContactName
-    } : null,
-    portalGroup: {
-      portalGroupId: context.portalGroup.PortalGroupID,
-      groupName: context.portalGroup.GroupName
-    },
-    portal: {
-      status: "Active",
-      tokenIssuedDateTime: normalizeDateOutput_(context.portalGroup.TokenIssuedDateTime),
-      tokenExpiresDateTime: normalizeDateOutput_(context.portalGroup.TokenExpiresDateTime),
-      lastAccessDateTime: normalizeDateOutput_(context.now)
-    },
-    data: {
-      reports: [],
-      projects: context.projects.map(function(project) {
-        return {
-          projectId: project.projectId,
-          projectName: project.projectName,
-          status: project.status,
-          lastActivityOn: project.lastActivityOn
-        };
-      })
-    }
-  };
-}
-
-function buildProjectReportResponse_(token, projectId) {
-  const context = getPortalContext_(token);
-  if (!context.success) return context;
-
-  const project = context.projects.find(function(item) {
-    return String(item.projectId || "").trim() === String(projectId || "").trim();
-  });
-
-  if (!project) {
-    return {
-      success: false,
-      code: "PROJECT_NOT_FOUND",
-      message: "The selected project is not available in your Project Center."
-    };
-  }
-
-  const ss = openPortalSpreadsheet_();
-  const client = getPortalClientForProject_(ss, project);
-  const collections = getPortalCollectionsForProject_(ss, project.projectId);
-
-  return {
-    success: true,
-    code: "ACCESS_GRANTED",
-    portalGroup: {
-      portalGroupId: context.portalGroup.PortalGroupID,
-      groupName: context.portalGroup.GroupName
-    },
-    client: client,
-    project: project,
-    collections: collections
-  };
-}
-
-function getPortalContext_(token) {
-  if (!token) {
-    return {
-      success: false,
-      code: "MISSING_TOKEN",
-      message: "Access token is required."
-    };
-  }
-
-  const ss = openPortalSpreadsheet_();
-  const portalGroupSheet = getRequiredSheet_(ss, "PortalGroups");
-  const portalGroupRows = getSheetObjects_(portalGroupSheet);
-
-  assertRequiredColumns_(
-    portalGroupRows.headers,
-    [
-      "PortalGroupID",
-      "ClientID",
-      "GroupName",
-      "IsActive",
-      "Token",
-      "Notes",
-      "TokenIssuedDateTime",
-      "TokenExpiresDateTime",
-      "LastAccessDateTime"
-    ],
-    "portal group"
-  );
-
-  const portalGroupRowIndex = portalGroupRows.items.findIndex(function(row) {
-    return String(row.Token || "").trim() === String(token || "").trim();
-  });
-
-  if (portalGroupRowIndex === -1) {
-    return {
-      success: false,
-      code: "INVALID_TOKEN",
-      message: "Access link is invalid."
-    };
-  }
-
-  const portalGroup = portalGroupRows.items[portalGroupRowIndex];
-  const sheetRowNumber = portalGroupRowIndex + 2;
-
-  if (!toBoolean_(portalGroup.IsActive)) {
-    return {
-      success: false,
-      code: "PORTAL_DISABLED",
-      message: "Project Center access is not enabled."
-    };
-  }
-
-  if (isExpired_(portalGroup.TokenExpiresDateTime)) {
-    clearPortalGroupToken_(portalGroupSheet, portalGroupRows.headers, sheetRowNumber);
-    return {
-      success: false,
-      code: "PORTAL_EXPIRED",
-      message: "This access link has expired."
-    };
-  }
-
-  const now = new Date();
-  setCellValueIfChanged_(portalGroupSheet, sheetRowNumber, columnNumber_(portalGroupRows.headers, "LastAccessDateTime"), now);
-
-  const anchorClientId = String(portalGroup.ClientID || "").trim();
-  const client = anchorClientId ? getClientById_(ss, anchorClientId) : null;
-
-  return {
-    success: true,
-    portalGroup: portalGroup,
-    client: client,
-    projects: getPortalProjects_(ss, anchorClientId),
-    now: now
-  };
-}
-
-function clearPortalGroupToken_(portalGroupSheet, headers, rowNumber) {
-  setCellValueIfChanged_(portalGroupSheet, rowNumber, columnNumber_(headers, "Token"), "");
-  setCellValueIfChanged_(portalGroupSheet, rowNumber, columnNumber_(headers, "TokenIssuedDateTime"), "");
-  setCellValueIfChanged_(portalGroupSheet, rowNumber, columnNumber_(headers, "TokenExpiresDateTime"), "");
-}
-
-function getClientById_(ss, clientId) {
-  const clientSheet = getRequiredSheet_(ss, "Clients");
-  const clientRows = getSheetObjects_(clientSheet);
-
-  assertRequiredColumns_(
-    clientRows.headers,
-    [
-      "ClientID",
-      "ClientName",
-      "ContactName",
-      "Email",
-      "Phone",
-      "Street1",
-      "Street2",
-      "City",
-      "State",
-      "Zip",
-      "Notes"
-    ],
-    "client"
-  );
-
-  const client = clientRows.items.find(function(row) {
-    return String(row.ClientID || "").trim() === String(clientId || "").trim();
-  });
-
-  return client || null;
-}
-
-function getPortalProjects_(ss, clientId) {
-  const projectSheet = getRequiredSheet_(ss, "Projects");
-  const projectRows = getSheetObjects_(projectSheet);
-
-  assertRequiredColumns_(
-    projectRows.headers,
-    [
-      "ProjectID",
-      "ProjectName",
-      "PayingClientID",
-      "PropertyClientID",
-      "Street1",
-      "Street2",
-      "City",
-      "State",
-      "Zip",
-      "Status",
-      "StartDate",
-      "EndDate",
-      "Description",
-      "Update",
-      "Notes",
-      "IsActive",
-      "PortalVisible",
-      "LastActivityOn"
-    ],
-    "project"
-  );
-
-  const now = new Date();
-  const minDate = new Date(now);
-  minDate.setDate(minDate.getDate() - CONFIG.portalProjectsPastDays);
-
-  const maxDate = new Date(now);
-  maxDate.setDate(maxDate.getDate() + CONFIG.portalProjectsFutureDays);
-
-  return projectRows.items
-    .filter(function(row) {
-      if (String(row.PayingClientID || "").trim() !== String(clientId || "").trim()) return false;
-      if (!toBoolean_(row.IsActive)) return false;
-      if (!toBoolean_(row.PortalVisible)) return false;
-
-      const activityDate =
-        toDate_(row.LastActivityOn) ||
-        toDate_(row.EndDate) ||
-        toDate_(row.StartDate);
-
-      if (!activityDate) return true;
-
-      return activityDate >= minDate && activityDate <= maxDate;
-    })
-    .map(function(row) {
-      return {
-        ProjectID: row.ProjectID,
-        ProjectName: row.ProjectName,
-        PayingClientID: row.PayingClientID,
-        PropertyClientID: row.PropertyClientID,
-        Street1: row.Street1,
-        Street2: row.Street2,
-        City: row.City,
-        State: row.State,
-        Zip: row.Zip,
-        Status: row.Status,
-        StartDate: normalizeDateOutput_(row.StartDate),
-        EndDate: normalizeDateOutput_(row.EndDate),
-        LastActivityOn: normalizeDateOutput_(row.LastActivityOn),
-        Description: row.Description,
-        Update: row.Update,
-        IsActive: row.IsActive,
-        PortalVisible: row.PortalVisible,
-
-        projectId: row.ProjectID,
-        projectName: row.ProjectName,
-        payingClientId: row.PayingClientID,
-        propertyClientId: row.PropertyClientID,
-        street1: row.Street1,
-        street2: row.Street2,
-        city: row.City,
-        state: row.State,
-        zip: row.Zip,
-        status: row.Status,
-        startDate: normalizeDateOutput_(row.StartDate),
-        endDate: normalizeDateOutput_(row.EndDate),
-        lastActivityOn: normalizeDateOutput_(row.LastActivityOn),
-        description: row.Description,
-        update: row.Update,
-        isActive: row.IsActive,
-        portalVisible: row.PortalVisible
-      };
-    })
-    .sort(function(a, b) {
-      return String(a.projectName || "").localeCompare(String(b.projectName || ""));
+    serviceAutocomplete.addListener("place_changed", function () {
+      fillAddressFieldsFromPlace(serviceAutocomplete.getPlace());
     });
-}
+  }
 
-function getPortalClientForProject_(ss, project) {
-  const clientSheet = getRequiredSheet_(ss, "Clients");
-  const clientRows = getSheetObjects_(clientSheet);
+  window.initAddressAutocomplete = initAddressAutocomplete;
 
-  assertRequiredColumns_(
-    clientRows.headers,
-    [
-      "ClientID",
-      "ClientName",
-      "ContactName",
-      "Email",
-      "Phone",
-      "Street1",
-      "Street2",
-      "City",
-      "State",
-      "Zip",
-      "Notes"
-    ],
-    "client"
-  );
+  function addressLooksComplete(addressFields) {
+    return !!(
+      String(addressFields.street1.value || "").trim() &&
+      String(addressFields.city.value || "").trim() &&
+      String(addressFields.state.value || "").trim() &&
+      digitsOnly(addressFields.zip.value).length === 5
+    );
+  }
 
-  const client = clientRows.items.find(function(row) {
-    return String(row.ClientID || "").trim() === String(project.payingClientId || "").trim();
+  function clearCustomValidity() {
+    document.querySelectorAll("input, select, textarea").forEach(function(el) {
+      el.setCustomValidity("");
+    });
+  }
+
+  function resetSubmitButton() {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Submit Request";
+    submitInProgress = false;
+  }
+
+  document.querySelectorAll(".phone-input").forEach(function(input) {
+    input.addEventListener("input", function() {
+      normalizePhoneInput(input);
+    });
   });
 
-  if (!client) return null;
-
-  return {
-    ClientID: client.ClientID,
-    ClientName: client.ClientName,
-    ContactName: client.ContactName,
-    Email: client.Email,
-    Phone: client.Phone,
-    Street1: client.Street1,
-    Street2: client.Street2,
-    City: client.City,
-    State: client.State,
-    Zip: client.Zip,
-
-    clientId: client.ClientID,
-    clientName: client.ClientName,
-    contactName: client.ContactName,
-    email: client.Email,
-    phone: client.Phone,
-    street1: client.Street1,
-    street2: client.Street2,
-    city: client.City,
-    state: client.State,
-    zip: client.Zip
-  };
-}
-
-function getPortalCollectionsForProject_(ss, projectId) {
-  const vendors = getVendorLookup_(ss);
-
-  return {
-    documents: getPortalDocuments_(ss, projectId),
-    timeEntries: getPortalTimeEntries_(ss, projectId),
-    expenses: getPortalExpenses_(ss, projectId, vendors),
-    refunds: getPortalRefunds_(ss, projectId, vendors),
-    payments: getPortalPayments_(ss, projectId),
-    expenseAllocations: getPortalExpenseAllocations_(ss, projectId),
-    serviceRequests: getPortalServiceRequests_(ss, projectId)
-  };
-}
-
-function getVendorLookup_(ss) {
-  const sheet = getRequiredSheet_(ss, "Vendors");
-  const rows = getSheetObjects_(sheet);
-
-  assertRequiredColumns_(
-    rows.headers,
-    [
-      "VendorID",
-      "VendorName",
-      "Notes",
-      "IsActive"
-    ],
-    "vendor"
-  );
-
-  const lookup = {};
-  rows.items.forEach(function(row) {
-    const vendorId = String(row.VendorID || "").trim();
-    if (!vendorId) return;
-
-    lookup[vendorId] = {
-      VendorID: row.VendorID,
-      VendorName: row.VendorName,
-      IsActive: row.IsActive,
-
-      vendorId: row.VendorID,
-      vendorName: row.VendorName,
-      isActive: row.IsActive
-    };
+  document.querySelectorAll(".zip-input").forEach(function(input) {
+    input.addEventListener("input", function() {
+      normalizeZipInput(input);
+    });
   });
 
-  return lookup;
-}
-
-function getPortalDocuments_(ss, projectId) {
-  const sheet = getRequiredSheet_(ss, "Documents");
-  const rows = getSheetObjects_(sheet);
-
-  assertRequiredColumns_(
-    rows.headers,
-    [
-      "DocumentID",
-      "ProjectID",
-      "DisplayName",
-      "DocumentType",
-      "FileURL",
-      "Description",
-      "Notes",
-      "PortalVisible",
-      "CreatedDateTime",
-      "CreatedBy",
-      "ParentType",
-      "ParentKey",
-      "DocumentStatus"
-    ],
-    "document"
-  );
-
-  return rows.items
-    .filter(function(row) {
-      return String(row.ProjectID || "").trim() === String(projectId || "").trim()
-        && toBoolean_(row.PortalVisible);
-    })
-    .map(function(row) {
-      return {
-        DocumentID: row.DocumentID,
-        ProjectID: row.ProjectID,
-        DisplayName: row.DisplayName,
-        DocumentType: row.DocumentType,
-        FileURL: row.FileURL,
-        Description: row.Description,
-        PortalVisible: row.PortalVisible,
-        CreatedDateTime: normalizeDateOutput_(row.CreatedDateTime),
-        CreatedBy: row.CreatedBy,
-        ParentType: row.ParentType,
-        ParentKey: row.ParentKey,
-        DocumentStatus: row.DocumentStatus,
-
-        documentId: row.DocumentID,
-        projectId: row.ProjectID,
-        displayName: row.DisplayName,
-        documentType: row.DocumentType,
-        fileUrl: row.FileURL,
-        description: row.Description,
-        portalVisible: row.PortalVisible,
-        createdDateTime: normalizeDateOutput_(row.CreatedDateTime),
-        createdBy: row.CreatedBy,
-        parentType: row.ParentType,
-        parentKey: row.ParentKey,
-        documentStatus: row.DocumentStatus
-      };
+  ["ServiceState"].forEach(function(id) {
+    const input = document.getElementById(id);
+    input.addEventListener("input", function() {
+      normalizeStateInput(input);
     });
-}
-
-function getPortalTimeEntries_(ss, projectId) {
-  const sheet = getRequiredSheet_(ss, "TimeEntries");
-  const rows = getSheetObjects_(sheet);
-
-  assertRequiredColumns_(
-    rows.headers,
-    [
-      "TimeID",
-      "TimeDate",
-      "ProjectID",
-      "WorkerName",
-      "HoursWorked",
-      "Description",
-      "Notes",
-      "Billable",
-      "HourlyRate",
-      "CreatedDate",
-      "CreatedBy"
-    ],
-    "time entry"
-  );
-
-  return rows.items
-    .filter(function(row) {
-      return String(row.ProjectID || "").trim() === String(projectId || "").trim();
-    })
-    .map(function(row) {
-      return {
-        TimeID: row.TimeID,
-        TimeDate: normalizeDateOutput_(row.TimeDate),
-        ProjectID: row.ProjectID,
-        WorkerName: row.WorkerName,
-        HoursWorked: row.HoursWorked,
-        Description: row.Description,
-        Billable: row.Billable,
-        HourlyRate: row.HourlyRate,
-        CreatedDate: normalizeDateOutput_(row.CreatedDate),
-        CreatedBy: row.CreatedBy,
-
-        timeId: row.TimeID,
-        timeDate: normalizeDateOutput_(row.TimeDate),
-        projectId: row.ProjectID,
-        workerName: row.WorkerName,
-        hoursWorked: row.HoursWorked,
-        description: row.Description,
-        billable: row.Billable,
-        hourlyRate: row.HourlyRate,
-        createdDate: normalizeDateOutput_(row.CreatedDate),
-        createdBy: row.CreatedBy
-      };
-    });
-}
-
-function getPortalExpenses_(ss, projectId, vendorLookup) {
-  const sheet = getRequiredSheet_(ss, "Expenses");
-  const rows = getSheetObjects_(sheet);
-
-  assertRequiredColumns_(
-    rows.headers,
-    [
-      "ExpenseID",
-      "ExpenseDate",
-      "VendorID",
-      "TotalAmount",
-      "PaymentAccountID",
-      "Description",
-      "Notes",
-      "CreatedDate",
-      "CreatedBy",
-      "ProjectID",
-      "InitialAllocationAmount"
-    ],
-    "expense"
-  );
-
-  return rows.items
-    .filter(function(row) {
-      return String(row.ProjectID || "").trim() === String(projectId || "").trim();
-    })
-    .map(function(row) {
-      const vendorId = String(row.VendorID || "").trim();
-      const vendor = vendorLookup[vendorId] || {};
-
-      return {
-        ExpenseID: row.ExpenseID,
-        ExpenseDate: normalizeDateOutput_(row.ExpenseDate),
-        VendorID: row.VendorID,
-        VendorName: vendor.VendorName || "",
-        TotalAmount: row.TotalAmount,
-        PaymentAccountID: row.PaymentAccountID,
-        Description: row.Description,
-        CreatedDate: normalizeDateOutput_(row.CreatedDate),
-        CreatedBy: row.CreatedBy,
-        ProjectID: row.ProjectID,
-        InitialAllocationAmount: row.InitialAllocationAmount,
-
-        expenseId: row.ExpenseID,
-        expenseDate: normalizeDateOutput_(row.ExpenseDate),
-        vendorId: row.VendorID,
-        vendorName: vendor.VendorName || "",
-        totalAmount: row.TotalAmount,
-        paymentAccountId: row.PaymentAccountID,
-        description: row.Description,
-        createdDate: normalizeDateOutput_(row.CreatedDate),
-        createdBy: row.CreatedBy,
-        projectId: row.ProjectID,
-        initialAllocationAmount: row.InitialAllocationAmount
-      };
-    });
-}
-
-function getPortalRefunds_(ss, projectId, vendorLookup) {
-  const sheet = getRequiredSheet_(ss, "Refunds");
-  const rows = getSheetObjects_(sheet);
-
-  assertRequiredColumns_(
-    rows.headers,
-    [
-      "RefundID",
-      "RefundDate",
-      "ExpenseID",
-      "ProjectID",
-      "PaymentAccountID",
-      "VendorID",
-      "RefundAmount",
-      "RefundReason",
-      "Notes",
-      "CreatedDate",
-      "CreatedBy"
-    ],
-    "refund"
-  );
-
-  return rows.items
-    .filter(function(row) {
-      return String(row.ProjectID || "").trim() === String(projectId || "").trim();
-    })
-    .map(function(row) {
-      const vendorId = String(row.VendorID || "").trim();
-      const vendor = vendorLookup[vendorId] || {};
-
-      return {
-        RefundID: row.RefundID,
-        RefundDate: normalizeDateOutput_(row.RefundDate),
-        ExpenseID: row.ExpenseID,
-        ProjectID: row.ProjectID,
-        PaymentAccountID: row.PaymentAccountID,
-        VendorID: row.VendorID,
-        VendorName: vendor.VendorName || "",
-        RefundAmount: row.RefundAmount,
-        RefundReason: row.RefundReason,
-        CreatedDate: normalizeDateOutput_(row.CreatedDate),
-        CreatedBy: row.CreatedBy,
-
-        refundId: row.RefundID,
-        refundDate: normalizeDateOutput_(row.RefundDate),
-        expenseId: row.ExpenseID,
-        projectId: row.ProjectID,
-        paymentAccountId: row.PaymentAccountID,
-        vendorId: row.VendorID,
-        vendorName: vendor.VendorName || "",
-        refundAmount: row.RefundAmount,
-        refundReason: row.RefundReason,
-        createdDate: normalizeDateOutput_(row.CreatedDate),
-        createdBy: row.CreatedBy
-      };
-    });
-}
-
-function getPortalPayments_(ss, projectId) {
-  const sheet = getRequiredSheet_(ss, "Payments");
-  const rows = getSheetObjects_(sheet);
-
-  assertRequiredColumns_(
-    rows.headers,
-    [
-      "PaymentID",
-      "PaymentDate",
-      "ProjectID",
-      "PaymentAmount",
-      "PaymentMethod",
-      "PaymentReference",
-      "Notes",
-      "CreatedDateTime",
-      "CreatedBy"
-    ],
-    "payment"
-  );
-
-  return rows.items
-    .filter(function(row) {
-      return String(row.ProjectID || "").trim() === String(projectId || "").trim();
-    })
-    .map(function(row) {
-      return {
-        PaymentID: row.PaymentID,
-        PaymentDate: normalizeDateOutput_(row.PaymentDate),
-        ProjectID: row.ProjectID,
-        PaymentAmount: row.PaymentAmount,
-        PaymentMethod: row.PaymentMethod,
-        PaymentReference: row.PaymentReference,
-        Notes: row.Notes,
-        CreatedDateTime: normalizeDateOutput_(row.CreatedDateTime),
-        CreatedBy: row.CreatedBy,
-
-        paymentId: row.PaymentID,
-        paymentDate: normalizeDateOutput_(row.PaymentDate),
-        projectId: row.ProjectID,
-        paymentAmount: row.PaymentAmount,
-        paymentMethod: row.PaymentMethod,
-        paymentReference: row.PaymentReference,
-        notes: row.Notes,
-        createdDateTime: normalizeDateOutput_(row.CreatedDateTime),
-        createdBy: row.CreatedBy
-      };
-    })
-    .sort(function(a, b) {
-      const aTime = toDate_(a.paymentDate);
-      const bTime = toDate_(b.paymentDate);
-
-      const aValue = aTime ? aTime.getTime() : 0;
-      const bValue = bTime ? bTime.getTime() : 0;
-
-      return bValue - aValue;
-    });
-}
-
-function getPortalExpenseAllocations_(ss, projectId) {
-  const sheet = getRequiredSheet_(ss, "ExpenseAllocations");
-  const rows = getSheetObjects_(sheet);
-
-  assertRequiredColumns_(
-    rows.headers,
-    [
-      "ExpenseAllocationID",
-      "ExpenseID",
-      "ProjectID",
-      "AllocatedAmount",
-      "Description",
-      "Notes",
-      "CreatedDate",
-      "CreatedBy"
-    ],
-    "expense allocation"
-  );
-
-  return rows.items
-    .filter(function(row) {
-      return String(row.ProjectID || "").trim() === String(projectId || "").trim();
-    })
-    .map(function(row) {
-      return {
-        ExpenseAllocationID: row.ExpenseAllocationID,
-        ExpenseID: row.ExpenseID,
-        ProjectID: row.ProjectID,
-        AllocatedAmount: row.AllocatedAmount,
-        Description: row.Description,
-        CreatedDate: normalizeDateOutput_(row.CreatedDate),
-        CreatedBy: row.CreatedBy,
-
-        expenseAllocationId: row.ExpenseAllocationID,
-        expenseId: row.ExpenseID,
-        projectId: row.ProjectID,
-        allocatedAmount: row.AllocatedAmount,
-        description: row.Description,
-        createdDate: normalizeDateOutput_(row.CreatedDate),
-        createdBy: row.CreatedBy
-      };
-    });
-}
-
-function getPortalServiceRequests_(ss, projectId) {
-  const sheet = getRequiredSheet_(ss, "ServiceRequests");
-  const rows = getSheetObjects_(sheet);
-
-  assertRequiredColumns_(
-    rows.headers,
-    [
-      "RequestID",
-      "CreatedDateTime",
-      "CreatedBy",
-      "Source",
-      "Status",
-      "PortalVisible",
-      "PayingClientID",
-      "PropertyClientID",
-      "ProjectID",
-      "RelatedProjectID",
-      "RequesterName",
-      "RequesterEmail",
-      "RequesterPhone",
-      "TextOK",
-      "RequesterRelationship",
-      "RequesterAddress",
-      "RequesterStreet1",
-      "RequesterStreet2",
-      "RequesterCity",
-      "RequesterState",
-      "RequesterZip",
-      "ServiceType",
-      "IssueDescription",
-      "Urgency",
-      "ServiceAddress",
-      "ServiceStreet1",
-      "ServiceStreet2",
-      "ServiceCity",
-      "ServiceState",
-      "ServiceZip",
-      "PropertyOccupied",
-      "PermissionToEnter",
-      "OnSiteContactName",
-      "OnSiteContactPhone",
-      "BestContactTime",
-      "BillingAddress",
-      "BillingStreet1",
-      "BillingStreet2",
-      "BillingCity",
-      "BillingState",
-      "BillingZip",
-      "Notes",
-      "ReviewProjectName",
-      "ReviewedBy",
-      "ReviewedDateTime",
-      "SRConverted"
-    ],
-    "service request"
-  );
-
-  return rows.items
-    .filter(function(row) {
-      return (String(row.ProjectID || "").trim() === String(projectId || "").trim()
-        || String(row.RelatedProjectID || "").trim() === String(projectId || "").trim())
-        && toBoolean_(row.PortalVisible);
-    })
-    .map(function(row) {
-      return {
-        RequestID: row.RequestID,
-        CreatedDateTime: normalizeDateOutput_(row.CreatedDateTime),
-        CreatedBy: row.CreatedBy,
-        Source: row.Source,
-        Status: row.Status,
-        PortalVisible: row.PortalVisible,
-        PayingClientID: row.PayingClientID,
-        PropertyClientID: row.PropertyClientID,
-        ProjectID: row.ProjectID,
-        RelatedProjectID: row.RelatedProjectID,
-        RequesterName: row.RequesterName,
-        RequesterEmail: row.RequesterEmail,
-        RequesterPhone: row.RequesterPhone,
-        TextOK: row.TextOK,
-        RequesterRelationship: row.RequesterRelationship,
-        RequesterAddress: row.RequesterAddress,
-        RequesterStreet1: row.RequesterStreet1,
-        RequesterStreet2: row.RequesterStreet2,
-        RequesterCity: row.RequesterCity,
-        RequesterState: row.RequesterState,
-        RequesterZip: row.RequesterZip,
-        ServiceType: row.ServiceType,
-        IssueDescription: row.IssueDescription,
-        Urgency: row.Urgency,
-        ServiceAddress: row.ServiceAddress,
-        ServiceStreet1: row.ServiceStreet1,
-        ServiceStreet2: row.ServiceStreet2,
-        ServiceCity: row.ServiceCity,
-        ServiceState: row.ServiceState,
-        ServiceZip: row.ServiceZip,
-        PropertyOccupied: row.PropertyOccupied,
-        PermissionToEnter: row.PermissionToEnter,
-        OnSiteContactName: row.OnSiteContactName,
-        OnSiteContactPhone: row.OnSiteContactPhone,
-        BestContactTime: row.BestContactTime,
-        BillingAddress: row.BillingAddress,
-        BillingStreet1: row.BillingStreet1,
-        BillingStreet2: row.BillingStreet2,
-        BillingCity: row.BillingCity,
-        BillingState: row.BillingState,
-        BillingZip: row.BillingZip,
-        ReviewProjectName: row.ReviewProjectName,
-        ReviewedBy: row.ReviewedBy,
-        ReviewedDateTime: normalizeDateOutput_(row.ReviewedDateTime),
-        SRConverted: row.SRConverted,
-
-        requestId: row.RequestID,
-        createdDateTime: normalizeDateOutput_(row.CreatedDateTime),
-        createdBy: row.CreatedBy,
-        source: row.Source,
-        status: row.Status,
-        portalVisible: row.PortalVisible,
-        payingClientId: row.PayingClientID,
-        propertyClientId: row.PropertyClientID,
-        projectId: row.ProjectID,
-        relatedProjectId: row.RelatedProjectID,
-        requesterName: row.RequesterName,
-        requesterEmail: row.RequesterEmail,
-        requesterPhone: row.RequesterPhone,
-        textOk: row.TextOK,
-        requesterRelationship: row.RequesterRelationship,
-        requesterAddress: row.RequesterAddress,
-        requesterStreet1: row.RequesterStreet1,
-        requesterStreet2: row.RequesterStreet2,
-        requesterCity: row.RequesterCity,
-        requesterState: row.RequesterState,
-        requesterZip: row.RequesterZip,
-        serviceType: row.ServiceType,
-        issueDescription: row.IssueDescription,
-        urgency: row.Urgency,
-        serviceAddress: row.ServiceAddress,
-        serviceStreet1: row.ServiceStreet1,
-        serviceStreet2: row.ServiceStreet2,
-        serviceCity: row.ServiceCity,
-        serviceState: row.ServiceState,
-        serviceZip: row.ServiceZip,
-        propertyOccupied: row.PropertyOccupied,
-        permissionToEnter: row.PermissionToEnter,
-        onSiteContactName: row.OnSiteContactName,
-        onSiteContactPhone: row.OnSiteContactPhone,
-        bestContactTime: row.BestContactTime,
-        billingAddress: row.BillingAddress,
-        billingStreet1: row.BillingStreet1,
-        billingStreet2: row.BillingStreet2,
-        billingCity: row.BillingCity,
-        billingState: row.BillingState,
-        billingZip: row.BillingZip,
-        reviewProjectName: row.ReviewProjectName,
-        reviewedBy: row.ReviewedBy,
-        reviewedDateTime: normalizeDateOutput_(row.ReviewedDateTime),
-        srConverted: row.SRConverted
-      };
-    });
-}
-
-function openPortalSpreadsheet_() {
-  return SpreadsheetApp.openById(CONFIG.portalSpreadsheetId);
-}
-
-function getRequiredSheet_(spreadsheet, sheetName) {
-  const sheet = spreadsheet.getSheetByName(sheetName);
-  if (!sheet) {
-    throw new Error('Sheet "' + sheetName + '" not found.');
-  }
-  return sheet;
-}
-
-function getSheetObjects_(sheet) {
-  const values = sheet.getDataRange().getValues();
-  if (values.length < 1) {
-    return { headers: [], items: [] };
-  }
-
-  const headers = values[0].map(function(header) {
-    return String(header || "").trim();
   });
 
-  const items = values.slice(1).map(function(row) {
-    const item = {};
-    headers.forEach(function(header, index) {
-      item[header] = row[index];
+  Object.values(serviceAddressFields).forEach(function(input) {
+    input.addEventListener("input", function() {
+      setCombinedAddress();
     });
-    return item;
   });
 
-  return {
-    headers: headers,
-    items: items
-  };
-}
-
-function assertRequiredColumns_(headers, requiredColumns, label) {
-  requiredColumns.forEach(function(name) {
-    if (headers.indexOf(name) === -1) {
-      throw new Error("Required " + label + " column missing: " + name);
-    }
-  });
-}
-
-function columnNumber_(headers, columnName) {
-  const index = headers.indexOf(columnName);
-  if (index === -1) {
-    throw new Error("Column not found: " + columnName);
-  }
-  return index + 1;
-}
-
-function buildPortalUrl_(token) {
-  return "/portal/?t=" + encodeURIComponent(String(token || "").trim());
-}
-
-function toAbsolutePortalUrl_(relativeUrl) {
-  return "https://ketter.us" + String(relativeUrl || "").trim();
-}
-
-function buildClientAddress_(clientRow) {
-  const line1 = [
-    String(clientRow.Street1 || "").trim(),
-    String(clientRow.Street2 || "").trim()
-  ].filter(Boolean).join(", ");
-
-  const cityStateZip = [
-    String(clientRow.City || "").trim(),
-    String(clientRow.State || "").trim(),
-    String(clientRow.Zip || "").trim()
-  ].filter(Boolean).join(" ");
-
-  return [line1, cityStateZip].filter(Boolean).join(", ");
-}
-
-function uniqueValues_(values) {
-  const seen = {};
-  const output = [];
-
-  values.forEach(function(value) {
-    const key = String(value || "").trim();
-    if (!key) return;
-    if (seen[key]) return;
-    seen[key] = true;
-    output.push(key);
+  hiddenIframe.addEventListener("load", function() {
+    if (!submitInProgress) return;
+    submitInProgress = false;
+    window.location.href = "/request-confirmation.html";
   });
 
-  return output;
-}
+  form.addEventListener("submit", function(e) {
+    console.log("submit fired");
+    alert("submit fired");
+  });
 
-function jsonResponse_(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+  tokenInput.value = getQueryParam("t");
+  setCombinedAddress();
+</script>
 
-function param_(e, name) {
-  return String((e && e.parameter && e.parameter[name]) || "").trim();
-}
-
-function digitsOnly_(value) {
-  return String(value || "").replace(/\D/g, "");
-}
-
-function toBoolean_(value) {
-  if (value === true) return true;
-  if (value === false) return false;
-
-  const text = String(value || "").trim().toUpperCase();
-  return text === "TRUE" || text === "YES" || text === "Y" || text === "1";
-}
-
-function isExpired_(value) {
-  if (!value) return false;
-  const dateValue = toDate_(value);
-  if (!dateValue) return false;
-  return dateValue.getTime() < new Date().getTime();
-}
-
-function toDate_(value) {
-  if (!value) return null;
-  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value)) return value;
-
-  const parsed = new Date(value);
-  return isNaN(parsed) ? null : parsed;
-}
-
-function normalizeDateOutput_(value) {
-  const dateValue = toDate_(value);
-  return dateValue ? dateValue.toISOString() : "";
-}
-
-function setCellValueIfChanged_(sheet, rowNumber, columnNumber, newValue) {
-  const range = sheet.getRange(rowNumber, columnNumber);
-  const oldValue = range.getValue();
-
-  const oldComparable = oldValue instanceof Date ? oldValue.getTime() : String(oldValue);
-  const newComparable = newValue instanceof Date ? newValue.getTime() : String(newValue);
-
-  if (oldComparable !== newComparable) {
-    range.setValue(newValue);
-  }
-}
-
-function getPortalConfig_() {
-  const props = PropertiesService.getScriptProperties();
-
-  const portalSpreadsheetId = String(props.getProperty("PORTAL_SPREADSHEET_ID") || "").trim();
-  const tokenLifetimeRaw = String(props.getProperty("PORTAL_TOKEN_LIFETIME_HOURS") || "24").trim();
-  const portalProjectsPastDaysRaw = String(props.getProperty("PORTAL_PROJECTS_PAST_DAYS") || "").trim();
-  const portalProjectsFutureDaysRaw = String(props.getProperty("PORTAL_PROJECTS_FUTURE_DAYS") || "").trim();
-
-  const portalTokenLifetimeHours = Number(tokenLifetimeRaw);
-  const portalProjectsPastDays = portalProjectsPastDaysRaw === "" ? 3650 : Number(portalProjectsPastDaysRaw);
-  const portalProjectsFutureDays = portalProjectsFutureDaysRaw === "" ? 3650 : Number(portalProjectsFutureDaysRaw);
-
-  if (!portalSpreadsheetId) {
-    throw new Error("Missing script property: PORTAL_SPREADSHEET_ID");
-  }
-
-  if (isNaN(portalTokenLifetimeHours) || portalTokenLifetimeHours <= 0) {
-    throw new Error("Invalid script property: PORTAL_TOKEN_LIFETIME_HOURS");
-  }
-
-  if (isNaN(portalProjectsPastDays) || portalProjectsPastDays < 0) {
-    throw new Error("Invalid script property: PORTAL_PROJECTS_PAST_DAYS");
-  }
-
-  if (isNaN(portalProjectsFutureDays) || portalProjectsFutureDays < 0) {
-    throw new Error("Invalid script property: PORTAL_PROJECTS_FUTURE_DAYS");
-  }
-
-  return {
-    portalSpreadsheetId: portalSpreadsheetId,
-    portalTokenLifetimeHours: portalTokenLifetimeHours,
-    portalProjectsPastDays: portalProjectsPastDays,
-    portalProjectsFutureDays: portalProjectsFutureDays
-  };
-}
+<script
+  async
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-7kJmABoBBo9ULSOcKE8tK096vLTwLcg&loading=async&libraries=places&callback=initAddressAutocomplete">
+</script>
