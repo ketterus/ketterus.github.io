@@ -7,6 +7,7 @@
 
       <div class="topbar-actions">
         {% if projectCenterHeader %}
+          <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
           <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
         {% else %}
           <a href="{{ site.cta_url }}" class="btn btn-brand">{{ site.cta_label }}</a>
@@ -21,13 +22,21 @@
 {% if projectCenterHeader %}
 <script>
   (function () {
-    const link = document.getElementById("projectCenterBackLink");
-    if (!link) return;
+    const backLink = document.getElementById("projectCenterBackLink");
+    const serviceLink = document.getElementById("projectCenterServiceRequestLink");
 
     const params = new URLSearchParams(window.location.search);
     const token = (params.get("t") || "").trim();
 
-    link.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+    if (backLink) {
+      backLink.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+    }
+
+    if (serviceLink) {
+      serviceLink.href = token
+        ? "/portal/portal-service-request/?t=" + encodeURIComponent(token)
+        : "/portal/portal-service-request/";
+    }
   })();
 </script>
 {% endif %}

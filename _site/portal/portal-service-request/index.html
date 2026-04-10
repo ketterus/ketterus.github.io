@@ -18,6 +18,7 @@
 
       <div class="topbar-actions">
         
+          <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
           <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
         
       </div>
@@ -28,13 +29,21 @@
 
 <script>
   (function () {
-    const link = document.getElementById("projectCenterBackLink");
-    if (!link) return;
+    const backLink = document.getElementById("projectCenterBackLink");
+    const serviceLink = document.getElementById("projectCenterServiceRequestLink");
 
     const params = new URLSearchParams(window.location.search);
     const token = (params.get("t") || "").trim();
 
-    link.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+    if (backLink) {
+      backLink.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+    }
+
+    if (serviceLink) {
+      serviceLink.href = token
+        ? "/portal/portal-service-request/?t=" + encodeURIComponent(token)
+        : "/portal/portal-service-request/";
+    }
   })();
 </script>
 
@@ -50,6 +59,8 @@
     <div id="formMessage" class="form-message" hidden></div>
 
     <form id="srForm" class="sr-form" novalidate>
+      <input type="hidden" id="ServiceAddress" name="ServiceAddress">
+
       <div class="form-grid">
         <div class="field">
           <label for="ServiceType">Service Type</label>
@@ -107,7 +118,15 @@
 
         <div class="field">
           <label for="OnSiteContactPhone">On-Site Contact Phone</label>
-          <input id="OnSiteContactPhone" name="OnSiteContactPhone" type="tel" required>
+          <input
+            id="OnSiteContactPhone"
+            name="OnSiteContactPhone"
+            type="tel"
+            inputmode="numeric"
+            maxlength="14"
+            placeholder="3045551212"
+            required
+          >
         </div>
 
         <div class="field">
@@ -122,34 +141,29 @@
         </div>
 
         <div class="field field-full">
-          <label for="ServiceAddress">Service Address</label>
-          <input id="ServiceAddress" name="ServiceAddress" type="text" required>
-          <div class="field-help">Full service address for reference.</div>
+          <label for="ServiceStreet1">Service Street Address</label>
+          <input id="ServiceStreet1" name="ServiceStreet1" type="text" autocomplete="address-line1" required>
+          <div class="field-help">Start typing the service address and choose the correct match.</div>
         </div>
 
         <div class="field">
-          <label for="ServiceStreet1">Service Street 1</label>
-          <input id="ServiceStreet1" name="ServiceStreet1" type="text" required>
-        </div>
-
-        <div class="field">
-          <label for="ServiceStreet2">Service Street 2</label>
-          <input id="ServiceStreet2" name="ServiceStreet2" type="text">
+          <label for="ServiceStreet2">Address Line 2</label>
+          <input id="ServiceStreet2" name="ServiceStreet2" type="text" autocomplete="address-line2">
         </div>
 
         <div class="field">
           <label for="ServiceCity">Service City</label>
-          <input id="ServiceCity" name="ServiceCity" type="text" required>
+          <input id="ServiceCity" name="ServiceCity" type="text" autocomplete="address-level2" required>
         </div>
 
         <div class="field">
           <label for="ServiceState">Service State</label>
-          <input id="ServiceState" name="ServiceState" type="text" maxlength="2" required>
+          <input id="ServiceState" name="ServiceState" type="text" maxlength="2" autocomplete="address-level1" required>
         </div>
 
         <div class="field">
           <label for="ServiceZip">Service Zip</label>
-          <input id="ServiceZip" name="ServiceZip" type="text" inputmode="numeric" required>
+          <input id="ServiceZip" name="ServiceZip" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" required>
         </div>
       </div>
 
@@ -207,10 +221,6 @@
     background: #f6f8ff;
     border-color: #b9c6ee;
     color: #233f8a;
-  }
-
-  .sr-form {
-    display: block;
   }
 
   .form-grid {
@@ -301,10 +311,22 @@
 <script>
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby12TuuhZaJjy6_xWtbKfH3R6joBD22RpeoANAU6EPBokz7IrIAq8v022EQAVdclu-D3w/exec";
   const PORTAL_SUCCESS_URL = "/portal/portal-service-request-confirmation/";
+
   const form = document.getElementById("srForm");
   const formMessage = document.getElementById("formMessage");
   const submitBtn = document.getElementById("submitBtn");
   const resetBtn = document.getElementById("resetBtn");
+
+  const serviceAddressFields = {
+    full: document.getElementById("ServiceAddress"),
+    street1: document.getElementById("ServiceStreet1"),
+    street2: document.getElementById("ServiceStreet2"),
+    city: document.getElementById("ServiceCity"),
+    state: document.getElementById("ServiceState"),
+    zip: document.getElementById("ServiceZip")
+  };
+
+  let serviceAutocomplete = null;
 
   function getTokenFromUrl() {
     const params = new URLSearchParams(window.location.search);
@@ -326,6 +348,107 @@
     formMessage.classList.remove("is-error", "is-working");
   }
 
+  function digitsOnly(value) {
+    return String(value || "").replace(/\D/g, "");
+  }
+
+  function normalizePhoneInput(input) {
+    input.value = digitsOnly(input.value).slice(0, 11);
+  }
+
+  function normalizeZipInput(input) {
+    input.value = digitsOnly(input.value).slice(0, 5);
+  }
+
+  function normalizeStateInput(input) {
+    input.value = String(input.value || "").replace(/[^a-z]/gi, "").toUpperCase().slice(0, 2);
+  }
+
+  function buildAddress(street1, street2, city, state, zip) {
+    const line1 = String(street1 || "").trim();
+    const line2 = String(street2 || "").trim();
+    const cityVal = String(city || "").trim();
+    const stateVal = String(state || "").trim();
+    const zipVal = String(zip || "").trim();
+
+    const streetPart = [line1, line2].filter(Boolean).join(", ");
+    const cityStateZipPart = [cityVal, stateVal, zipVal].filter(Boolean).join(", ");
+
+    return [streetPart, cityStateZipPart].filter(Boolean).join(", ");
+  }
+
+  function setCombinedServiceAddress() {
+    serviceAddressFields.full.value = buildAddress(
+      serviceAddressFields.street1.value,
+      serviceAddressFields.street2.value,
+      serviceAddressFields.city.value,
+      serviceAddressFields.state.value,
+      serviceAddressFields.zip.value
+    );
+  }
+
+  function fillAddressFieldsFromPlace(place) {
+    if (!place || !place.address_components) return;
+
+    let streetNumber = "";
+    let route = "";
+    let city = "";
+    let state = "";
+    let zip = "";
+
+    for (const component of place.address_components) {
+      const types = component.types || [];
+
+      if (types.includes("street_number")) streetNumber = component.long_name;
+      if (types.includes("route")) route = component.long_name;
+      if (types.includes("locality")) city = component.long_name;
+      if (types.includes("postal_town") && !city) city = component.long_name;
+      if (types.includes("administrative_area_level_1")) state = component.short_name;
+      if (types.includes("postal_code")) zip = component.long_name;
+    }
+
+    serviceAddressFields.street1.value = [streetNumber, route].filter(Boolean).join(" ").trim();
+    serviceAddressFields.city.value = city;
+    serviceAddressFields.state.value = state;
+    serviceAddressFields.zip.value = zip;
+
+    setCombinedServiceAddress();
+  }
+
+  function initServiceAddressAutocomplete() {
+    if (!window.google || !google.maps || !google.maps.places) {
+      return;
+    }
+
+    serviceAutocomplete = new google.maps.places.Autocomplete(serviceAddressFields.street1, {
+      types: ["address"],
+      componentRestrictions: { country: "us" },
+      fields: ["address_components", "formatted_address"]
+    });
+
+    serviceAutocomplete.addListener("place_changed", function () {
+      fillAddressFieldsFromPlace(serviceAutocomplete.getPlace());
+    });
+  }
+
+  window.initServiceAddressAutocomplete = initServiceAddressAutocomplete;
+
+  serviceAddressFields.street1.addEventListener("input", setCombinedServiceAddress);
+  serviceAddressFields.street2.addEventListener("input", setCombinedServiceAddress);
+  serviceAddressFields.city.addEventListener("input", setCombinedServiceAddress);
+  serviceAddressFields.state.addEventListener("input", function () {
+    normalizeStateInput(serviceAddressFields.state);
+    setCombinedServiceAddress();
+  });
+  serviceAddressFields.zip.addEventListener("input", function () {
+    normalizeZipInput(serviceAddressFields.zip);
+    setCombinedServiceAddress();
+  });
+
+  document.getElementById("OnSiteContactPhone").addEventListener("input", function () {
+    normalizePhoneInput(this);
+  });
+
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
 
@@ -334,6 +457,11 @@
       showMessage("No access token was found in the page URL.", "is-error");
       return;
     }
+
+    normalizePhoneInput(document.getElementById("OnSiteContactPhone"));
+    normalizeStateInput(serviceAddressFields.state);
+    normalizeZipInput(serviceAddressFields.zip);
+    setCombinedServiceAddress();
 
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting...";
@@ -382,7 +510,15 @@
   resetBtn.addEventListener("click", function () {
     form.reset();
     clearMessage();
+    setCombinedServiceAddress();
   });
+
+  setCombinedServiceAddress();
+</script>
+
+<script
+  async
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-7kJmABoBBo9ULSOcKE8tK096vLTwLcg&loading=async&libraries=places&callback=initServiceAddressAutocomplete">
 </script>
 
   <footer class="border-top py-4 mt-5">

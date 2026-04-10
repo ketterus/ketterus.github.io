@@ -37,6 +37,32 @@ projectCenterHeader: true
   </div>
 </main>
 
+<style>
+  .portal-action-row {
+    margin: 1rem 0 1.25rem;
+  }
+
+  .portal-primary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.85rem 1.15rem;
+    border-radius: 12px;
+    background: #222;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .portal-primary-action:hover,
+  .portal-primary-action:focus {
+    color: #fff;
+    text-decoration: none;
+  }
+</style>
+
 <script>
   const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycby12TuuhZaJjy6_xWtbKfH3R6joBD22RpeoANAU6EPBokz7IrIAq8v022EQAVdclu-D3w/exec";
 
@@ -110,6 +136,13 @@ projectCenterHeader: true
       bodyEl.innerHTML = `
         <p class="mb-2">Welcome, <strong>${escapeHtml((data.client && data.client.clientName) || "Client")}</strong>.</p>
         <p class="text-muted mb-0">Select a project to open its report.</p>
+
+        <div class="portal-action-row">
+          <a class="portal-primary-action" href="/portal/portal-service-request/?t=${encodeURIComponent(token)}">
+            Submit Service Request
+          </a>
+        </div>
+
         ${renderStatusSummary(statusSummary)}
         ${renderProjects(projects, token)}
       `;
