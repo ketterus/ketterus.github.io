@@ -7,8 +7,10 @@ headerMode: portalInner
 
 <div class="portal-page">
   <section class="portal-hero">
-    <h1>Submit Service Request</h1>
-    <p>Use this form to submit a new service request. We will review it and follow up as needed.</p>
+    <div class="portal-hero-copy">
+      <h1>Submit Service Request</h1>
+      <p>Use this form to submit a new service request. We will review it and follow up as needed.</p>
+    </div>
   </section>
 
   <section class="portal-card">
@@ -83,6 +85,7 @@ headerMode: portalInner
             placeholder="3045551212"
             required
           >
+          <div class="field-help">Enter a 10-digit US phone number.</div>
         </div>
 
         <div class="field">
@@ -124,145 +127,12 @@ headerMode: portalInner
       </div>
 
       <div class="form-actions">
-        <button type="submit" id="submitBtn" class="btn btn-primary">Submit Service Request</button>
-        <button type="button" id="resetBtn" class="btn btn-secondary">Reset Form</button>
+        <button type="submit" id="submitBtn" class="btn btn-brand">Submit Service Request</button>
+        <button type="button" id="resetBtn" class="btn btn-outline-brand">Reset Form</button>
       </div>
     </form>
   </section>
 </div>
-
-<style>
-  .portal-page {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 1rem;
-  }
-
-  .portal-hero,
-  .portal-card {
-    background: #fff;
-    border: 1px solid #d9d9d9;
-    border-radius: 14px;
-    padding: 1.1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,.04);
-    margin-bottom: 1rem;
-  }
-
-  .portal-hero h1 {
-    margin: 0 0 .45rem;
-    font-size: 1.7rem;
-  }
-
-  .portal-hero p {
-    margin: 0;
-    color: #555;
-    line-height: 1.5;
-  }
-
-  .form-message {
-    margin-bottom: 1rem;
-    padding: .9rem 1rem;
-    border: 1px solid #d9d9d9;
-    border-radius: 10px;
-    font-weight: 600;
-  }
-
-  .form-message.is-error {
-    background: #fff7f7;
-    border-color: #ddb2b2;
-    color: #8a2222;
-  }
-
-  .form-message.is-working {
-    background: #f6f8ff;
-    border-color: #b9c6ee;
-    color: #233f8a;
-  }
-
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  @media (min-width: 800px) {
-    .form-grid {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .field-full {
-    grid-column: 1 / -1;
-  }
-
-  .field label {
-    font-weight: 700;
-    margin-bottom: .35rem;
-  }
-
-  .field input,
-  .field select,
-  .field textarea {
-    width: 100%;
-    padding: .8rem;
-    border: 1px solid #cfcfcf;
-    border-radius: 10px;
-    font: inherit;
-    background: #fff;
-    color: #222;
-    box-sizing: border-box;
-  }
-
-  .field textarea {
-    min-height: 140px;
-    resize: vertical;
-  }
-
-  .field-help {
-    margin-top: .4rem;
-    font-size: .92rem;
-    color: #666;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: .75rem;
-    flex-wrap: wrap;
-    margin-top: 1.1rem;
-  }
-
-  .btn {
-    appearance: none;
-    border: 1px solid #cfcfcf;
-    border-radius: 10px;
-    padding: .8rem 1.1rem;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-    background: #fff;
-  }
-
-  .btn-primary {
-    background: #222;
-    color: #fff;
-    border-color: #222;
-  }
-
-  .btn-secondary {
-    background: #f3f3f3;
-    color: #222;
-  }
-
-  .btn:disabled {
-    opacity: .7;
-    cursor: wait;
-  }
-</style>
 
 <script>
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby12TuuhZaJjy6_xWtbKfH3R6joBD22RpeoANAU6EPBokz7IrIAq8v022EQAVdclu-D3w/exec";

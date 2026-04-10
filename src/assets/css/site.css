@@ -477,6 +477,147 @@ footer .fw-semibold {
   white-space: nowrap;
 }
 
+/* ---------- Portal service request / confirmation ---------- */
+
+.portal-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.portal-hero,
+.portal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+  margin-bottom: 1rem;
+}
+
+.portal-card-narrow {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.portal-hero-copy h1 {
+  margin: 0 0 .45rem;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.portal-hero-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+.portal-hero-success {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.portal-hero-icon {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: #f4fbf4;
+  border: 1px solid #b8d8b8;
+  color: #1f6b2a;
+}
+
+.form-message {
+  margin-bottom: 1rem;
+  padding: .95rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.form-message.is-error {
+  background: #fff7f7;
+  border-color: #ddb2b2;
+  color: #8a2222;
+}
+
+.form-message.is-working {
+  background: #f6f8ff;
+  border-color: #b9c6ee;
+  color: #233f8a;
+}
+
+.sr-form {
+  display: block;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-weight: 700;
+  margin-bottom: .35rem;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: .8rem;
+  border: 1px solid #cfcfcf;
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(216, 179, 106, 0.18);
+}
+
+.field textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.field-help {
+  margin-top: .4rem;
+  font-size: .92rem;
+  color: var(--muted);
+}
+
+.form-actions,
+.confirmation-actions {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-top: 1.15rem;
+}
+
 /* ---------- Report ---------- */
 
 .report-wrap {
@@ -749,6 +890,12 @@ footer .fw-semibold {
   }
 }
 
+@media (min-width: 800px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .page-wrap {
     padding: 28px 0 40px;
@@ -809,5 +956,21 @@ footer .fw-semibold {
   .refund-amount,
   .payment-amount {
     white-space: normal;
+  }
+}
+
+@media (max-width: 640px) {
+  .portal-hero-success {
+    flex-direction: column;
+  }
+
+  .form-actions,
+  .confirmation-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn,
+  .confirmation-actions .btn {
+    width: 100%;
   }
 }

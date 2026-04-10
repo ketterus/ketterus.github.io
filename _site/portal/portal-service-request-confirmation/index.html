@@ -18,9 +18,10 @@
 
       <div class="topbar-actions">
         
-          <a href="/service-request.html" class="btn btn-brand">Request Service</a>
-          <a href="/portal/sign-in/" class="btn btn-outline-brand">Project Center</a>
-          <a href="/menu.html" class="btn btn-menu">Menu</a>
+          <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
+          <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
+          
+
         
       </div>
     </div>
@@ -28,58 +29,70 @@
 </nav>
 
 
+<script>
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const token = (params.get("t") || "").trim();
+
+    const backLink = document.getElementById("projectCenterBackLink");
+    const serviceLink = document.getElementById("projectCenterServiceRequestLink");
+    const menuLink = document.getElementById("projectCenterMenuLink");
+
+    if (backLink) {
+      backLink.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+    }
+
+    if (serviceLink) {
+      serviceLink.href = token
+        ? "/portal/portal-service-request/?t=" + encodeURIComponent(token)
+        : "/portal/portal-service-request/";
+    }
+
+    if (menuLink) {
+      menuLink.href = token
+        ? "/portal/menu/?t=" + encodeURIComponent(token)
+        : "/portal/menu/";
+    }
+  })();
+</script>
+
 
   
-<div class="report-wrap">
-  <section class="report-shell">
-    <h1 class="report-title">Service Request Submitted</h1>
-    <p>Your service request was submitted successfully.</p>
-    <p>We will review it as quickly as possible.</p>
+<div class="portal-page">
+  <section class="portal-hero portal-hero-success">
+    <div class="portal-hero-icon" aria-hidden="true">✓</div>
+    <div class="portal-hero-copy">
+      <h1>Service Request Submitted</h1>
+      <p>Your service request was submitted successfully. We will review it as quickly as possible.</p>
+    </div>
+  </section>
 
-    <div class="form-actions" style="margin-top:1rem;">
-      <a id="returnToPortalBtn" class="btn btn-primary" href="/portal/">Return to Project Center</a>
-      <a id="submitAnotherBtn" class="btn btn-secondary" href="/portal/portal-service-request/">Submit Another Request</a>
+  <section class="portal-card portal-card-narrow">
+    <div class="confirmation-actions">
+      <a id="returnToPortalBtn" class="btn btn-brand" href="/portal/">Return to Project Center</a>
+      <a id="submitAnotherBtn" class="btn btn-outline-brand" href="/portal/portal-service-request/">Submit Another Request</a>
     </div>
   </section>
 </div>
 
-<style>
-  .btn {
-    display: inline-block;
-    text-decoration: none;
-    appearance: none;
-    border: 1px solid #cfcfcf;
-    border-radius: 10px;
-    padding: .8rem 1.1rem;
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    background: #fff;
-    color: #222;
-    margin-right: .75rem;
-    margin-bottom: .75rem;
-  }
-
-  .btn-primary {
-    background: #222;
-    color: #fff;
-    border-color: #222;
-  }
-
-  .btn-secondary {
-    background: #f3f3f3;
-    color: #222;
-  }
-</style>
-
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const token = (params.get("t") || "").trim();
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const token = (params.get("t") || "").trim();
 
-  if (token) {
-    document.getElementById("returnToPortalBtn").href = "/portal/?t=" + encodeURIComponent(token);
-    document.getElementById("submitAnotherBtn").href = "/portal/portal-service-request/?t=" + encodeURIComponent(token);
-  }
+    if (!token) return;
+
+    const returnBtn = document.getElementById("returnToPortalBtn");
+    const anotherBtn = document.getElementById("submitAnotherBtn");
+
+    if (returnBtn) {
+      returnBtn.href = "/portal/?t=" + encodeURIComponent(token);
+    }
+
+    if (anotherBtn) {
+      anotherBtn.href = "/portal/portal-service-request/?t=" + encodeURIComponent(token);
+    }
+  })();
 </script>
 
   <footer class="border-top py-4 mt-5">
