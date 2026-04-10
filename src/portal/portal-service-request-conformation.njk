@@ -1,0 +1,58 @@
+---
+layout: layouts/base.njk
+title: Ketter Home Improvements | Service Request Submitted
+permalink: /portal/portal-service-request-confirmation/index.html
+projectCenterHeader: true
+---
+
+<div class="report-wrap">
+  <section class="report-shell">
+    <h1 class="report-title">Service Request Submitted</h1>
+    <p>Your service request was submitted successfully.</p>
+    <p>We will review it as quickly as possible.</p>
+
+    <div class="form-actions" style="margin-top:1rem;">
+      <a id="returnToPortalBtn" class="btn btn-primary" href="/portal/">Return to Project Center</a>
+      <a id="submitAnotherBtn" class="btn btn-secondary" href="/portal/portal-service-request/">Submit Another Request</a>
+    </div>
+  </section>
+</div>
+
+<style>
+  .btn {
+    display: inline-block;
+    text-decoration: none;
+    appearance: none;
+    border: 1px solid #cfcfcf;
+    border-radius: 10px;
+    padding: .8rem 1.1rem;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+    color: #222;
+    margin-right: .75rem;
+    margin-bottom: .75rem;
+  }
+
+  .btn-primary {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+  }
+
+  .btn-secondary {
+    background: #f3f3f3;
+    color: #222;
+  }
+</style>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token = (params.get("t") || "").trim();
+
+  if (token) {
+    document.getElementById("returnToPortalBtn").href = "/portal/?t=" + encodeURIComponent(token);
+    document.getElementById("submitAnotherBtn").href = "/portal/portal-service-request/?t=" + encodeURIComponent(token);
+  }
+</script>
