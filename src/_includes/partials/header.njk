@@ -6,9 +6,19 @@
       </a>
 
       <div class="topbar-actions">
-        {% if projectCenterHeader %}
+        {% if headerMode == "portalSignedIn" %}
           <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
           <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
+          {% if showPortalMenuButton %}
+            <a href="/portal/menu/" class="btn btn-menu" id="projectCenterMenuLink">Menu</a>
+          {% endif %}
+
+        {% elif headerMode == "portalSignedOut" %}
+          <a href="/portal/sign-in/" class="btn btn-outline-brand">Project Center Sign In</a>
+          {% if showPublicMenuButton %}
+            <a href="{{ site.menu_url }}" class="btn btn-menu">Menu</a>
+          {% endif %}
+
         {% else %}
           <a href="{{ site.cta_url }}" class="btn btn-brand">{{ site.cta_label }}</a>
           <a href="/portal/sign-in/" class="btn btn-outline-brand">{{ site.project_center_label }}</a>
@@ -19,14 +29,15 @@
   </div>
 </nav>
 
-{% if projectCenterHeader %}
+{% if headerMode == "portalSignedIn" %}
 <script>
   (function () {
-    const backLink = document.getElementById("projectCenterBackLink");
-    const serviceLink = document.getElementById("projectCenterServiceRequestLink");
-
     const params = new URLSearchParams(window.location.search);
     const token = (params.get("t") || "").trim();
+
+    const backLink = document.getElementById("projectCenterBackLink");
+    const serviceLink = document.getElementById("projectCenterServiceRequestLink");
+    const menuLink = document.getElementById("projectCenterMenuLink");
 
     if (backLink) {
       backLink.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
@@ -36,6 +47,12 @@
       serviceLink.href = token
         ? "/portal/portal-service-request/?t=" + encodeURIComponent(token)
         : "/portal/portal-service-request/";
+    }
+
+    if (menuLink) {
+      menuLink.href = token
+        ? "/portal/menu/?t=" + encodeURIComponent(token)
+        : "/portal/menu/";
     }
   })();
 </script>
