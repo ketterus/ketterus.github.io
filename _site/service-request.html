@@ -39,11 +39,12 @@
           <p class="text-muted mb-0">Send the job details and we will review your request as quickly as possible.</p>
         </div>
 
+        <div id="formMessage" class="alert d-none" role="alert"></div>
+
         <form
           id="serviceRequestForm"
           action="https://script.google.com/macros/s/AKfycbyKZJythlKKWbaT57pIJYmj69kvAedP31TtUXErr4nsuchx3aHzh5t75PukLWs-Kjg9aw/exec"
           method="post"
-          target="hidden_iframe"
           novalidate
         >
           <input type="hidden" id="RequesterAddress" name="RequesterAddress">
@@ -330,8 +331,6 @@
             </div>
           </div>
         </form>
-
-        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
       </div>
     </div>
   </div>
@@ -344,7 +343,7 @@
 
   const form = document.getElementById("serviceRequestForm");
   const submitBtn = document.getElementById("submitBtn");
-  const hiddenIframe = document.getElementById("hidden_iframe");
+  const formMessage = document.getElementById("formMessage");
 
   const serviceSameAsRequester = document.getElementById("ServiceSameAsRequester");
   const serviceAddressFieldsWrap = document.getElementById("serviceAddressFields");
@@ -376,7 +375,17 @@
     zip: document.getElementById("BillingZip")
   };
 
-  let submitInProgress = false;
+  function showMessage(message, kind) {
+    formMessage.textContent = message;
+    formMessage.classList.remove("d-none", "alert-danger", "alert-info", "alert-success");
+    formMessage.classList.add(kind === "error" ? "alert-danger" : "alert-info");
+  }
+
+  function clearMessage() {
+    formMessage.textContent = "";
+    formMessage.classList.add("d-none");
+    formMessage.classList.remove("alert-danger", "alert-info", "alert-success");
+  }
 
   function digitsOnly(value) {
     return String(value || "").replace(/\D/g, "");
@@ -601,7 +610,6 @@
   function resetSubmitButton() {
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit Request";
-    submitInProgress = false;
   }
 
   document.querySelectorAll(".phone-input").forEach(function(input) {
@@ -655,13 +663,9 @@
     toggleBillingAddressState();
   });
 
-  hiddenIframe.addEventListener("load", function() {
-    if (!submitInProgress) return;
-    submitInProgress = false;
-    window.location.href = "/request-confirmation.html";
-  });
-
-  form.addEventListener("submit", function(e) {
+  form.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    clearMessage();
     clearCustomValidity();
 
     document.querySelectorAll(".phone-input").forEach(function(input) {
@@ -764,22 +768,46 @@
     }
 
     if (!form.checkValidity()) {
-      e.preventDefault();
       form.classList.add("was-validated");
       resetSubmitButton();
       return;
     }
 
-    submitInProgress = true;
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting...";
+    showMessage("Submitting your request...", "info");
 
-    setTimeout(function() {
-      if (submitInProgress) {
-        submitInProgress = false;
-        window.location.href = "/request-confirmation.html";
+    try {
+      const formData = new FormData(form);
+
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: formData
+      });
+
+      const text = (await response.text()).trim();
+
+      if (!response.ok) {
+        throw new Error("Request failed with HTTP " + response.status + ".");
       }
-    }, 2500);
+
+      if (text === "OK") {
+        window.location.href = "/request-confirmation.html";
+        return;
+      }
+
+      if (text.startsWith("ERROR:")) {
+        throw new Error(text.replace(/^ERROR:\s*/, "").trim() || "Submission failed.");
+      }
+
+      throw new Error("Unexpected response from server.");
+    } catch (error) {
+      showMessage(
+        error && error.message ? error.message : "Unable to submit request right now.",
+        "error"
+      );
+      resetSubmitButton();
+    }
   });
 
   toggleServiceAddressState();
@@ -791,7 +819,6 @@
   async
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-7kJmABoBBo9ULSOcKE8tK096vLTwLcg&loading=async&libraries=places&callback=initAddressAutocomplete">
 </script>
-
 
   <footer class="border-top py-4 mt-5">
   <div class="container-fluid px-3 px-lg-4 text-center">
