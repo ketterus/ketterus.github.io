@@ -6,7 +6,13 @@
       </a>
 
       <div class="topbar-actions">
-        {% if headerMode == "portalSignedIn" %}
+        {% if headerMode == "portalHome" %}
+          <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
+          {% if showPortalMenuButton %}
+            <a href="/portal/menu/" class="btn btn-menu" id="projectCenterMenuLink">Menu</a>
+          {% endif %}
+
+        {% elif headerMode == "portalInner" %}
           <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
           <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
           {% if showPortalMenuButton %}
@@ -29,7 +35,7 @@
   </div>
 </nav>
 
-{% if headerMode == "portalSignedIn" %}
+{% if headerMode == "portalHome" or headerMode == "portalInner" %}
 <script>
   (function () {
     const params = new URLSearchParams(window.location.search);
