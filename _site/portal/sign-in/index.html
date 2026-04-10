@@ -18,34 +18,15 @@
 
       <div class="topbar-actions">
         
-          <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
-          <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
+          <a href="/service-request.html" class="btn btn-brand">Request Service</a>
+          <a href="/portal/sign-in/" class="btn btn-outline-brand">Project Center</a>
+          <a href="/menu.html" class="btn btn-menu">Menu</a>
         
       </div>
     </div>
   </div>
 </nav>
 
-
-<script>
-  (function () {
-    const backLink = document.getElementById("projectCenterBackLink");
-    const serviceLink = document.getElementById("projectCenterServiceRequestLink");
-
-    const params = new URLSearchParams(window.location.search);
-    const token = (params.get("t") || "").trim();
-
-    if (backLink) {
-      backLink.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
-    }
-
-    if (serviceLink) {
-      serviceLink.href = token
-        ? "/portal/portal-service-request/?t=" + encodeURIComponent(token)
-        : "/portal/portal-service-request/";
-    }
-  })();
-</script>
 
 
   
