@@ -1,0 +1,315 @@
+---
+layout: layouts/base.njk
+title: Ketter Home Improvements | Service Request
+permalink: /portal/portal-service-request/
+projectCenterHeader: true
+---
+
+<div class="report-wrap">
+  <section class="report-shell">
+    <h1 class="report-title">Submit Service Request</h1>
+    <p>Complete this form to submit a new service request.</p>
+  </section>
+
+  <section class="report-section">
+    <form id="srForm" class="sr-form">
+      <div class="form-grid">
+        <div class="field">
+          <label for="ServiceType">Service Type</label>
+          <select id="ServiceType" name="ServiceType" required>
+            <option value="">Select service type</option>
+            <option>General Repair</option>
+            <option>Property Maintenance</option>
+            <option>Installations</option>
+            <option>Interior Improvements</option>
+            <option>Rental Turnover Work</option>
+            <option>Custom Request</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="Urgency">Urgency</label>
+          <select id="Urgency" name="Urgency" required>
+            <option value="">Select urgency</option>
+            <option>Routine</option>
+            <option>Soon</option>
+            <option>Urgent</option>
+          </select>
+        </div>
+
+        <div class="field field-full">
+          <label for="IssueDescription">Issue Description</label>
+          <textarea id="IssueDescription" name="IssueDescription" rows="6" required></textarea>
+        </div>
+
+        <div class="field">
+          <label for="PropertyOccupied">Property Occupied</label>
+          <select id="PropertyOccupied" name="PropertyOccupied" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Unknown</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="PermissionToEnter">Permission To Enter</label>
+          <select id="PermissionToEnter" name="PermissionToEnter" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Call First</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="OnSiteContactName">On-Site Contact Name</label>
+          <input id="OnSiteContactName" name="OnSiteContactName" type="text" required>
+        </div>
+
+        <div class="field">
+          <label for="OnSiteContactPhone">On-Site Contact Phone</label>
+          <input id="OnSiteContactPhone" name="OnSiteContactPhone" type="tel" required>
+        </div>
+
+        <div class="field">
+          <label for="BestContactTime">Best Contact Time</label>
+          <select id="BestContactTime" name="BestContactTime" required>
+            <option value="">Select</option>
+            <option>8 AM - 12 PM</option>
+            <option>12 PM - 4 PM</option>
+            <option>4 PM - 8 PM</option>
+            <option>Anytime</option>
+          </select>
+        </div>
+
+        <div class="field field-full">
+          <label for="ServiceAddress">Service Address</label>
+          <input id="ServiceAddress" name="ServiceAddress" type="text" required>
+          <p class="field-help">Full service address for reference.</p>
+        </div>
+
+        <div class="field">
+          <label for="ServiceStreet1">Service Street 1</label>
+          <input id="ServiceStreet1" name="ServiceStreet1" type="text" required>
+        </div>
+
+        <div class="field">
+          <label for="ServiceStreet2">Service Street 2</label>
+          <input id="ServiceStreet2" name="ServiceStreet2" type="text">
+        </div>
+
+        <div class="field">
+          <label for="ServiceCity">Service City</label>
+          <input id="ServiceCity" name="ServiceCity" type="text" required>
+        </div>
+
+        <div class="field">
+          <label for="ServiceState">Service State</label>
+          <input id="ServiceState" name="ServiceState" type="text" maxlength="2" required>
+        </div>
+
+        <div class="field">
+          <label for="ServiceZip">Service Zip</label>
+          <input id="ServiceZip" name="ServiceZip" type="text" inputmode="numeric" required>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" id="submitBtn" class="btn btn-primary">Submit Service Request</button>
+        <button type="button" id="resetBtn" class="btn btn-secondary">Reset Form</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="report-section">
+    <h2 class="section-title">Result</h2>
+    <pre id="result" class="result-box">No submission yet.</pre>
+  </section>
+</div>
+
+<style>
+  .sr-form {
+    display: block;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 800px) {
+    .form-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .field-full {
+    grid-column: 1 / -1;
+  }
+
+  .field label {
+    font-weight: 600;
+    margin-bottom: .35rem;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: .75rem;
+    border: 1px solid #cfcfcf;
+    border-radius: 10px;
+    font: inherit;
+    background: #fff;
+    color: #222;
+    box-sizing: border-box;
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 140px;
+  }
+
+  .field-help {
+    margin: .4rem 0 0;
+    font-size: .92rem;
+    color: #555;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .btn {
+    appearance: none;
+    border: 1px solid #cfcfcf;
+    border-radius: 10px;
+    padding: .8rem 1.1rem;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+  }
+
+  .btn-primary {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+  }
+
+  .btn-secondary {
+    background: #f3f3f3;
+    color: #222;
+  }
+
+  .result-box {
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid #d8d8d8;
+    border-radius: 10px;
+    background: #fafafa;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: .95rem;
+    line-height: 1.45;
+    min-height: 140px;
+  }
+
+  .result-box.is-success {
+    background: #f6fff7;
+    border-color: #a9d5ad;
+  }
+
+  .result-box.is-error {
+    background: #fff7f7;
+    border-color: #ddb2b2;
+  }
+</style>
+
+<script>
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby12TuuhZaJjy6_xWtbKfH3R6joBD22RpeoANAU6EPBokz7IrIAq8v022EQAVdclu-D3w/exec";
+  const form = document.getElementById("srForm");
+  const resultBox = document.getElementById("result");
+  const submitBtn = document.getElementById("submitBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  function getTokenFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("t") || "").trim();
+  }
+
+  function setResult(data, isError) {
+    resultBox.textContent = JSON.stringify(data, null, 2);
+    resultBox.classList.remove("is-success", "is-error");
+    resultBox.classList.add(isError ? "is-error" : "is-success");
+  }
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const token = getTokenFromUrl();
+    if (!token) {
+      setResult({
+        success: false,
+        code: "MISSING_TOKEN",
+        message: "No access token was found in the page URL."
+      }, true);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+
+    try {
+      const formData = new FormData(form);
+      formData.append("mode", "create_service_request");
+      formData.append("t", token);
+
+      const response = await fetch(WEB_APP_URL, {
+        method: "POST",
+        body: formData
+      });
+
+      const text = await response.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        data = {
+          success: false,
+          code: "INVALID_JSON",
+          message: "Server did not return valid JSON.",
+          raw: text
+        };
+      }
+
+      setResult(data, !data.success);
+    } catch (error) {
+      setResult({
+        success: false,
+        code: "NETWORK_ERROR",
+        message: error && error.message ? error.message : "Request failed."
+      }, true);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Service Request";
+    }
+  });
+
+  resetBtn.addEventListener("click", function () {
+    form.reset();
+    resultBox.textContent = "No submission yet.";
+    resultBox.classList.remove("is-success", "is-error");
+  });
+</script>
