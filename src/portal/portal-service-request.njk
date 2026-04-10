@@ -238,6 +238,7 @@ projectCenterHeader: true
 
 <script>
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby12TuuhZaJjy6_xWtbKfH3R6joBD22RpeoANAU6EPBokz7IrIAq8v022EQAVdclu-D3w/exec";
+  const PORTAL_SUCCESS_URL = "/portal/portal-service-request-confirmation/";
   const form = document.getElementById("srForm");
   const resultBox = document.getElementById("result");
   const submitBtn = document.getElementById("submitBtn");
@@ -248,8 +249,8 @@ projectCenterHeader: true
     return (params.get("t") || "").trim();
   }
 
-  function setResult(data, isError) {
-    resultBox.textContent = JSON.stringify(data, null, 2);
+  function setResult(message, isError) {
+    resultBox.textContent = message;
     resultBox.classList.remove("is-success", "is-error");
     resultBox.classList.add(isError ? "is-error" : "is-success");
   }
@@ -259,16 +260,13 @@ projectCenterHeader: true
 
     const token = getTokenFromUrl();
     if (!token) {
-      setResult({
-        success: false,
-        code: "MISSING_TOKEN",
-        message: "No access token was found in the page URL."
-      }, true);
+      setResult("No access token was found in the page URL.", true);
       return;
     }
 
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting...";
+    setResult("Submitting your service request...", false);
 
     try {
       const formData = new FormData(form);
@@ -286,21 +284,25 @@ projectCenterHeader: true
       try {
         data = JSON.parse(text);
       } catch (err) {
-        data = {
-          success: false,
-          code: "INVALID_JSON",
-          message: "Server did not return valid JSON.",
-          raw: text
-        };
+        setResult("Server did not return valid JSON.", true);
+        return;
       }
 
-      setResult(data, !data.success);
+      const isSuccess = data && (data.success === true || data.success === "true");
+
+      if (!isSuccess) {
+        setResult(data.message || "Submission failed.", true);
+        return;
+      }
+
+      setResult("Success. Redirecting...", false);
+      window.location.assign(PORTAL_SUCCESS_URL + "?t=" + encodeURIComponent(token));
+      return;
     } catch (error) {
-      setResult({
-        success: false,
-        code: "NETWORK_ERROR",
-        message: error && error.message ? error.message : "Request failed."
-      }, true);
+      setResult(
+        error && error.message ? error.message : "Request failed.",
+        true
+      );
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit Service Request";
