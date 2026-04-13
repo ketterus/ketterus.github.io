@@ -67,7 +67,7 @@ headerMode: portalInner
     },
     {
       key: "expensesCombined",
-      title: "Expenses",
+      title: "Project Costs",
       type: "custom",
       render: renderExpensesCombinedSection
     },
@@ -356,9 +356,9 @@ headerMode: portalInner
 
   function renderExpensesCombinedSection(section, data) {
     const expenses = read(data, "collections.expenses") || [];
-    const allocations = read(data, "collections.expenseAllocations") || [];
+    const costItems = read(data, "collections.expenseAllocations") || [];
 
-    if (!Array.isArray(allocations) || !allocations.length) {
+    if (!Array.isArray(costItems) || !costItems.length) {
       return "";
     }
 
@@ -368,74 +368,108 @@ headerMode: portalInner
       if (expenseId) expenseMap[expenseId] = item;
     });
 
-    const allocationGroups = {};
-    allocations.forEach(item => {
+    const groupedItems = {};
+    const groupOrder = [];
+
+    costItems.forEach(item => {
       const expenseId = String(item.ExpenseID || item.expenseId || "").trim();
-      if (!expenseId) return;
-      if (!allocationGroups[expenseId]) allocationGroups[expenseId] = [];
-      allocationGroups[expenseId].push(item);
+      const entryType = String(item.EntryType || item.entryType || "").trim();
+      const rowId =
+        String(item.ExpenseAllocationID || item.expenseAllocationId || "").trim() ||
+        String(item.ProjectProductID || item.projectProductId || "").trim();
+
+      const groupKey = expenseId
+        ? "expense:" + expenseId
+        : "item:" + entryType + ":" + rowId;
+
+      if (!groupedItems[groupKey]) {
+        groupedItems[groupKey] = [];
+        groupOrder.push(groupKey);
+      }
+
+      groupedItems[groupKey].push(item);
     });
 
-    const expenseIds = Object.keys(allocationGroups);
-
-    const totalAllocated = expenseIds.reduce((sum, expenseId) => {
-      const allocationItems = allocationGroups[expenseId] || [];
-      const expenseTotal = allocationItems.reduce((groupSum, allocation) => {
-        const amount = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
-        return groupSum + (Number.isNaN(amount) ? 0 : amount);
-      }, 0);
-      return sum + expenseTotal;
+    const totalAllocated = costItems.reduce((sum, item) => {
+      const amount = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+      return sum + (Number.isNaN(amount) ? 0 : amount);
     }, 0);
 
     return `
       <section class="report-section">
-        <h2 class="section-title">Expenses</h2>
+        <h2 class="section-title">Project Costs</h2>
         <p class="section-summary">
-          Total Project Expenses: ${escapeHtml(formatCurrency(totalAllocated))}
+          Total Project Costs: ${escapeHtml(formatCurrency(totalAllocated))}
         </p>
         <div class="expense-list">
-          ${expenseIds.map(expenseId => {
-            const expense = expenseMap[expenseId] || {};
-            const allocationItems = allocationGroups[expenseId] || [];
+          ${groupOrder.map(groupKey => {
+            const items = groupedItems[groupKey] || [];
+            const first = items[0] || {};
 
-            const vendorLabel =
-              expense.VendorName ||
-              expense.vendorName ||
-              expense.VendorRef ||
-              expense.vendorRef ||
-              expense.VendorID ||
-              expense.vendorId ||
-              "Vendor not set";
+            const expenseId = String(first.ExpenseID || first.expenseId || "").trim();
+            const expense = expenseId ? (expenseMap[expenseId] || {}) : null;
 
-            const date = formatValue(expense.ExpenseDate ?? expense.expenseDate ?? "", "date");
+            let mainLabel = "Project Cost";
+            let date = "";
+            let noteText = "";
+            let amount = 0;
 
-            const expenseTotal = allocationItems.reduce((sum, allocation) => {
-              const amount = Number(allocation.AllocatedAmount ?? allocation.allocatedAmount ?? 0);
-              return sum + (Number.isNaN(amount) ? 0 : amount);
-            }, 0);
+            if (expenseId) {
+              const vendorLabel =
+                expense?.VendorName ||
+                expense?.vendorName ||
+                expense?.VendorRef ||
+                expense?.vendorRef ||
+                expense?.VendorID ||
+                expense?.vendorId ||
+                "Vendor not set";
 
-            const allocationNotes = allocationItems
-              .map(allocation =>
-                allocation.Description ??
-                allocation.description ??
-                ""
-              )
-              .filter(value => hasValue(value));
+              date = formatValue(
+                expense?.ExpenseDate ?? expense?.expenseDate ?? first.CostDate ?? first.costDate ?? "",
+                "date"
+              );
 
-            const fallbackNote =
-              expense.Description ??
-              expense.description ??
-              "";
+              amount = items.reduce((sum, item) => {
+                const value = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+                return sum + (Number.isNaN(value) ? 0 : value);
+              }, 0);
 
-            const noteText = allocationNotes.length
-              ? allocationNotes.join("\n")
-              : fallbackNote;
+              const allocationNotes = items
+                .map(item => item.Description ?? item.description ?? "")
+                .filter(value => hasValue(value));
+
+              const fallbackNote =
+                expense?.Description ??
+                expense?.description ??
+                "";
+
+              noteText = allocationNotes.length ? allocationNotes.join("\n") : fallbackNote;
+              mainLabel = vendorLabel;
+            } else {
+              const costType =
+                first.CostType ||
+                first.costType ||
+                "Project Cost";
+
+              const description =
+                first.Description ||
+                first.description ||
+                costType;
+
+              date = formatValue(first.CostDate ?? first.costDate ?? first.CreatedDate ?? first.createdDate ?? "", "date");
+
+              amount = Number(first.AllocatedAmount ?? first.allocatedAmount ?? 0);
+              amount = Number.isNaN(amount) ? 0 : amount;
+
+              mainLabel = description;
+              noteText = costType === description ? "" : costType;
+            }
 
             return `
               <div class="expense-group">
                 <div class="expense-row">
-                  <p class="expense-main">${escapeHtml(String(vendorLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
-                  <p class="expense-amount">${escapeHtml(formatCurrency(expenseTotal))}</p>
+                  <p class="expense-main">${escapeHtml(String(mainLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
+                  <p class="expense-amount">${escapeHtml(formatCurrency(amount))}</p>
                 </div>
                 ${hasValue(noteText)
                   ? `<p class="expense-note">${escapeHtml(String(noteText))}</p>`
