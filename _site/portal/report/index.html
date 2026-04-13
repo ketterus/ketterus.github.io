@@ -259,10 +259,12 @@
 
       statusEl.style.display = "none";
       bodyEl.innerHTML = `
-        <div class="report-header-bar">
-          <div class="report-header-copy">
-            <p class="report-subtitle">Project Report for:</p>
-            <h1 class="report-title">${escapeHtml(read(data, "project.ProjectName") || "Project Report")}</h1>
+        <div class="report-header-card">
+          <div class="report-header-bar">
+            <div class="report-header-copy">
+              <p class="report-subtitle">Project Report for:</p>
+              <h1 class="report-title">${escapeHtml(read(data, "project.ProjectName") || "Project Report")}</h1>
+            </div>
           </div>
         </div>
       `;
@@ -375,7 +377,15 @@
 
   function renderTimeEntriesSection(section, data) {
     const items = read(data, "collections.timeEntries") || [];
-    if (!Array.isArray(items) || !items.length) return "";
+
+    if (!Array.isArray(items) || !items.length) {
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Time Entries</h2>
+          <p class="empty-message">No time entries are available.</p>
+        </section>
+      `;
+    }
 
     const summary = buildTimeEntriesSummary(items);
 
@@ -412,7 +422,12 @@
     const costItems = read(data, "collections.expenseAllocations") || [];
 
     if (!Array.isArray(costItems) || !costItems.length) {
-      return "";
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Project Costs</h2>
+          <p class="empty-message">No project costs are available.</p>
+        </section>
+      `;
     }
 
     const expenseMap = {};
@@ -537,7 +552,15 @@
 
   function renderRefundsSection(section, data) {
     const refunds = read(data, "collections.refunds") || [];
-    if (!Array.isArray(refunds) || !refunds.length) return "";
+
+    if (!Array.isArray(refunds) || !refunds.length) {
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Refunds</h2>
+          <p class="empty-message">No refunds are available.</p>
+        </section>
+      `;
+    }
 
     const totalRefunds = refunds.reduce((sum, item) => {
       const amount = Number(item.RefundAmount ?? item.refundAmount ?? 0);
@@ -584,7 +607,15 @@
 
   function renderPaymentsSection(section, data) {
     const payments = read(data, "collections.payments") || [];
-    if (!Array.isArray(payments) || !payments.length) return "";
+
+    if (!Array.isArray(payments) || !payments.length) {
+      return `
+        <section class="report-section">
+          <h2 class="section-title">Payments</h2>
+          <p class="empty-message">No payments are available.</p>
+        </section>
+      `;
+    }
 
     const totalPayments = payments.reduce((sum, item) => {
       const amount = Number(item.PaymentAmount ?? item.paymentAmount ?? 0);
