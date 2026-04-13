@@ -133,11 +133,9 @@ headerMode: portalInner
     const link = document.getElementById("footer-menu-link");
     if (!link) return;
 
-    if (token) {
-      link.href = "/portal/menu/?t=" + encodeURIComponent(token);
-    } else {
-      link.href = "#";
-    }
+    link.href = token
+      ? "/portal/menu/?t=" + encodeURIComponent(token)
+      : "#";
   }
 
   function setLogoutAction(token) {
@@ -233,7 +231,9 @@ headerMode: portalInner
       return `
         <section class="report-section">
           <h2 class="section-title">Report</h2>
-          <p class="empty-message">No report sections are available yet.</p>
+          <div class="item-card">
+            <p class="empty-message">No report sections are available yet.</p>
+          </div>
         </section>
       `;
     }
@@ -269,7 +269,9 @@ headerMode: portalInner
     return `
       <section class="report-section">
         <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
-        ${content}
+        <div class="item-card">
+          ${content}
+        </div>
       </section>
     `;
   }
@@ -281,7 +283,9 @@ headerMode: portalInner
     return `
       <section class="report-section">
         <h2 class="section-title">${escapeHtml(section.title || "Section")}</h2>
-        <p class="paragraph-text">${escapeHtml(hasValue(value) ? String(value) : (section.emptyMessage || "No information is available."))}</p>
+        <div class="item-card">
+          <p class="paragraph-text">${escapeHtml(hasValue(value) ? String(value) : (section.emptyMessage || "No information is available."))}</p>
+        </div>
       </section>
     `;
   }
@@ -312,7 +316,7 @@ headerMode: portalInner
           }).join("")}
         </div>
       `
-      : `<p class="empty-message">${escapeHtml(section.emptyMessage || "No items are available.")}</p>`;
+      : `<div class="item-card"><p class="empty-message">${escapeHtml(section.emptyMessage || "No items are available.")}</p></div>`;
 
     return `
       <section class="report-section">
@@ -324,41 +328,35 @@ headerMode: portalInner
 
   function renderTimeEntriesSection(section, data) {
     const items = read(data, "collections.timeEntries") || [];
-
-    if (!Array.isArray(items) || !items.length) {
-      return `
-        <section class="report-section">
-          <h2 class="section-title">Time Entries</h2>
-          <p class="empty-message">No time entries are available.</p>
-        </section>
-      `;
-    }
+    if (!Array.isArray(items) || !items.length) return "";
 
     const summary = buildTimeEntriesSummary(items);
 
     return `
       <section class="report-section">
         <h2 class="section-title">Time Entries</h2>
-        <p class="section-summary">${escapeHtml(summary)}</p>
-        <div class="entry-list">
-          ${items.map(item => {
-            const workerName = item.WorkerName ?? item.workerName ?? "Worker";
-            const date = formatValue(item.TimeDate ?? item.timeDate ?? "", "date");
-            const hours = item.HoursWorked ?? item.hoursWorked ?? "";
-            const description = item.Description ?? item.description ?? "";
+        <div class="item-card">
+          <p class="section-summary">${escapeHtml(summary)}</p>
+          <div class="entry-list">
+            ${items.map(item => {
+              const workerName = item.WorkerName ?? item.workerName ?? "Worker";
+              const date = formatValue(item.TimeDate ?? item.timeDate ?? "", "date");
+              const hours = item.HoursWorked ?? item.hoursWorked ?? "";
+              const description = item.Description ?? item.description ?? "";
 
-            return `
-              <div class="entry-card">
-                <div class="entry-row">
-                  <p class="entry-main">${escapeHtml(String(workerName))}${date ? " - " + escapeHtml(date) : ""}</p>
-                  <p class="entry-amount">${escapeHtml(formatNumber(hours))} hrs</p>
+              return `
+                <div class="entry-card">
+                  <div class="entry-row">
+                    <p class="entry-main">${escapeHtml(String(workerName))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="entry-amount">${escapeHtml(formatNumber(hours))} hrs</p>
+                  </div>
+                  ${hasValue(description)
+                    ? `<p class="entry-meta">${escapeHtml(String(description))}</p>`
+                    : ""}
                 </div>
-                ${hasValue(description)
-                  ? `<p class="entry-meta">${escapeHtml(String(description))}</p>`
-                  : ""}
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("")}
+          </div>
         </div>
       </section>
     `;
@@ -369,12 +367,7 @@ headerMode: portalInner
     const costItems = read(data, "collections.expenseAllocations") || [];
 
     if (!Array.isArray(costItems) || !costItems.length) {
-      return `
-        <section class="report-section">
-          <h2 class="section-title">Project Costs</h2>
-          <p class="empty-message">No project costs are available.</p>
-        </section>
-      `;
+      return "";
     }
 
     const expenseMap = {};
@@ -413,85 +406,87 @@ headerMode: portalInner
     return `
       <section class="report-section">
         <h2 class="section-title">Project Costs</h2>
-        <p class="section-summary">
-          Total Project Costs: ${escapeHtml(formatCurrency(totalAllocated))}
-        </p>
-        <div class="expense-list">
-          ${groupOrder.map(groupKey => {
-            const items = groupedItems[groupKey] || [];
-            const first = items[0] || {};
+        <div class="item-card">
+          <p class="section-summary">
+            Total Project Costs: ${escapeHtml(formatCurrency(totalAllocated))}
+          </p>
+          <div class="expense-list">
+            ${groupOrder.map(groupKey => {
+              const items = groupedItems[groupKey] || [];
+              const first = items[0] || {};
 
-            const expenseId = String(first.ExpenseID || first.expenseId || "").trim();
-            const expense = expenseId ? (expenseMap[expenseId] || {}) : null;
+              const expenseId = String(first.ExpenseID || first.expenseId || "").trim();
+              const expense = expenseId ? (expenseMap[expenseId] || {}) : null;
 
-            let mainLabel = "Project Cost";
-            let date = "";
-            let noteText = "";
-            let amount = 0;
+              let mainLabel = "Project Cost";
+              let date = "";
+              let noteText = "";
+              let amount = 0;
 
-            if (expenseId) {
-              const vendorLabel =
-                expense?.VendorName ||
-                expense?.vendorName ||
-                expense?.VendorRef ||
-                expense?.vendorRef ||
-                expense?.VendorID ||
-                expense?.vendorId ||
-                "Vendor not set";
+              if (expenseId) {
+                const vendorLabel =
+                  expense?.VendorName ||
+                  expense?.vendorName ||
+                  expense?.VendorRef ||
+                  expense?.vendorRef ||
+                  expense?.VendorID ||
+                  expense?.vendorId ||
+                  "Vendor not set";
 
-              date = formatValue(
-                expense?.ExpenseDate ?? expense?.expenseDate ?? first.CostDate ?? first.costDate ?? "",
-                "date"
-              );
+                date = formatValue(
+                  expense?.ExpenseDate ?? expense?.expenseDate ?? first.CostDate ?? first.costDate ?? "",
+                  "date"
+                );
 
-              amount = items.reduce((sum, item) => {
-                const value = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
-                return sum + (Number.isNaN(value) ? 0 : value);
-              }, 0);
+                amount = items.reduce((sum, item) => {
+                  const value = Number(item.AllocatedAmount ?? item.allocatedAmount ?? 0);
+                  return sum + (Number.isNaN(value) ? 0 : value);
+                }, 0);
 
-              const allocationNotes = items
-                .map(item => item.Description ?? item.description ?? "")
-                .filter(value => hasValue(value));
+                const allocationNotes = items
+                  .map(item => item.Description ?? item.description ?? "")
+                  .filter(value => hasValue(value));
 
-              const fallbackNote =
-                expense?.Description ??
-                expense?.description ??
-                "";
+                const fallbackNote =
+                  expense?.Description ??
+                  expense?.description ??
+                  "";
 
-              noteText = allocationNotes.length ? allocationNotes.join("\n") : fallbackNote;
-              mainLabel = vendorLabel;
-            } else {
-              const costType =
-                first.CostType ||
-                first.costType ||
-                "Project Cost";
+                noteText = allocationNotes.length ? allocationNotes.join("\n") : fallbackNote;
+                mainLabel = vendorLabel;
+              } else {
+                const costType =
+                  first.CostType ||
+                  first.costType ||
+                  "Project Cost";
 
-              const description =
-                first.Description ||
-                first.description ||
-                costType;
+                const description =
+                  first.Description ||
+                  first.description ||
+                  costType;
 
-              date = formatValue(first.CostDate ?? first.costDate ?? first.CreatedDate ?? first.createdDate ?? "", "date");
+                date = formatValue(first.CostDate ?? first.costDate ?? first.CreatedDate ?? first.createdDate ?? "", "date");
 
-              amount = Number(first.AllocatedAmount ?? first.allocatedAmount ?? 0);
-              amount = Number.isNaN(amount) ? 0 : amount;
+                amount = Number(first.AllocatedAmount ?? first.allocatedAmount ?? 0);
+                amount = Number.isNaN(amount) ? 0 : amount;
 
-              mainLabel = description;
-              noteText = costType === description ? "" : costType;
-            }
+                mainLabel = description;
+                noteText = costType === description ? "" : costType;
+              }
 
-            return `
-              <div class="expense-group">
-                <div class="expense-row">
-                  <p class="expense-main">${escapeHtml(String(mainLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
-                  <p class="expense-amount">${escapeHtml(formatCurrency(amount))}</p>
+              return `
+                <div class="expense-group">
+                  <div class="expense-row">
+                    <p class="expense-main">${escapeHtml(String(mainLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="expense-amount">${escapeHtml(formatCurrency(amount))}</p>
+                  </div>
+                  ${hasValue(noteText)
+                    ? `<p class="expense-note">${escapeHtml(String(noteText))}</p>`
+                    : ""}
                 </div>
-                ${hasValue(noteText)
-                  ? `<p class="expense-note">${escapeHtml(String(noteText))}</p>`
-                  : ""}
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("")}
+          </div>
         </div>
       </section>
     `;
@@ -499,15 +494,7 @@ headerMode: portalInner
 
   function renderRefundsSection(section, data) {
     const refunds = read(data, "collections.refunds") || [];
-
-    if (!Array.isArray(refunds) || !refunds.length) {
-      return `
-        <section class="report-section">
-          <h2 class="section-title">Refunds</h2>
-          <p class="empty-message">No refunds are available.</p>
-        </section>
-      `;
-    }
+    if (!Array.isArray(refunds) || !refunds.length) return "";
 
     const totalRefunds = refunds.reduce((sum, item) => {
       const amount = Number(item.RefundAmount ?? item.refundAmount ?? 0);
@@ -517,36 +504,38 @@ headerMode: portalInner
     return `
       <section class="report-section">
         <h2 class="section-title">Refunds</h2>
-        <p class="section-summary">
-          Total Refunds: ${escapeHtml(formatCurrency(totalRefunds))}
-        </p>
-        <div class="refund-list">
-          ${refunds.map(item => {
-            const vendorLabel =
-              item.VendorName ||
-              item.vendorName ||
-              item.VendorRef ||
-              item.vendorRef ||
-              item.VendorID ||
-              item.vendorId ||
-              "Vendor not set";
+        <div class="item-card">
+          <p class="section-summary">
+            Total Refunds: ${escapeHtml(formatCurrency(totalRefunds))}
+          </p>
+          <div class="refund-list">
+            ${refunds.map(item => {
+              const vendorLabel =
+                item.VendorName ||
+                item.vendorName ||
+                item.VendorRef ||
+                item.vendorRef ||
+                item.VendorID ||
+                item.vendorId ||
+                "Vendor not set";
 
-            const date = formatValue(item.RefundDate ?? item.refundDate ?? "", "date");
-            const refundAmount = item.RefundAmount ?? item.refundAmount ?? "";
-            const refundReason = item.RefundReason ?? item.refundReason ?? "";
+              const date = formatValue(item.RefundDate ?? item.refundDate ?? "", "date");
+              const refundAmount = item.RefundAmount ?? item.refundAmount ?? "";
+              const refundReason = item.RefundReason ?? item.refundReason ?? "";
 
-            return `
-              <div class="refund-card">
-                <div class="refund-row">
-                  <p class="refund-main">${escapeHtml(String(vendorLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
-                  <p class="refund-amount">${escapeHtml(formatValue(refundAmount, "currency"))}</p>
+              return `
+                <div class="refund-card">
+                  <div class="refund-row">
+                    <p class="refund-main">${escapeHtml(String(vendorLabel))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="refund-amount">${escapeHtml(formatValue(refundAmount, "currency"))}</p>
+                  </div>
+                  ${hasValue(refundReason)
+                    ? `<p class="refund-note">${escapeHtml(String(refundReason))}</p>`
+                    : ""}
                 </div>
-                ${hasValue(refundReason)
-                  ? `<p class="refund-note">${escapeHtml(String(refundReason))}</p>`
-                  : ""}
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("")}
+          </div>
         </div>
       </section>
     `;
@@ -554,15 +543,7 @@ headerMode: portalInner
 
   function renderPaymentsSection(section, data) {
     const payments = read(data, "collections.payments") || [];
-
-    if (!Array.isArray(payments) || !payments.length) {
-      return `
-        <section class="report-section">
-          <h2 class="section-title">Payments</h2>
-          <p class="empty-message">No payments are available.</p>
-        </section>
-      `;
-    }
+    if (!Array.isArray(payments) || !payments.length) return "";
 
     const totalPayments = payments.reduce((sum, item) => {
       const amount = Number(item.PaymentAmount ?? item.paymentAmount ?? 0);
@@ -572,37 +553,39 @@ headerMode: portalInner
     return `
       <section class="report-section">
         <h2 class="section-title">Payments</h2>
-        <p class="section-summary">
-          Total Payments Received: ${escapeHtml(formatCurrency(totalPayments))}
-        </p>
-        <div class="payment-list">
-          ${payments.map(item => {
-            const paymentMethod =
-              item.PaymentMethod ||
-              item.paymentMethod ||
-              "Payment";
+        <div class="item-card">
+          <p class="section-summary">
+            Total Payments Received: ${escapeHtml(formatCurrency(totalPayments))}
+          </p>
+          <div class="payment-list">
+            ${payments.map(item => {
+              const paymentMethod =
+                item.PaymentMethod ||
+                item.paymentMethod ||
+                "Payment";
 
-            const date = formatValue(item.PaymentDate ?? item.paymentDate ?? "", "date");
-            const paymentAmount = item.PaymentAmount ?? item.paymentAmount ?? "";
-            const paymentReference = item.PaymentReference ?? item.paymentReference ?? "";
-            const notes = item.Notes ?? item.notes ?? "";
+              const date = formatValue(item.PaymentDate ?? item.paymentDate ?? "", "date");
+              const paymentAmount = item.PaymentAmount ?? item.paymentAmount ?? "";
+              const paymentReference = item.PaymentReference ?? item.paymentReference ?? "";
+              const notes = item.Notes ?? item.notes ?? "";
 
-            const noteParts = [];
-            if (hasValue(paymentReference)) noteParts.push("Reference: " + String(paymentReference));
-            if (hasValue(notes)) noteParts.push(String(notes));
+              const noteParts = [];
+              if (hasValue(paymentReference)) noteParts.push("Reference: " + String(paymentReference));
+              if (hasValue(notes)) noteParts.push(String(notes));
 
-            return `
-              <div class="payment-card">
-                <div class="payment-row">
-                  <p class="payment-main">${escapeHtml(String(paymentMethod))}${date ? " - " + escapeHtml(date) : ""}</p>
-                  <p class="payment-amount">${escapeHtml(formatValue(paymentAmount, "currency"))}</p>
+              return `
+                <div class="payment-card">
+                  <div class="payment-row">
+                    <p class="payment-main">${escapeHtml(String(paymentMethod))}${date ? " - " + escapeHtml(date) : ""}</p>
+                    <p class="payment-amount">${escapeHtml(formatValue(paymentAmount, "currency"))}</p>
+                  </div>
+                  ${noteParts.length
+                    ? `<p class="payment-note">${escapeHtml(noteParts.join("\n"))}</p>`
+                    : ""}
                 </div>
-                ${noteParts.length
-                  ? `<p class="payment-note">${escapeHtml(noteParts.join("\n"))}</p>`
-                  : ""}
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("")}
+          </div>
         </div>
       </section>
     `;
@@ -646,46 +629,48 @@ headerMode: portalInner
     return `
       <section class="report-section">
         <h2 class="section-title">Report Totals</h2>
-        <div class="field-grid">
-          <div>
-            <p class="field-label">Total Time Entries</p>
-            <p class="field-value">${escapeHtml(String(timeEntries.length))}</p>
-          </div>
-          <div>
-            <p class="field-label">Total Hours</p>
-            <p class="field-value">${escapeHtml(formatNumber(totalHours))}</p>
-          </div>
-          <div>
-            <p class="field-label">Estimated Labor Value</p>
-            <p class="field-value">${escapeHtml(formatCurrency(totalLaborValue))}</p>
-          </div>
-          <div>
-            <p class="field-label">Total Project Expenses</p>
-            <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses))}</p>
-          </div>
-          <div>
-            <p class="field-label">Total Refunds</p>
-            <p class="field-value">${escapeHtml(formatCurrency(totalRefunds))}</p>
-          </div>
-          <div>
-            <p class="field-label">Net Project Expenses</p>
-            <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses - totalRefunds))}</p>
-          </div>
-          <div>
-            <p class="field-label">Total Payments Received</p>
-            <p class="field-value">${escapeHtml(formatCurrency(totalPayments))}</p>
-          </div>
-          <div>
-            <p class="field-label">Payment Count</p>
-            <p class="field-value">${escapeHtml(String(payments.length))}</p>
-          </div>
-          <div>
-            <p class="field-label">Document Count</p>
-            <p class="field-value">${escapeHtml(String(documents.length))}</p>
-          </div>
-          <div>
-            <p class="field-label">Related Service Requests</p>
-            <p class="field-value">${escapeHtml(String(serviceRequests.length))}</p>
+        <div class="item-card">
+          <div class="field-grid">
+            <div>
+              <p class="field-label">Total Time Entries</p>
+              <p class="field-value">${escapeHtml(String(timeEntries.length))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Hours</p>
+              <p class="field-value">${escapeHtml(formatNumber(totalHours))}</p>
+            </div>
+            <div>
+              <p class="field-label">Estimated Labor Value</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalLaborValue))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Project Expenses</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Refunds</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalRefunds))}</p>
+            </div>
+            <div>
+              <p class="field-label">Net Project Expenses</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalProjectExpenses - totalRefunds))}</p>
+            </div>
+            <div>
+              <p class="field-label">Total Payments Received</p>
+              <p class="field-value">${escapeHtml(formatCurrency(totalPayments))}</p>
+            </div>
+            <div>
+              <p class="field-label">Payment Count</p>
+              <p class="field-value">${escapeHtml(String(payments.length))}</p>
+            </div>
+            <div>
+              <p class="field-label">Document Count</p>
+              <p class="field-value">${escapeHtml(String(documents.length))}</p>
+            </div>
+            <div>
+              <p class="field-label">Related Service Requests</p>
+              <p class="field-value">${escapeHtml(String(serviceRequests.length))}</p>
+            </div>
           </div>
         </div>
       </section>
