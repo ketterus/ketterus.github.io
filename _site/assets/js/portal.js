@@ -24,7 +24,10 @@ async function initPortal() {
   try {
     if (ProjectID) {
       const Payload = await fetchProjectDetail(Token, ProjectID);
-      renderProjectDetail(AppContent, Payload, Token);
+      AppContent.innerHTML =
+        "<p><a href=\"/portal-v2/?t=" + encodeURIComponent(Token) + "\">Back to Projects</a></p>" +
+        "<h1>Project Center</h1>" +
+        "<pre>" + escapeHtml(JSON.stringify(Payload, null, 2)) + "</pre>";
       return;
     }
 
@@ -40,10 +43,7 @@ async function initPortal() {
 
 async function fetchProjectList(Token) {
   const Url = API_URL + "?t=" + encodeURIComponent(Token);
-
-  const Response = await fetch(Url, {
-    method: "GET"
-  });
+  const Response = await fetch(Url, { method: "GET" });
 
   if (!Response.ok) {
     throw new Error("HTTP " + Response.status);
@@ -58,9 +58,7 @@ async function fetchProjectDetail(Token, ProjectID) {
     "?t=" + encodeURIComponent(Token) +
     "&p=" + encodeURIComponent(ProjectID);
 
-  const Response = await fetch(Url, {
-    method: "GET"
-  });
+  const Response = await fetch(Url, { method: "GET" });
 
   if (!Response.ok) {
     throw new Error("HTTP " + Response.status);
@@ -99,108 +97,6 @@ function renderProjectList(AppContent, Payload, Token) {
     "<h1>Project Center</h1>" +
     "<p>" + escapeHtml(ClientName) + "</p>" +
     "<ul>" + ProjectItems + "</ul>";
-}
-
-function renderProjectDetail(AppContent, Payload, Token) {
-  const ClientName = Payload && Payload.client && Payload.client.clientName
-    ? Payload.client.clientName
-    : "";
-
-  const Project = Payload && Payload.project ? Payload.project : {};
-  const Collections = Payload && Payload.collections ? Payload.collections : {};
-
-  const Documents = Array.isArray(Collections.documents) ? Collections.documents : [];
-  const TimeEntries = Array.isArray(Collections.timeEntries) ? Collections.timeEntries : [];
-  const CostItems = Array.isArray(Collections.expenseAllocations) ? Collections.expenseAllocations : [];
-  const Payments = Array.isArray(Collections.payments) ? Collections.payments : [];
-  const Refunds = Array.isArray(Collections.refunds) ? Collections.refunds : [];
-
-  const BackHref = "/portal-v2/?t=" + encodeURIComponent(Token);
-
-  const DocumentItems = Documents.length
-    ? Documents.map(function (Item) {
-        return (
-          "<li>" +
-            "<a href=\"" + escapeHtml(Item.fileUrl || "#") + "\">" + escapeHtml(Item.displayName || "") + "</a>" +
-          "</li>"
-        );
-      }).join("")
-    : "<li>No documents found.</li>";
-
-  const TimeItems = TimeEntries.length
-    ? TimeEntries.map(function (Item) {
-        return (
-          "<li>" +
-            escapeHtml(Item.timeDate || "") + " - " +
-            escapeHtml(Item.workerName || "") + " - " +
-            escapeHtml(Item.description || "") + " - " +
-            escapeHtml(String(Item.hoursWorked || "")) +
-          "</li>"
-        );
-      }).join("")
-    : "<li>No time entries found.</li>";
-
-  const CostItemsHtml = CostItems.length
-    ? CostItems.map(function (Item) {
-        return (
-          "<li>" +
-            escapeHtml(Item.costDate || Item.createdDate || "") + " - " +
-            escapeHtml(Item.costType || Item.entryType || "") + " - " +
-            escapeHtml(Item.description || "") + " - " +
-            escapeHtml(String(Item.allocatedAmount || Item.amount || "")) +
-          "</li>"
-        );
-      }).join("")
-    : "<li>No cost items found.</li>";
-
-  const PaymentItems = Payments.length
-    ? Payments.map(function (Item) {
-        return (
-          "<li>" +
-            escapeHtml(Item.paymentDate || "") + " - " +
-            escapeHtml(Item.paymentMethod || "") + " - " +
-            escapeHtml(Item.paymentReference || "") + " - " +
-            escapeHtml(String(Item.paymentAmount || "")) +
-          "</li>"
-        );
-      }).join("")
-    : "<li>No payments found.</li>";
-
-  const RefundItems = Refunds.length
-    ? Refunds.map(function (Item) {
-        return (
-          "<li>" +
-            escapeHtml(Item.refundDate || "") + " - " +
-            escapeHtml(Item.vendorName || "") + " - " +
-            escapeHtml(Item.refundReason || "") + " - " +
-            escapeHtml(String(Item.refundAmount || "")) +
-          "</li>"
-        );
-      }).join("")
-    : "<li>No refunds found.</li>";
-
-  AppContent.innerHTML =
-    "<p><a href=\"" + BackHref + "\">Back to Projects</a></p>" +
-    "<h1>Project Center</h1>" +
-    "<p>" + escapeHtml(ClientName) + "</p>" +
-    "<h2>" + escapeHtml(Project.projectName || "") + "</h2>" +
-    "<p>Status: " + escapeHtml(Project.status || "") + "</p>" +
-    "<p>" + escapeHtml(Project.description || "") + "</p>" +
-
-    "<h3>Documents</h3>" +
-    "<ul>" + DocumentItems + "</ul>" +
-
-    "<h3>Time Entries</h3>" +
-    "<ul>" + TimeItems + "</ul>" +
-
-    "<h3>Cost Items</h3>" +
-    "<ul>" + CostItemsHtml + "</ul>" +
-
-    "<h3>Payments</h3>" +
-    "<ul>" + PaymentItems + "</ul>" +
-
-    "<h3>Refunds</h3>" +
-    "<ul>" + RefundItems + "</ul>";
 }
 
 function escapeHtml(Value) {
