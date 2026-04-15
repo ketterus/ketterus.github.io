@@ -3,16 +3,16 @@ const TEMPLATE_BASE = "/portal-v2/";
 const SESSION_TOKEN_KEY = "SessionToken";
 
 const TEMPLATE_PATHS = {
-  ViewSignedOut: `${TEMPLATE_BASE}ViewSignedOut.njk`,
-  ViewError: `${TEMPLATE_BASE}ViewError.njk`,
-  ViewProjectList: `${TEMPLATE_BASE}ViewProjectList.njk`,
-  ViewProjectDetail: `${TEMPLATE_BASE}ViewProjectDetail.njk`,
-  ItemProjectLink: `${TEMPLATE_BASE}ItemProjectLink.njk`,
-  ItemDocumentLink: `${TEMPLATE_BASE}ItemDocumentLink.njk`,
-  ItemTimeRow: `${TEMPLATE_BASE}ItemTimeRow.njk`,
-  ItemCostRow: `${TEMPLATE_BASE}ItemCostRow.njk`,
-  ItemPaymentRow: `${TEMPLATE_BASE}ItemPaymentRow.njk`,
-  ItemRefundRow: `${TEMPLATE_BASE}ItemRefundRow.njk`,
+  ViewSignedOut: `${TEMPLATE_BASE}ViewSignedOut.html`,
+  ViewError: `${TEMPLATE_BASE}ViewError.html`,
+  ViewProjectList: `${TEMPLATE_BASE}ViewProjectList.html`,
+  ViewProjectDetail: `${TEMPLATE_BASE}ViewProjectDetail.html`,
+  ItemProjectLink: `${TEMPLATE_BASE}ItemProjectLink.html`,
+  ItemDocumentLink: `${TEMPLATE_BASE}ItemDocumentLink.html`,
+  ItemTimeRow: `${TEMPLATE_BASE}ItemTimeRow.html`,
+  ItemCostRow: `${TEMPLATE_BASE}ItemCostRow.html`,
+  ItemPaymentRow: `${TEMPLATE_BASE}ItemPaymentRow.html`,
+  ItemRefundRow: `${TEMPLATE_BASE}ItemRefundRow.html`,
 };
 
 const templateCache = {};
@@ -22,10 +22,18 @@ document.addEventListener("DOMContentLoaded", initPortal);
 async function initPortal() {
   bindGlobalClicks();
 
+  const TestMode = new URLSearchParams(window.location.search).get("test");
+  if (TestMode === "1") {
+    await runPortalTest();
+    return;
+  }
+
   const Token = getUrlToken();
+
   if (Token) {
     try {
       const Payload = await validateToken(Token);
+
       if (!Payload.Success || !Payload.SessionToken) {
         clearSessionToken();
         await renderSignedOutView(Payload.Message || "Access link is invalid or expired.");
@@ -35,7 +43,7 @@ async function initPortal() {
       setSessionToken(Payload.SessionToken);
       cleanEntryUrl();
 
-      if (window.location.hash !== "#/projects") {
+      if (!window.location.hash || window.location.hash === "#") {
         window.location.hash = "#/projects";
       }
 
@@ -43,6 +51,7 @@ async function initPortal() {
       await handleRoute();
       return;
     } catch (error) {
+      console.error("ValidateToken failed:", error);
       clearSessionToken();
       await renderSignedOutView("Access link is invalid or expired.");
       return;
@@ -91,7 +100,11 @@ function cleanEntryUrl() {
   window.history.replaceState({}, document.title, CleanUrl);
 }
 
+let routerStarted = false;
+
 function startRouter() {
+  if (routerStarted) return;
+  routerStarted = true;
   window.addEventListener("hashchange", handleRoute);
 }
 
@@ -107,12 +120,15 @@ async function handleRoute() {
   if (Hash === "#/projects") {
     try {
       const Payload = await fetchProjectList();
+
       if (!Payload.Success) {
         await handleProtectedFailure(Payload);
         return;
       }
+
       await renderProjectListView(Payload);
     } catch (error) {
+      console.error("GetProjectList failed:", error);
       await renderErrorView("Unable to load projects.");
     }
     return;
@@ -120,6 +136,7 @@ async function handleRoute() {
 
   if (Hash.startsWith("#/project/")) {
     const ProjectID = getRouteProjectID();
+
     if (!ProjectID) {
       goToProjects();
       return;
@@ -127,12 +144,15 @@ async function handleRoute() {
 
     try {
       const Payload = await fetchProjectDetail(ProjectID);
+
       if (!Payload.Success) {
         await handleProtectedFailure(Payload);
         return;
       }
+
       await renderProjectDetailView(Payload);
     } catch (error) {
+      console.error("GetProjectDetail failed:", error);
       await renderErrorView("Unable to load project detail.");
     }
     return;
@@ -183,11 +203,12 @@ async function logout() {
       });
     }
   } catch (error) {
-    // Ignore logout request failures and clear local session anyway.
+    console.error("Logout failed:", error);
   }
 
   clearSessionToken();
   window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}`);
+  window.location.hash = "";
   await renderSignedOutView("You have been signed out.");
 }
 
@@ -213,8 +234,9 @@ async function loadTemplate(Path) {
   }
 
   const Response = await fetch(Path, { cache: "no-cache" });
+
   if (!Response.ok) {
-    throw new Error(`Template load failed: ${Path}`);
+    throw new Error(`Template load failed: ${Path} (HTTP ${Response.status})`);
   }
 
   const Text = await Response.text();
@@ -339,7 +361,7 @@ function mountView(ViewHtml) {
 }
 
 async function handleProtectedFailure(Payload) {
-  const Code = String(Payload && Payload.Code || "").trim();
+  const Code = String((Payload && Payload.Code) || "").trim();
 
   if (Code === "AUTH_REQUIRED" || Code === "INVALID_TOKEN" || Code === "PORTAL_EXPIRED") {
     clearSessionToken();
@@ -362,4 +384,54 @@ function escapeHtml(Value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+async function runPortalTest() {
+  const Results = [];
+
+  async function checkTemplate(Name, Path) {
+    try {
+      const Response = await fetch(Path, { cache: "no-cache" });
+      Results.push({
+        Name,
+        Path,
+        Ok: Response.ok,
+        Status: Response.status
+      });
+    } catch (error) {
+      Results.push({
+        Name,
+        Path,
+        Ok: false,
+        Status: "FETCH_FAILED"
+      });
+    }
+  }
+
+  await checkTemplate("ViewSignedOut", TEMPLATE_PATHS.ViewSignedOut);
+  await checkTemplate("ViewError", TEMPLATE_PATHS.ViewError);
+  await checkTemplate("ViewProjectList", TEMPLATE_PATHS.ViewProjectList);
+  await checkTemplate("ViewProjectDetail", TEMPLATE_PATHS.ViewProjectDetail);
+  await checkTemplate("ItemProjectLink", TEMPLATE_PATHS.ItemProjectLink);
+  await checkTemplate("ItemDocumentLink", TEMPLATE_PATHS.ItemDocumentLink);
+  await checkTemplate("ItemTimeRow", TEMPLATE_PATHS.ItemTimeRow);
+  await checkTemplate("ItemCostRow", TEMPLATE_PATHS.ItemCostRow);
+  await checkTemplate("ItemPaymentRow", TEMPLATE_PATHS.ItemPaymentRow);
+  await checkTemplate("ItemRefundRow", TEMPLATE_PATHS.ItemRefundRow);
+
+  const Passed = Results.every(function (Result) {
+    return Result.Ok;
+  });
+
+  const Rows = Results.map(function (Result) {
+    return `<li>${escapeHtml(Result.Name)} - ${escapeHtml(String(Result.Status))} - ${escapeHtml(Result.Path)}</li>`;
+  }).join("");
+
+  mountView(`
+    <h1>Portal Template Test</h1>
+    <p>${Passed ? "PASS" : "FAIL"}</p>
+    <ul>${Rows}</ul>
+  `);
+
+  console.table(Results);
 }
