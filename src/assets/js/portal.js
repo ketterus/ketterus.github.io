@@ -1,5 +1,4 @@
 const API_URL = "https://script.google.com/macros/s/AKfycby12TuuhZaJjy6_xWtbKfH3R6joBD22RpeoANAU6EPBokz7IrIAq8v022EQAVdclu-D3w/exec";
-const TEMPLATE_BASE = "/portal-v2/";
 const SESSION_TOKEN_KEY = "SessionToken";
 
 const TEMPLATE_PATHS = {
@@ -16,17 +15,12 @@ const TEMPLATE_PATHS = {
 };
 
 const templateCache = {};
+let routerStarted = false;
 
 document.addEventListener("DOMContentLoaded", initPortal);
 
 async function initPortal() {
   bindGlobalClicks();
-
-  const TestMode = new URLSearchParams(window.location.search).get("test");
-  if (TestMode === "1") {
-    await runPortalTest();
-    return;
-  }
 
   const Token = getUrlToken();
 
@@ -99,8 +93,6 @@ function cleanEntryUrl() {
   const CleanUrl = `${window.location.origin}${window.location.pathname}${window.location.hash || ""}`;
   window.history.replaceState({}, document.title, CleanUrl);
 }
-
-let routerStarted = false;
 
 function startRouter() {
   if (routerStarted) return;
@@ -216,7 +208,7 @@ async function postJson(Payload) {
   const Response = await fetch(API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "text/plain;charset=utf-8"
     },
     body: JSON.stringify(Payload)
   });
@@ -239,9 +231,27 @@ async function loadTemplate(Path) {
     throw new Error(`Template load failed: ${Path} (HTTP ${Response.status})`);
   }
 
-  const Text = await Response.text();
+  let Text = await Response.text();
+  Text = stripFullDocument(Text);
+
   templateCache[Path] = Text;
   return Text;
+}
+
+function stripFullDocument(Text) {
+  const Raw = String(Text || "").trim();
+
+  const BodyMatch = Raw.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (BodyMatch) {
+    return BodyMatch[1].trim();
+  }
+
+  const HtmlMatch = Raw.match(/<html[\s\S]*?>([\s\S]*?)<\/html>/i);
+  if (HtmlMatch) {
+    return HtmlMatch[1].trim();
+  }
+
+  return Raw;
 }
 
 function renderTemplate(TemplateText, Data) {
@@ -386,52 +396,31 @@ function escapeHtml(Value) {
     .replace(/'/g, "&#39;");
 }
 
-async function runPortalTest() {
+async function portalDebug() {
   const Results = [];
 
-  async function checkTemplate(Name, Path) {
+  for (const [Name, Path] of Object.entries(TEMPLATE_PATHS)) {
     try {
       const Response = await fetch(Path, { cache: "no-cache" });
+      const Text = await Response.text();
       Results.push({
         Name,
+        Status: Response.status,
         Path,
-        Ok: Response.ok,
-        Status: Response.status
+        Snippet: stripFullDocument(Text).slice(0, 120)
       });
     } catch (error) {
       Results.push({
         Name,
+        Status: "FETCH_FAILED",
         Path,
-        Ok: false,
-        Status: "FETCH_FAILED"
+        Snippet: String(error)
       });
     }
   }
 
-  await checkTemplate("ViewSignedOut", TEMPLATE_PATHS.ViewSignedOut);
-  await checkTemplate("ViewError", TEMPLATE_PATHS.ViewError);
-  await checkTemplate("ViewProjectList", TEMPLATE_PATHS.ViewProjectList);
-  await checkTemplate("ViewProjectDetail", TEMPLATE_PATHS.ViewProjectDetail);
-  await checkTemplate("ItemProjectLink", TEMPLATE_PATHS.ItemProjectLink);
-  await checkTemplate("ItemDocumentLink", TEMPLATE_PATHS.ItemDocumentLink);
-  await checkTemplate("ItemTimeRow", TEMPLATE_PATHS.ItemTimeRow);
-  await checkTemplate("ItemCostRow", TEMPLATE_PATHS.ItemCostRow);
-  await checkTemplate("ItemPaymentRow", TEMPLATE_PATHS.ItemPaymentRow);
-  await checkTemplate("ItemRefundRow", TEMPLATE_PATHS.ItemRefundRow);
-
-  const Passed = Results.every(function (Result) {
-    return Result.Ok;
-  });
-
-  const Rows = Results.map(function (Result) {
-    return `<li>${escapeHtml(Result.Name)} - ${escapeHtml(String(Result.Status))} - ${escapeHtml(Result.Path)}</li>`;
-  }).join("");
-
-  mountView(`
-    <h1>Portal Template Test</h1>
-    <p>${Passed ? "PASS" : "FAIL"}</p>
-    <ul>${Rows}</ul>
-  `);
-
   console.table(Results);
+  return Results;
 }
+
+window.portalDebug = portalDebug;
