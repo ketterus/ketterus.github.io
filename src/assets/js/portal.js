@@ -11,7 +11,7 @@ const TEMPLATE_PATHS = {
   ItemTimeRow: "/portal-v2/ItemTimeRow/",
   ItemCostRow: "/portal-v2/ItemCostRow/",
   ItemPaymentRow: "/portal-v2/ItemPaymentRow/",
-  ItemRefundRow: "/portal-v2/ItemRefundRow/",
+  ItemRefundRow: "/portal-v2/ItemRefundRow/"
 };
 
 const templateCache = {};
