@@ -11,19 +11,7 @@ async function initPortal() {
   const projectId = String(params.get("p") || "").trim();
 
   if (!token) {
-    appContent.innerHTML =
-      "<div class=\"portal-v2-shell portal-v2-page\">" +
-        "<div class=\"portal-v2-content portal-v2-stack\">" +
-          "<section class=\"portal-v2-card\">" +
-            "<div class=\"portal-v2-card-header\">" +
-              "<h1 class=\"portal-v2-card-title\">Project Center</h1>" +
-            "</div>" +
-            "<div class=\"portal-v2-card-body\">" +
-              "<p class=\"portal-v2-empty\">No token provided.</p>" +
-            "</div>" +
-          "</section>" +
-        "</div>" +
-      "</div>";
+    window.location.href = "/portal/v2/sign-in/";
     return;
   }
 
@@ -56,13 +44,16 @@ async function renderLiveList(appContent, token) {
   const payload = await fetchPortalList(token);
 
   if (!payload || payload.success !== true) {
-    throw new Error(payload && payload.message ? payload.message : "Unable to load project list.");
+    handleAccessFailure(payload);
+    return;
   }
 
   const viewTemplate = await loadTemplate("/portal/v2/partials/ViewProjectList/");
   const itemTemplate = await loadTemplate("/portal/v2/partials/ItemProjectRow/");
 
   appContent.innerHTML = viewTemplate;
+
+  injectLogoutButton(token);
 
   const projectListItems = document.getElementById("ProjectListItems");
   if (!projectListItems) {
@@ -94,7 +85,8 @@ async function renderLiveDetail(appContent, token, projectId) {
   const payload = await fetchPortalDetail(token, projectId);
 
   if (!payload || payload.success !== true) {
-    throw new Error(payload && payload.message ? payload.message : "Unable to load project detail.");
+    handleAccessFailure(payload);
+    return;
   }
 
   const viewTemplate = await loadTemplate("/portal/v2/partials/ViewProjectDetail/");
@@ -109,6 +101,8 @@ async function renderLiveDetail(appContent, token, projectId) {
   const serviceRequestTemplate = await loadTemplate("/portal/v2/partials/ItemServiceRequestRow/");
 
   appContent.innerHTML = viewTemplate;
+
+  injectLogoutButton(token);
 
   const client = payload.Client || {};
   const project = payload.Project || {};
@@ -226,6 +220,62 @@ async function renderLiveDetail(appContent, token, projectId) {
       };
     }
   );
+}
+
+function injectLogoutButton(token) {
+  const containers = document.querySelectorAll(".portal-v2-card-header");
+  if (!containers.length) return;
+
+  const firstHeader = containers[0];
+  if (document.getElementById("PortalLogoutButton")) return;
+
+  const button = document.createElement("button");
+  button.id = "PortalLogoutButton";
+  button.type = "button";
+  button.className = "btn btn-outline-brand";
+  button.textContent = "Sign Out";
+  button.addEventListener("click", function() {
+    logoutPortal(token);
+  });
+
+  firstHeader.appendChild(button);
+}
+
+async function logoutPortal(token) {
+  try {
+    const requestUrl =
+      API_URL +
+      "?mode=logout" +
+      "&t=" + encodeURIComponent(token);
+
+    const response = await fetch(requestUrl, { method: "GET" });
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    await response.json();
+  } catch (error) {
+    // swallow logout failure and continue to sign-in
+  }
+
+  window.location.href = "/portal/v2/sign-in/";
+}
+
+function handleAccessFailure(payload) {
+  const code = String((payload && payload.code) || "").trim();
+
+  if (
+    code === "MISSING_TOKEN" ||
+    code === "INVALID_TOKEN" ||
+    code === "PORTAL_EXPIRED" ||
+    code === "PORTAL_DISABLED"
+  ) {
+    window.location.href = "/portal/v2/sign-in/";
+    return;
+  }
+
+  throw new Error(payload && payload.message ? payload.message : "Unable to load portal.");
 }
 
 function renderListInto(targetId, template, items, mapper) {
