@@ -1148,3 +1148,36 @@ footer .fw-semibold {
     white-space: normal;
   }
 }
+
+/* ---------- Portal V2 utility row / summary ---------- */
+
+.portal-v2-utility {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.portal-v2-utility-left,
+.portal-v2-utility-right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.portal-v2-utility-right {
+  margin-left: auto;
+}
+
+@media (max-width: 900px) {
+  .portal-v2-utility {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .portal-v2-utility-right {
+    margin-left: 0;
+  }
+}

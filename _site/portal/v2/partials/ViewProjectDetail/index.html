@@ -1,15 +1,13 @@
 <div class="portal-v2-shell portal-v2-page">
   <div class="portal-v2-content portal-v2-stack">
-    <div class="portal-v2-back">
-      <a href="/portal/v2/">Back to Projects</a>
-    </div>
-
-    <section class="portal-v2-card">
-      <div class="portal-v2-card-header">
-        <h1 class="portal-v2-card-title">Project Detail</h1>
-        <p class="portal-v2-card-subtitle">Sample detail view</p>
+    <div class="portal-v2-utility">
+      <div class="portal-v2-utility-left">
+        <div class="portal-v2-back">
+          <a href="/portal/v2/">Back to Projects</a>
+        </div>
       </div>
-    </section>
+      <div class="portal-v2-utility-right" id="PortalUtilityActions"></div>
+    </div>
 
     <section class="portal-v2-card">
       <div class="portal-v2-card-header">
@@ -86,6 +84,13 @@
       <div class="portal-v2-card-body">
         <ul id="ServiceRequestItems" class="portal-v2-list"></ul>
       </div>
+    </section>
+
+    <section class="portal-v2-card">
+      <div class="portal-v2-card-header">
+        <h2 class="portal-v2-card-title">Project Summary</h2>
+      </div>
+      <div class="portal-v2-card-body" id="ProjectSummaryBlock"></div>
     </section>
   </div>
 </div>

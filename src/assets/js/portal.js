@@ -52,7 +52,6 @@ async function renderLiveList(appContent, token) {
   const itemTemplate = await loadTemplate("/portal/v2/partials/ItemProjectRow/");
 
   appContent.innerHTML = viewTemplate;
-
   injectLogoutButton(token);
 
   const projectListItems = document.getElementById("ProjectListItems");
@@ -92,6 +91,7 @@ async function renderLiveDetail(appContent, token, projectId) {
   const viewTemplate = await loadTemplate("/portal/v2/partials/ViewProjectDetail/");
   const clientTemplate = await loadTemplate("/portal/v2/partials/ItemClientBlock/");
   const projectTemplate = await loadTemplate("/portal/v2/partials/ItemProjectBlock/");
+  const projectSummaryTemplate = await loadTemplate("/portal/v2/partials/ItemProjectSummaryBlock/");
   const documentTemplate = await loadTemplate("/portal/v2/partials/ItemDocumentRow/");
   const timeEntryTemplate = await loadTemplate("/portal/v2/partials/ItemTimeEntryRow/");
   const expenseAllocationTemplate = await loadTemplate("/portal/v2/partials/ItemExpenseAllocationRow/");
@@ -101,7 +101,6 @@ async function renderLiveDetail(appContent, token, projectId) {
   const serviceRequestTemplate = await loadTemplate("/portal/v2/partials/ItemServiceRequestRow/");
 
   appContent.innerHTML = viewTemplate;
-
   injectLogoutButton(token);
 
   const client = payload.Client || {};
@@ -110,9 +109,11 @@ async function renderLiveDetail(appContent, token, projectId) {
 
   const clientBlock = document.getElementById("ClientBlock");
   const projectBlock = document.getElementById("ProjectBlock");
+  const projectSummaryBlock = document.getElementById("ProjectSummaryBlock");
 
   if (!clientBlock) throw new Error("ClientBlock target not found.");
   if (!projectBlock) throw new Error("ProjectBlock target not found.");
+  if (!projectSummaryBlock) throw new Error("ProjectSummaryBlock target not found.");
 
   clientBlock.innerHTML = renderTemplate(clientTemplate, {
     ClientName: client.ClientName || "",
@@ -126,6 +127,19 @@ async function renderLiveDetail(appContent, token, projectId) {
     Status: project.Status || "",
     ComputedAddress: project._ComputedAddress || "",
     Description: project.Description || ""
+  });
+
+  projectSummaryBlock.innerHTML = renderTemplate(projectSummaryTemplate, {
+    LaborAmount: project.LaborAmount || "",
+    BillableExpenses: project.BillableExpenses || "",
+    TotalExpenses: project.TotalExpenses || "",
+    PaymentsTotal: project.PaymentsTotal || "",
+    RefundsTotal: project.RefundsTotal || "",
+    TotalDue: project.TotalDue || "",
+    BalanceDue: project.BalanceDue || "",
+    ProjectTotal: project.ProjectTotal || "",
+    ExpenseAllocationsTotal: project.ExpenseAllocationsTotal || "",
+    ProjectProductsTotal: project.ProjectProductsTotal || ""
   });
 
   renderListInto(
@@ -223,10 +237,8 @@ async function renderLiveDetail(appContent, token, projectId) {
 }
 
 function injectLogoutButton(token) {
-  const containers = document.querySelectorAll(".portal-v2-card-header");
-  if (!containers.length) return;
-
-  const firstHeader = containers[0];
+  const target = document.getElementById("PortalUtilityActions");
+  if (!target) return;
   if (document.getElementById("PortalLogoutButton")) return;
 
   const button = document.createElement("button");
@@ -238,7 +250,7 @@ function injectLogoutButton(token) {
     logoutPortal(token);
   });
 
-  firstHeader.appendChild(button);
+  target.appendChild(button);
 }
 
 async function logoutPortal(token) {
