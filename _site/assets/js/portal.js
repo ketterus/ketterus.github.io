@@ -1,21 +1,21 @@
 const API_URL = "https://script.google.com/macros/s/AKfycby12TuuhZaJjy6_xWtbKfH3R6joBD22RpeoANAU6EPBokz7IrIAq8v022EQAVdclu-D3w/exec";
-const TEMPLATE_BASE = "/portal-v2/";
 const SESSION_TOKEN_KEY = "SessionToken";
 
 const TEMPLATE_PATHS = {
-  ViewSignedOut: `${TEMPLATE_BASE}ViewSignedOut.njk`,
-  ViewError: `${TEMPLATE_BASE}ViewError.njk`,
-  ViewProjectList: `${TEMPLATE_BASE}ViewProjectList.njk`,
-  ViewProjectDetail: `${TEMPLATE_BASE}ViewProjectDetail.njk`,
-  ItemProjectLink: `${TEMPLATE_BASE}ItemProjectLink.njk`,
-  ItemDocumentLink: `${TEMPLATE_BASE}ItemDocumentLink.njk`,
-  ItemTimeRow: `${TEMPLATE_BASE}ItemTimeRow.njk`,
-  ItemCostRow: `${TEMPLATE_BASE}ItemCostRow.njk`,
-  ItemPaymentRow: `${TEMPLATE_BASE}ItemPaymentRow.njk`,
-  ItemRefundRow: `${TEMPLATE_BASE}ItemRefundRow.njk`,
+  ViewSignedOut: "/portal-v2/ViewSignedOut/",
+  ViewError: "/portal-v2/ViewError/",
+  ViewProjectList: "/portal-v2/ViewProjectList/",
+  ViewProjectDetail: "/portal-v2/ViewProjectDetail/",
+  ItemProjectLink: "/portal-v2/ItemProjectLink/",
+  ItemDocumentLink: "/portal-v2/ItemDocumentLink/",
+  ItemTimeRow: "/portal-v2/ItemTimeRow/",
+  ItemCostRow: "/portal-v2/ItemCostRow/",
+  ItemPaymentRow: "/portal-v2/ItemPaymentRow/",
+  ItemRefundRow: "/portal-v2/ItemRefundRow/"
 };
 
 const templateCache = {};
+let routerStarted = false;
 
 document.addEventListener("DOMContentLoaded", initPortal);
 
@@ -23,9 +23,11 @@ async function initPortal() {
   bindGlobalClicks();
 
   const Token = getUrlToken();
+
   if (Token) {
     try {
       const Payload = await validateToken(Token);
+
       if (!Payload.Success || !Payload.SessionToken) {
         clearSessionToken();
         await renderSignedOutView(Payload.Message || "Access link is invalid or expired.");
@@ -35,7 +37,7 @@ async function initPortal() {
       setSessionToken(Payload.SessionToken);
       cleanEntryUrl();
 
-      if (window.location.hash !== "#/projects") {
+      if (!window.location.hash || window.location.hash === "#") {
         window.location.hash = "#/projects";
       }
 
@@ -43,6 +45,7 @@ async function initPortal() {
       await handleRoute();
       return;
     } catch (error) {
+      console.error("ValidateToken failed:", error);
       clearSessionToken();
       await renderSignedOutView("Access link is invalid or expired.");
       return;
@@ -92,6 +95,8 @@ function cleanEntryUrl() {
 }
 
 function startRouter() {
+  if (routerStarted) return;
+  routerStarted = true;
   window.addEventListener("hashchange", handleRoute);
 }
 
@@ -107,12 +112,15 @@ async function handleRoute() {
   if (Hash === "#/projects") {
     try {
       const Payload = await fetchProjectList();
+
       if (!Payload.Success) {
         await handleProtectedFailure(Payload);
         return;
       }
+
       await renderProjectListView(Payload);
     } catch (error) {
+      console.error("GetProjectList failed:", error);
       await renderErrorView("Unable to load projects.");
     }
     return;
@@ -120,6 +128,7 @@ async function handleRoute() {
 
   if (Hash.startsWith("#/project/")) {
     const ProjectID = getRouteProjectID();
+
     if (!ProjectID) {
       goToProjects();
       return;
@@ -127,12 +136,15 @@ async function handleRoute() {
 
     try {
       const Payload = await fetchProjectDetail(ProjectID);
+
       if (!Payload.Success) {
         await handleProtectedFailure(Payload);
         return;
       }
+
       await renderProjectDetailView(Payload);
     } catch (error) {
+      console.error("GetProjectDetail failed:", error);
       await renderErrorView("Unable to load project detail.");
     }
     return;
@@ -183,11 +195,12 @@ async function logout() {
       });
     }
   } catch (error) {
-    // Ignore logout request failures and clear local session anyway.
+    console.error("Logout failed:", error);
   }
 
   clearSessionToken();
   window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}`);
+  window.location.hash = "";
   await renderSignedOutView("You have been signed out.");
 }
 
@@ -195,7 +208,7 @@ async function postJson(Payload) {
   const Response = await fetch(API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "text/plain;charset=utf-8"
     },
     body: JSON.stringify(Payload)
   });
@@ -213,13 +226,32 @@ async function loadTemplate(Path) {
   }
 
   const Response = await fetch(Path, { cache: "no-cache" });
+
   if (!Response.ok) {
-    throw new Error(`Template load failed: ${Path}`);
+    throw new Error(`Template load failed: ${Path} (HTTP ${Response.status})`);
   }
 
-  const Text = await Response.text();
+  let Text = await Response.text();
+  Text = stripFullDocument(Text);
+
   templateCache[Path] = Text;
   return Text;
+}
+
+function stripFullDocument(Text) {
+  const Raw = String(Text || "").trim();
+
+  const BodyMatch = Raw.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (BodyMatch) {
+    return BodyMatch[1].trim();
+  }
+
+  const HtmlMatch = Raw.match(/<html[\s\S]*?>([\s\S]*?)<\/html>/i);
+  if (HtmlMatch) {
+    return HtmlMatch[1].trim();
+  }
+
+  return Raw;
 }
 
 function renderTemplate(TemplateText, Data) {
@@ -339,7 +371,7 @@ function mountView(ViewHtml) {
 }
 
 async function handleProtectedFailure(Payload) {
-  const Code = String(Payload && Payload.Code || "").trim();
+  const Code = String((Payload && Payload.Code) || "").trim();
 
   if (Code === "AUTH_REQUIRED" || Code === "INVALID_TOKEN" || Code === "PORTAL_EXPIRED") {
     clearSessionToken();
@@ -363,3 +395,32 @@ function escapeHtml(Value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+async function portalDebug() {
+  const Results = [];
+
+  for (const [Name, Path] of Object.entries(TEMPLATE_PATHS)) {
+    try {
+      const Response = await fetch(Path, { cache: "no-cache" });
+      const Text = await Response.text();
+      Results.push({
+        Name,
+        Status: Response.status,
+        Path,
+        Snippet: stripFullDocument(Text).slice(0, 120)
+      });
+    } catch (error) {
+      Results.push({
+        Name,
+        Status: "FETCH_FAILED",
+        Path,
+        Snippet: String(error)
+      });
+    }
+  }
+
+  console.table(Results);
+  return Results;
+}
+
+window.portalDebug = portalDebug;
