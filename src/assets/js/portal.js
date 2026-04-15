@@ -284,13 +284,18 @@ function injectLogoutButton(token) {
   button.className = "btn btn-outline-brand";
   button.textContent = "Sign Out";
   button.addEventListener("click", function() {
-    logoutPortal(token);
+    logoutPortal(token, button);
   });
 
   target.appendChild(button);
 }
 
-async function logoutPortal(token) {
+async function logoutPortal(token, button) {
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Signing Out...";
+  }
+
   try {
     const requestUrl =
       API_URL +
