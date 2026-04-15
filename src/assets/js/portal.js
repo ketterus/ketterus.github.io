@@ -15,6 +15,11 @@ async function initPortal() {
     return;
   }
 
+  renderLoadingState(
+    appContent,
+    projectId ? "Loading project detail..." : "Loading projects..."
+  );
+
   try {
     if (projectId) {
       await renderLiveDetail(appContent, token, projectId);
@@ -235,6 +240,23 @@ async function renderLiveDetail(appContent, token, projectId) {
       };
     }
   );
+}
+
+function renderLoadingState(appContent, message) {
+  appContent.innerHTML =
+    "<div class=\"portal-v2-shell portal-v2-page\">" +
+      "<div class=\"portal-v2-content portal-v2-loading-wrap\">" +
+        "<section class=\"portal-v2-card portal-v2-loading-card\">" +
+          "<div class=\"portal-v2-card-body\">" +
+            "<div class=\"portal-v2-loading-stack\">" +
+              "<div class=\"portal-v2-spinner\" aria-hidden=\"true\"></div>" +
+              "<p class=\"portal-v2-loading-title\">Project Center</p>" +
+              "<p class=\"portal-v2-loading-text\">" + escapeHtml(message || "Loading...") + "</p>" +
+            "</div>" +
+          "</div>" +
+        "</section>" +
+      "</div>" +
+    "</div>";
 }
 
 function injectBackLink(token) {

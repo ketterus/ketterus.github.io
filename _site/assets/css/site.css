@@ -1188,3 +1188,51 @@ footer .fw-semibold {
   font-weight: 700;
   line-height: 1.2;
 }
+
+/* ---------- Portal V2 loading ---------- */
+
+.portal-v2-loading-wrap {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portal-v2-loading-card {
+  width: min(100%, 460px);
+  text-align: center;
+}
+
+.portal-v2-loading-stack {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+}
+
+.portal-v2-spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 3px solid #d9dee4;
+  border-top-color: var(--brand);
+  animation: portal-v2-spin 0.9s linear infinite;
+}
+
+.portal-v2-loading-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.portal-v2-loading-text {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+@keyframes portal-v2-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
