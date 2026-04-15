@@ -81,13 +81,12 @@ async function renderLiveList(appContent, token) {
 
   projectListItems.innerHTML = projects
     .map(function(project) {
-      return renderTemplate(itemTemplate, {
-        ProjectUrl:
-          "/portal/v2/?p=" + encodeURIComponent(String(project.ProjectID || "").trim()),
-        ProjectName: project.ProjectName || "",
-        Status: project.Status || "",
-        LastActivityOn: project.LastActivityOn || ""
-      });
+      return renderTemplate(
+        itemTemplate,
+        withExtras(project, {
+          ProjectUrl: "/portal/v2/?p=" + encodeURIComponent(String(project.ProjectID || "").trim())
+        })
+      );
     })
     .join("");
 }
@@ -128,43 +127,16 @@ async function renderLiveDetail(appContent, token, projectId) {
   if (!projectBlock) throw new Error("ProjectBlock target not found.");
   if (!projectSummaryBlock) throw new Error("ProjectSummaryBlock target not found.");
 
-  clientBlock.innerHTML = renderTemplate(clientTemplate, {
-    ClientName: client.ClientName || "",
-    ContactName: client.ContactName || "",
-    Email: client.Email || "",
-    Phone: client.Phone || ""
-  });
-
-  projectBlock.innerHTML = renderTemplate(projectTemplate, {
-    ProjectName: project.ProjectName || "",
-    Status: project.Status || "",
-    ComputedAddress: project._ComputedAddress || "",
-    Description: project.Description || ""
-  });
-
-  projectSummaryBlock.innerHTML = renderTemplate(projectSummaryTemplate, {
-    LaborAmount: project.LaborAmount || "",
-    BillableExpenses: project.BillableExpenses || "",
-    TotalExpenses: project.TotalExpenses || "",
-    PaymentsTotal: project.PaymentsTotal || "",
-    RefundsTotal: project.RefundsTotal || "",
-    TotalDue: project.TotalDue || "",
-    BalanceDue: project.BalanceDue || "",
-    ProjectTotal: project.ProjectTotal || "",
-    ExpenseAllocationsTotal: project.ExpenseAllocationsTotal || "",
-    ProjectProductsTotal: project.ProjectProductsTotal || ""
-  });
+  clientBlock.innerHTML = renderTemplate(clientTemplate, withExtras(client));
+  projectBlock.innerHTML = renderTemplate(projectTemplate, withExtras(project));
+  projectSummaryBlock.innerHTML = renderTemplate(projectSummaryTemplate, withExtras(project));
 
   renderListInto(
     "DocumentItems",
     documentTemplate,
     Array.isArray(collections.Documents) ? collections.Documents : [],
     function(item) {
-      return {
-        DisplayName: item.DisplayName || "",
-        FileURL: item.FileURL || "",
-        CreatedDateTime: item.CreatedDateTime || ""
-      };
+      return withExtras(item);
     }
   );
 
@@ -173,12 +145,7 @@ async function renderLiveDetail(appContent, token, projectId) {
     timeEntryTemplate,
     Array.isArray(collections.TimeEntries) ? collections.TimeEntries : [],
     function(item) {
-      return {
-        WorkerName: item.WorkerName || "",
-        TimeDate: item.TimeDate || "",
-        HoursWorked: item.HoursWorked || "",
-        Description: item.Description || ""
-      };
+      return withExtras(item);
     }
   );
 
@@ -187,11 +154,9 @@ async function renderLiveDetail(appContent, token, projectId) {
     expenseAllocationTemplate,
     Array.isArray(collections.ExpenseAllocations) ? collections.ExpenseAllocations : [],
     function(item) {
-      return {
-        Description: item.Description || "",
-        AllocatedAmount: item.AllocatedAmount || "",
-        CreatedDate: item.CreatedDate || ""
-      };
+      return withExtras(item, {
+        AllocationDisplay: item && item.Description ? item.Description : "Expense Allocation"
+      });
     }
   );
 
@@ -200,11 +165,7 @@ async function renderLiveDetail(appContent, token, projectId) {
     projectProductTemplate,
     Array.isArray(collections.ProjectProducts) ? collections.ProjectProducts : [],
     function(item) {
-      return {
-        Description: item.Description || "",
-        Amount: item.Amount || "",
-        ProductDate: item.ProductDate || ""
-      };
+      return withExtras(item);
     }
   );
 
@@ -213,12 +174,7 @@ async function renderLiveDetail(appContent, token, projectId) {
     paymentTemplate,
     Array.isArray(collections.Payments) ? collections.Payments : [],
     function(item) {
-      return {
-        PaymentAmount: item.PaymentAmount || "",
-        PaymentDate: item.PaymentDate || "",
-        PaymentMethod: item.PaymentMethod || "",
-        PaymentReference: item.PaymentReference || ""
-      };
+      return withExtras(item);
     }
   );
 
@@ -227,11 +183,7 @@ async function renderLiveDetail(appContent, token, projectId) {
     refundTemplate,
     Array.isArray(collections.Refunds) ? collections.Refunds : [],
     function(item) {
-      return {
-        RefundAmount: item.RefundAmount || "",
-        RefundDate: item.RefundDate || "",
-        RefundReason: item.RefundReason || ""
-      };
+      return withExtras(item);
     }
   );
 
@@ -240,11 +192,7 @@ async function renderLiveDetail(appContent, token, projectId) {
     serviceRequestTemplate,
     Array.isArray(collections.ServiceRequests) ? collections.ServiceRequests : [],
     function(item) {
-      return {
-        ServiceType: item.ServiceType || "",
-        Status: item.Status || "",
-        IssueDescription: item.IssueDescription || ""
-      };
+      return withExtras(item);
     }
   );
 }
@@ -348,7 +296,7 @@ function renderListInto(targetId, template, items, mapper) {
 
   target.innerHTML = safeItems
     .map(function(item) {
-      const mapped = typeof mapper === "function" ? mapper(item || {}) : (item || {});
+      const mapped = typeof mapper === "function" ? mapper(item || {}) : withExtras(item || {});
       return renderTemplate(template, mapped);
     })
     .join("");
@@ -399,6 +347,12 @@ function renderTemplate(template, data) {
   return String(template || "").replace(/\[\[\s*([A-Za-z0-9_]+)\s*\]\]/g, function(_, key) {
     return Object.prototype.hasOwnProperty.call(data, key) ? String(data[key] ?? "") : "";
   });
+}
+
+function withExtras(source, extras) {
+  const base = source && typeof source === "object" ? source : {};
+  const extraValues = extras && typeof extras === "object" ? extras : {};
+  return Object.assign({}, base, extraValues);
 }
 
 function storeToken(token) {
