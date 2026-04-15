@@ -102,6 +102,7 @@ async function renderLiveDetail(appContent, token, projectId) {
 
   appContent.innerHTML = viewTemplate;
   injectLogoutButton(token);
+  injectBackLink(token);
 
   const client = payload.Client || {};
   const project = payload.Project || {};
@@ -234,6 +235,14 @@ async function renderLiveDetail(appContent, token, projectId) {
       };
     }
   );
+}
+
+function injectBackLink(token) {
+  const target = document.getElementById("PortalBackLink");
+  if (!target) return;
+
+  target.innerHTML =
+    "<a href=\"/portal/v2/?t=" + encodeURIComponent(token) + "\">Back to Projects</a>";
 }
 
 function injectLogoutButton(token) {

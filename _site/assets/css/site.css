@@ -1181,3 +1181,10 @@ footer .fw-semibold {
     margin-left: 0;
   }
 }
+
+.portal-v2-utility-title {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
