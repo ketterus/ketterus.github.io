@@ -51,7 +51,8 @@ async function fetchProjectList(Token) {
 async function fetchProjectDetail(Token, ProjectID) {
   const Url =
     API_URL +
-    "?t=" + encodeURIComponent(Token) +
+    "?mode=project_detail_min" +
+    "&t=" + encodeURIComponent(Token) +
     "&p=" + encodeURIComponent(ProjectID);
 
   const Response = await fetch(Url, { method: "GET" });
