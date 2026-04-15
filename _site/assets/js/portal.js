@@ -54,7 +54,7 @@ async function loadTemplate(path) {
 }
 
 function renderTemplate(template, data) {
-  return String(template || "").replace(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g, function(_, key) {
+  return String(template || "").replace(/\[\[\s*([A-Za-z0-9_]+)\s*\]\]/g, function(_, key) {
     return Object.prototype.hasOwnProperty.call(data, key) ? String(data[key] ?? "") : "";
   });
 }
