@@ -36,15 +36,16 @@ async function initPortal() {
 }
 
 async function validateToken(Token) {
+  const FormData = new URLSearchParams();
+  FormData.set("mode", "validate_token");
+  FormData.set("t", Token);
+
   const Response = await fetch(API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "text/plain;charset=utf-8"
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
     },
-    body: JSON.stringify({
-      Mode: "ValidateToken",
-      Token: Token
-    })
+    body: FormData.toString()
   });
 
   if (!Response.ok) {
