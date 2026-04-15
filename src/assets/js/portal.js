@@ -1,17 +1,57 @@
+const API_URL = "https://script.google.com/macros/s/AKfycby12TuuhZaJjy6_xWtbKfH3R6joBD22RpeoANAU6EPBokz7IrIAq8v022EQAVdclu-D3w/exec";
+
 document.addEventListener("DOMContentLoaded", initPortal);
 
-function initPortal() {
+async function initPortal() {
   const AppContent = document.getElementById("AppContent");
   if (!AppContent) return;
 
   const Params = new URLSearchParams(window.location.search);
   const Token = String(Params.get("t") || "").trim();
 
+  if (!Token) {
+    AppContent.innerHTML =
+      "<h1>Project Center</h1>" +
+      "<p>No token provided.</p>";
+    return;
+  }
+
   AppContent.innerHTML =
     "<h1>Project Center</h1>" +
-    "<p>Portal JS Loaded</p>" +
-    "<p>Token Present: " + (Token ? "Yes" : "No") + "</p>" +
-    "<p>Token Value: " + escapeHtml(Token || "(none)") + "</p>";
+    "<p>Validating token...</p>";
+
+  try {
+    const Payload = await validateToken(Token);
+
+    AppContent.innerHTML =
+      "<h1>Project Center</h1>" +
+      "<p>ValidateToken request completed.</p>" +
+      "<pre>" + escapeHtml(JSON.stringify(Payload, null, 2)) + "</pre>";
+  } catch (error) {
+    AppContent.innerHTML =
+      "<h1>Project Center</h1>" +
+      "<p>ValidateToken failed.</p>" +
+      "<pre>" + escapeHtml(String(error)) + "</pre>";
+  }
+}
+
+async function validateToken(Token) {
+  const Response = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify({
+      Mode: "ValidateToken",
+      Token: Token
+    })
+  });
+
+  if (!Response.ok) {
+    throw new Error("HTTP " + Response.status);
+  }
+
+  return Response.json();
 }
 
 function escapeHtml(Value) {
