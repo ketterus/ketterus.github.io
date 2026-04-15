@@ -3,16 +3,16 @@ const TEMPLATE_BASE = "/portal-v2/";
 const SESSION_TOKEN_KEY = "SessionToken";
 
 const TEMPLATE_PATHS = {
-  ViewSignedOut: `${TEMPLATE_BASE}ViewSignedOut.html`,
-  ViewError: `${TEMPLATE_BASE}ViewError.html`,
-  ViewProjectList: `${TEMPLATE_BASE}ViewProjectList.html`,
-  ViewProjectDetail: `${TEMPLATE_BASE}ViewProjectDetail.html`,
-  ItemProjectLink: `${TEMPLATE_BASE}ItemProjectLink.html`,
-  ItemDocumentLink: `${TEMPLATE_BASE}ItemDocumentLink.html`,
-  ItemTimeRow: `${TEMPLATE_BASE}ItemTimeRow.html`,
-  ItemCostRow: `${TEMPLATE_BASE}ItemCostRow.html`,
-  ItemPaymentRow: `${TEMPLATE_BASE}ItemPaymentRow.html`,
-  ItemRefundRow: `${TEMPLATE_BASE}ItemRefundRow.html`,
+  ViewSignedOut: "/portal-v2/ViewSignedOut/",
+  ViewError: "/portal-v2/ViewError/",
+  ViewProjectList: "/portal-v2/ViewProjectList/",
+  ViewProjectDetail: "/portal-v2/ViewProjectDetail/",
+  ItemProjectLink: "/portal-v2/ItemProjectLink/",
+  ItemDocumentLink: "/portal-v2/ItemDocumentLink/",
+  ItemTimeRow: "/portal-v2/ItemTimeRow/",
+  ItemCostRow: "/portal-v2/ItemCostRow/",
+  ItemPaymentRow: "/portal-v2/ItemPaymentRow/",
+  ItemRefundRow: "/portal-v2/ItemRefundRow/",
 };
 
 const templateCache = {};
