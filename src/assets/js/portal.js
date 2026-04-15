@@ -8,6 +8,7 @@ async function initPortal() {
 
   const PageParams = new URLSearchParams(window.location.search);
   const Token = String(PageParams.get("t") || "").trim();
+  const ProjectID = String(PageParams.get("p") || "").trim();
 
   if (!Token) {
     AppContent.innerHTML =
@@ -22,7 +23,9 @@ async function initPortal() {
     "<p>Loading JSON response...</p>";
 
   try {
-    const Payload = await fetchPortalResponse(Token);
+    const Payload = ProjectID
+      ? await fetchPortalDetail(Token, ProjectID)
+      : await fetchPortalList(Token);
 
     AppContent.innerHTML =
       "<h1>Portal V2 Test</h1>" +
@@ -38,11 +41,27 @@ async function initPortal() {
   }
 }
 
-async function fetchPortalResponse(Token) {
+async function fetchPortalList(Token) {
   const RequestUrl =
     API_URL +
     "?mode=list" +
     "&t=" + encodeURIComponent(Token);
+
+  const Response = await fetch(RequestUrl, { method: "GET" });
+
+  if (!Response.ok) {
+    throw new Error("HTTP " + Response.status);
+  }
+
+  return Response.json();
+}
+
+async function fetchPortalDetail(Token, ProjectID) {
+  const RequestUrl =
+    API_URL +
+    "?mode=detail" +
+    "&t=" + encodeURIComponent(Token) +
+    "&p=" + encodeURIComponent(ProjectID);
 
   const Response = await fetch(RequestUrl, { method: "GET" });
 
