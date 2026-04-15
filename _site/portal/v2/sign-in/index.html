@@ -93,6 +93,7 @@
     normalizeZipInput();
     hideStatus();
 
+    form.classList.remove("was-validated");
     emailInput.setCustomValidity("");
     zipInput.setCustomValidity("");
 
@@ -111,13 +112,19 @@
     showStatus("Please wait...");
 
     try {
-      const lookupUrl =
-        PORTAL_LOOKUP_API_URL +
-        "?mode=lookup" +
-        "&email=" + encodeURIComponent(String(emailInput.value || "").trim()) +
-        "&zip=" + encodeURIComponent(digitsOnly(zipInput.value));
+      const formData = new URLSearchParams();
+      formData.set("mode", "lookup");
+      formData.set("email", String(emailInput.value || "").trim());
+      formData.set("zip", digitsOnly(zipInput.value));
 
-      const response = await fetch(lookupUrl, { method: "GET" });
+      const response = await fetch(PORTAL_LOOKUP_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+        },
+        body: formData.toString()
+      });
+
       const data = await response.json();
 
       if (!data.success) {
