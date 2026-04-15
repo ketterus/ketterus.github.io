@@ -22,25 +22,25 @@ permalink: /portal/v2/sign-in/index.html
         </div>
 
         <div class="portal-v2-card-body">
-          <form id="portalLookupForm" novalidate>
-            <div class="row g-3">
-              <div class="col-md-8">
-                <label class="form-label required" for="lookupEmail">Email</label>
+          <form id="portalLookupForm" class="portal-v2-form" novalidate>
+            <div class="portal-v2-form-grid">
+              <div class="portal-v2-field">
+                <label class="portal-v2-label required" for="lookupEmail">Email</label>
                 <input
-                  class="form-control"
+                  class="portal-v2-input"
                   id="lookupEmail"
                   name="lookupEmail"
                   type="email"
                   autocomplete="email"
                   required
                 >
-                <div class="invalid-feedback">Enter a valid email address.</div>
+                <p class="portal-v2-field-error" id="lookupEmailError">Enter a valid email address.</p>
               </div>
 
-              <div class="col-md-4">
-                <label class="form-label required" for="lookupZip">ZIP</label>
+              <div class="portal-v2-field portal-v2-field-zip">
+                <label class="portal-v2-label required" for="lookupZip">ZIP</label>
                 <input
-                  class="form-control"
+                  class="portal-v2-input"
                   id="lookupZip"
                   name="lookupZip"
                   inputmode="numeric"
@@ -48,12 +48,12 @@ permalink: /portal/v2/sign-in/index.html
                   autocomplete="postal-code"
                   required
                 >
-                <div class="invalid-feedback">Enter a 5-digit ZIP code.</div>
+                <p class="portal-v2-field-error" id="lookupZipError">Enter a 5-digit ZIP code.</p>
               </div>
+            </div>
 
-              <div class="col-12 pt-2">
-                <button type="submit" class="btn btn-brand" id="lookupSubmitBtn">Send Secure Link</button>
-              </div>
+            <div class="portal-v2-form-actions">
+              <button type="submit" class="btn btn-brand" id="lookupSubmitBtn">Send Secure Link</button>
             </div>
           </form>
         </div>
@@ -78,6 +78,9 @@ permalink: /portal/v2/sign-in/index.html
     const zipInput = document.getElementById("lookupZip");
     const submitBtn = document.getElementById("lookupSubmitBtn");
 
+    const emailError = document.getElementById("lookupEmailError");
+    const zipError = document.getElementById("lookupZipError");
+
     const statusCard = document.getElementById("portalStatusCard");
     const statusMessage = document.getElementById("portalStatusMessage");
 
@@ -92,13 +95,48 @@ permalink: /portal/v2/sign-in/index.html
     function showStatus(message, isError = false) {
       statusCard.classList.remove("portal-hidden");
       statusMessage.textContent = message;
-      statusMessage.className = isError ? "text-danger mb-0" : "portal-v2-empty mb-0";
+      statusMessage.className = isError ? "portal-v2-status-error" : "portal-v2-empty";
     }
 
     function hideStatus() {
       statusCard.classList.add("portal-hidden");
       statusMessage.textContent = "";
-      statusMessage.className = "portal-v2-empty mb-0";
+      statusMessage.className = "portal-v2-empty";
+    }
+
+    function clearFieldState() {
+      emailInput.classList.remove("is-invalid");
+      zipInput.classList.remove("is-invalid");
+      emailError.classList.remove("is-visible");
+      zipError.classList.remove("is-visible");
+      emailInput.setCustomValidity("");
+      zipInput.setCustomValidity("");
+    }
+
+    function validateForm() {
+      let isValid = true;
+
+      if (!String(emailInput.value || "").trim()) {
+        emailInput.setCustomValidity("Enter a valid email address.");
+      }
+
+      if (!emailInput.checkValidity()) {
+        emailInput.classList.add("is-invalid");
+        emailError.classList.add("is-visible");
+        isValid = false;
+      }
+
+      if (digitsOnly(zipInput.value).length !== 5) {
+        zipInput.setCustomValidity("Enter a 5-digit ZIP code.");
+      }
+
+      if (!zipInput.checkValidity()) {
+        zipInput.classList.add("is-invalid");
+        zipError.classList.add("is-visible");
+        isValid = false;
+      }
+
+      return isValid;
     }
 
     async function submitLookup(event) {
@@ -106,17 +144,9 @@ permalink: /portal/v2/sign-in/index.html
 
       normalizeZipInput();
       hideStatus();
+      clearFieldState();
 
-      form.classList.remove("was-validated");
-      emailInput.setCustomValidity("");
-      zipInput.setCustomValidity("");
-
-      if (digitsOnly(zipInput.value).length !== 5) {
-        zipInput.setCustomValidity("Enter a 5-digit ZIP code.");
-      }
-
-      if (!form.checkValidity()) {
-        form.classList.add("was-validated");
+      if (!validateForm()) {
         return;
       }
 
@@ -161,7 +191,19 @@ permalink: /portal/v2/sign-in/index.html
       }
     }
 
-    zipInput.addEventListener("input", normalizeZipInput);
+    emailInput.addEventListener("input", function() {
+      emailInput.classList.remove("is-invalid");
+      emailError.classList.remove("is-visible");
+      emailInput.setCustomValidity("");
+    });
+
+    zipInput.addEventListener("input", function() {
+      normalizeZipInput();
+      zipInput.classList.remove("is-invalid");
+      zipError.classList.remove("is-visible");
+      zipInput.setCustomValidity("");
+    });
+
     form.addEventListener("submit", submitLookup);
   </script>
 </body>
