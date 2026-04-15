@@ -134,66 +134,43 @@ async function renderLiveDetail(appContent, token, projectId) {
   renderListInto(
     "DocumentItems",
     documentTemplate,
-    Array.isArray(collections.Documents) ? collections.Documents : [],
-    function(item) {
-      return withExtras(item);
-    }
+    Array.isArray(collections.Documents) ? collections.Documents : []
   );
 
   renderListInto(
     "TimeEntryItems",
     timeEntryTemplate,
-    Array.isArray(collections.TimeEntries) ? collections.TimeEntries : [],
-    function(item) {
-      return withExtras(item);
-    }
+    Array.isArray(collections.TimeEntries) ? collections.TimeEntries : []
   );
 
   renderListInto(
     "ExpenseAllocationItems",
     expenseAllocationTemplate,
-    Array.isArray(collections.ExpenseAllocations) ? collections.ExpenseAllocations : [],
-    function(item) {
-      return withExtras(item, {
-        AllocationDisplay: item && item.Description ? item.Description : "Expense Allocation"
-      });
-    }
+    Array.isArray(collections.ExpenseAllocations) ? collections.ExpenseAllocations : []
   );
 
   renderListInto(
     "ProjectProductItems",
     projectProductTemplate,
-    Array.isArray(collections.ProjectProducts) ? collections.ProjectProducts : [],
-    function(item) {
-      return withExtras(item);
-    }
+    Array.isArray(collections.ProjectProducts) ? collections.ProjectProducts : []
   );
 
   renderListInto(
     "PaymentItems",
     paymentTemplate,
-    Array.isArray(collections.Payments) ? collections.Payments : [],
-    function(item) {
-      return withExtras(item);
-    }
+    Array.isArray(collections.Payments) ? collections.Payments : []
   );
 
   renderListInto(
     "RefundItems",
     refundTemplate,
-    Array.isArray(collections.Refunds) ? collections.Refunds : [],
-    function(item) {
-      return withExtras(item);
-    }
+    Array.isArray(collections.Refunds) ? collections.Refunds : []
   );
 
   renderListInto(
     "ServiceRequestItems",
     serviceRequestTemplate,
-    Array.isArray(collections.ServiceRequests) ? collections.ServiceRequests : [],
-    function(item) {
-      return withExtras(item);
-    }
+    Array.isArray(collections.ServiceRequests) ? collections.ServiceRequests : []
   );
 }
 
@@ -282,7 +259,7 @@ function handleAccessFailure(payload) {
   throw new Error(payload && payload.message ? payload.message : "Unable to load portal.");
 }
 
-function renderListInto(targetId, template, items, mapper) {
+function renderListInto(targetId, template, items) {
   const target = document.getElementById(targetId);
   if (!target) {
     throw new Error(targetId + " target not found.");
@@ -296,8 +273,7 @@ function renderListInto(targetId, template, items, mapper) {
 
   target.innerHTML = safeItems
     .map(function(item) {
-      const mapped = typeof mapper === "function" ? mapper(item || {}) : withExtras(item || {});
-      return renderTemplate(template, mapped);
+      return renderTemplate(template, withExtras(item || {}));
     })
     .join("");
 }
