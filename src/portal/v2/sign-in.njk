@@ -129,7 +129,14 @@ permalink: /portal/v2/sign-in/index.html
         body: formData.toString()
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        throw new Error("HTTP " + response.status + " | " + responseText);
+      }
 
       if (!data.success) {
         showStatus(data.message || "Unable to complete request right now.", true);
@@ -140,7 +147,7 @@ permalink: /portal/v2/sign-in/index.html
         data.message || "If we found a matching Project Center account, we sent a secure access link to your email."
       );
     } catch (error) {
-      showStatus("Unable to complete request right now.", true);
+      showStatus(String(error && error.message ? error.message : error), true);
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = "Send Secure Link";
