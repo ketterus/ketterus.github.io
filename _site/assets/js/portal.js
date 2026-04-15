@@ -1,4 +1,5 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbz58ThqBCcjZ5hLAbJrkRL6OQj4rKJPGMm5wrmui1JkdmwGEPrBKSAqTFpBP_685Zij/exec";
+const SESSION_TOKEN_KEY = "portalV2Token";
 
 document.addEventListener("DOMContentLoaded", initPortal);
 
@@ -7,8 +8,10 @@ async function initPortal() {
   if (!appContent) return;
 
   const params = new URLSearchParams(window.location.search);
-  const token = String(params.get("t") || "").trim();
+  const urlToken = String(params.get("t") || "").trim();
   const projectId = String(params.get("p") || "").trim();
+  const sessionToken = getStoredToken();
+  const token = urlToken || sessionToken;
 
   if (!token) {
     window.location.href = "/portal/v2/sign-in/";
@@ -23,10 +26,15 @@ async function initPortal() {
   try {
     if (projectId) {
       await renderLiveDetail(appContent, token, projectId);
-      return;
+    } else {
+      await renderLiveList(appContent, token);
     }
 
-    await renderLiveList(appContent, token);
+    storeToken(token);
+
+    if (urlToken) {
+      replaceUrlWithoutToken(projectId);
+    }
   } catch (error) {
     appContent.innerHTML =
       "<div class=\"portal-v2-shell portal-v2-page\">" +
@@ -75,8 +83,7 @@ async function renderLiveList(appContent, token) {
     .map(function(project) {
       return renderTemplate(itemTemplate, {
         ProjectUrl:
-          "/portal/v2/?t=" + encodeURIComponent(token) +
-          "&p=" + encodeURIComponent(String(project.ProjectID || "").trim()),
+          "/portal/v2/?p=" + encodeURIComponent(String(project.ProjectID || "").trim()),
         ProjectName: project.ProjectName || "",
         Status: project.Status || "",
         LastActivityOn: project.LastActivityOn || ""
@@ -107,7 +114,7 @@ async function renderLiveDetail(appContent, token, projectId) {
 
   appContent.innerHTML = viewTemplate;
   injectLogoutButton(token);
-  injectBackLink(token);
+  injectBackLink();
 
   const client = payload.Client || {};
   const project = payload.Project || {};
@@ -259,12 +266,11 @@ function renderLoadingState(appContent, message) {
     "</div>";
 }
 
-function injectBackLink(token) {
+function injectBackLink() {
   const target = document.getElementById("PortalBackLink");
   if (!target) return;
 
-  target.innerHTML =
-    "<a href=\"/portal/v2/?t=" + encodeURIComponent(token) + "\">Back to Projects</a>";
+  target.innerHTML = "<a href=\"/portal/v2/\">Back to Projects</a>";
 }
 
 function injectLogoutButton(token) {
@@ -302,6 +308,7 @@ async function logoutPortal(token) {
     // swallow logout failure and continue to sign-in
   }
 
+  clearStoredToken();
   window.location.href = "/portal/v2/sign-in/";
 }
 
@@ -314,6 +321,7 @@ function handleAccessFailure(payload) {
     code === "PORTAL_EXPIRED" ||
     code === "PORTAL_DISABLED"
   ) {
+    clearStoredToken();
     window.location.href = "/portal/v2/sign-in/";
     return;
   }
@@ -386,6 +394,38 @@ function renderTemplate(template, data) {
   return String(template || "").replace(/\[\[\s*([A-Za-z0-9_]+)\s*\]\]/g, function(_, key) {
     return Object.prototype.hasOwnProperty.call(data, key) ? String(data[key] ?? "") : "";
   });
+}
+
+function storeToken(token) {
+  try {
+    sessionStorage.setItem(SESSION_TOKEN_KEY, String(token || "").trim());
+  } catch (error) {
+    // ignore storage failure
+  }
+}
+
+function getStoredToken() {
+  try {
+    return String(sessionStorage.getItem(SESSION_TOKEN_KEY) || "").trim();
+  } catch (error) {
+    return "";
+  }
+}
+
+function clearStoredToken() {
+  try {
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  } catch (error) {
+    // ignore storage failure
+  }
+}
+
+function replaceUrlWithoutToken(projectId) {
+  const cleanUrl = projectId
+    ? "/portal/v2/?p=" + encodeURIComponent(projectId)
+    : "/portal/v2/";
+
+  window.history.replaceState({}, "", cleanUrl);
 }
 
 function escapeHtml(value) {
