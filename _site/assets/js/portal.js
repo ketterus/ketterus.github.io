@@ -19,20 +19,16 @@ async function initPortal() {
 
   AppContent.innerHTML =
     "<h1>Project Center</h1>" +
-    "<p>Loading...</p>";
+    "<p>Loading JSON...</p>";
 
   try {
-    if (ProjectID) {
-      const Payload = await fetchProjectDetail(Token, ProjectID);
-      AppContent.innerHTML =
-        "<p><a href=\"/portal-v2/?t=" + encodeURIComponent(Token) + "\">Back to Projects</a></p>" +
-        "<h1>Project Center</h1>" +
-        "<pre>" + escapeHtml(JSON.stringify(Payload, null, 2)) + "</pre>";
-      return;
-    }
+    const Payload = ProjectID
+      ? await fetchProjectDetail(Token, ProjectID)
+      : await fetchProjectList(Token);
 
-    const Payload = await fetchProjectList(Token);
-    renderProjectList(AppContent, Payload, Token);
+    AppContent.innerHTML =
+      "<h1>Project Center</h1>" +
+      "<pre>" + escapeHtml(JSON.stringify(Payload, null, 2)) + "</pre>";
   } catch (error) {
     AppContent.innerHTML =
       "<h1>Project Center</h1>" +
@@ -65,38 +61,6 @@ async function fetchProjectDetail(Token, ProjectID) {
   }
 
   return Response.json();
-}
-
-function renderProjectList(AppContent, Payload, Token) {
-  const ClientName = Payload && Payload.client && Payload.client.clientName
-    ? Payload.client.clientName
-    : "";
-
-  const Projects = Payload && Payload.data && Array.isArray(Payload.data.projects)
-    ? Payload.data.projects
-    : [];
-
-  const ProjectItems = Projects.length
-    ? Projects.map(function (Project) {
-        const ProjectID = String(Project.projectId || "").trim();
-        const Href =
-          "/portal-v2/?t=" + encodeURIComponent(Token) +
-          "&p=" + encodeURIComponent(ProjectID);
-
-        return (
-          "<li>" +
-            "<a href=\"" + Href + "\"><strong>" + escapeHtml(Project.projectName || "") + "</strong></a><br>" +
-            "Status: " + escapeHtml(Project.status || "") + "<br>" +
-            "Last Activity: " + escapeHtml(Project.lastActivityOn || "") +
-          "</li>"
-        );
-      }).join("")
-    : "<li>No projects found.</li>";
-
-  AppContent.innerHTML =
-    "<h1>Project Center</h1>" +
-    "<p>" + escapeHtml(ClientName) + "</p>" +
-    "<ul>" + ProjectItems + "</ul>";
 }
 
 function escapeHtml(Value) {
