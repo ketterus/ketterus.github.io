@@ -255,7 +255,7 @@ function stripFullDocument(Text) {
 }
 
 function renderTemplate(TemplateText, Data) {
-  return String(TemplateText || "").replace(/{{\s*([A-Za-z0-9_]+)\s*}}/g, function (_, Key) {
+  return String(TemplateText || "").replace(/\[\[\s*([A-Za-z0-9_]+)\s*\]\]/g, function (_, Key) {
     const Value = Data && Object.prototype.hasOwnProperty.call(Data, Key) ? Data[Key] : "";
     return Value == null ? "" : String(Value);
   });
