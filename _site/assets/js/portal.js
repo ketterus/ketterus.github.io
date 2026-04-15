@@ -1,79 +1,66 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbz58ThqBCcjZ5hLAbJrkRL6OQj4rKJPGMm5wrmui1JkdmwGEPrBKSAqTFpBP_685Zij/exec";
-
 document.addEventListener("DOMContentLoaded", initPortal);
 
 async function initPortal() {
-  const AppContent = document.getElementById("AppContent");
-  if (!AppContent) return;
-
-  const PageParams = new URLSearchParams(window.location.search);
-  const Token = String(PageParams.get("t") || "").trim();
-  const ProjectID = String(PageParams.get("p") || "").trim();
-
-  if (!Token) {
-    AppContent.innerHTML =
-      "<h1>Portal V2 Test</h1>" +
-      "<p>No token provided in URL.</p>";
-    return;
-  }
-
-  AppContent.innerHTML =
-    "<h1>Portal V2 Test</h1>" +
-    "<p>Token found.</p>" +
-    "<p>Loading JSON response...</p>";
+  const appContent = document.getElementById("AppContent");
+  if (!appContent) return;
 
   try {
-    const Payload = ProjectID
-      ? await fetchPortalDetail(Token, ProjectID)
-      : await fetchPortalList(Token);
+    const viewTemplate = await loadTemplate("/portal/v2/partials/ViewProjectList/");
+    appContent.innerHTML = viewTemplate;
 
-    AppContent.innerHTML =
-      "<h1>Portal V2 Test</h1>" +
-      "<p>Token found.</p>" +
-      "<p>JSON response received.</p>" +
-      "<pre>" + escapeHtml(JSON.stringify(Payload, null, 2)) + "</pre>";
+    const itemTemplate = await loadTemplate("/portal/v2/partials/ItemProjectRow/");
+
+    const sampleProjects = [
+      {
+        ProjectName: "Sample Project One",
+        Status: "Active",
+        LastActivityOn: "2026-04-15 08:00",
+        ProjectUrl: "/portal/v2/?p=sample-project-one"
+      },
+      {
+        ProjectName: "Sample Project Two",
+        Status: "Paid",
+        LastActivityOn: "2026-04-14 17:30",
+        ProjectUrl: "/portal/v2/?p=sample-project-two"
+      }
+    ];
+
+    const projectListItems = document.getElementById("ProjectListItems");
+    if (!projectListItems) {
+      throw new Error("ProjectListItems target not found.");
+    }
+
+    projectListItems.innerHTML = sampleProjects
+      .map(function(project) {
+        return renderTemplate(itemTemplate, project);
+      })
+      .join("");
   } catch (error) {
-    AppContent.innerHTML =
-      "<h1>Portal V2 Test</h1>" +
-      "<p>Token found.</p>" +
-      "<p>Request failed.</p>" +
+    appContent.innerHTML =
+      "<h1>Portal V2</h1>" +
+      "<p>Sample list load failed.</p>" +
       "<pre>" + escapeHtml(String(error && error.message ? error.message : error)) + "</pre>";
   }
 }
 
-async function fetchPortalList(Token) {
-  const RequestUrl =
-    API_URL +
-    "?mode=list" +
-    "&t=" + encodeURIComponent(Token);
+async function loadTemplate(path) {
+  const response = await fetch(path, { method: "GET", cache: "no-cache" });
 
-  const Response = await fetch(RequestUrl, { method: "GET" });
-
-  if (!Response.ok) {
-    throw new Error("HTTP " + Response.status);
+  if (!response.ok) {
+    throw new Error("Template load failed: " + path + " (" + response.status + ")");
   }
 
-  return Response.json();
+  return response.text();
 }
 
-async function fetchPortalDetail(Token, ProjectID) {
-  const RequestUrl =
-    API_URL +
-    "?mode=detail" +
-    "&t=" + encodeURIComponent(Token) +
-    "&p=" + encodeURIComponent(ProjectID);
-
-  const Response = await fetch(RequestUrl, { method: "GET" });
-
-  if (!Response.ok) {
-    throw new Error("HTTP " + Response.status);
-  }
-
-  return Response.json();
+function renderTemplate(template, data) {
+  return String(template || "").replace(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g, function(_, key) {
+    return Object.prototype.hasOwnProperty.call(data, key) ? String(data[key] ?? "") : "";
+  });
 }
 
-function escapeHtml(Value) {
-  return String(Value || "")
+function escapeHtml(value) {
+  return String(value || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
