@@ -1,3 +1,5 @@
+const API_URL = "https://script.google.com/macros/s/AKfycbz58ThqBCcjZ5hLAbJrkRL6OQj4rKJPGMm5wrmui1JkdmwGEPrBKSAqTFpBP_685Zij/exec";
+
 document.addEventListener("DOMContentLoaded", initPortal);
 
 async function initPortal() {
@@ -5,60 +7,97 @@ async function initPortal() {
   if (!appContent) return;
 
   const params = new URLSearchParams(window.location.search);
+  const token = String(params.get("t") || "").trim();
   const projectId = String(params.get("p") || "").trim();
+
+  if (!token) {
+    appContent.innerHTML =
+      "<div class=\"portal-v2-shell portal-v2-page\">" +
+        "<div class=\"portal-v2-content portal-v2-stack\">" +
+          "<section class=\"portal-v2-card\">" +
+            "<div class=\"portal-v2-card-header\">" +
+              "<h1 class=\"portal-v2-card-title\">Project Center</h1>" +
+            "</div>" +
+            "<div class=\"portal-v2-card-body\">" +
+              "<p class=\"portal-v2-empty\">No token provided.</p>" +
+            "</div>" +
+          "</section>" +
+        "</div>" +
+      "</div>";
+    return;
+  }
 
   try {
     if (projectId) {
-      await renderSampleDetail(appContent);
+      await renderLiveDetail(appContent, token, projectId);
       return;
     }
 
-    await renderSampleList(appContent);
+    await renderLiveList(appContent, token);
   } catch (error) {
     appContent.innerHTML =
-      "<h1>Portal V2</h1>" +
-      "<p>Sample load failed.</p>" +
-      "<pre>" + escapeHtml(String(error && error.message ? error.message : error)) + "</pre>";
+      "<div class=\"portal-v2-shell portal-v2-page\">" +
+        "<div class=\"portal-v2-content portal-v2-stack\">" +
+          "<section class=\"portal-v2-card\">" +
+            "<div class=\"portal-v2-card-header\">" +
+              "<h1 class=\"portal-v2-card-title\">Project Center</h1>" +
+            "</div>" +
+            "<div class=\"portal-v2-card-body\">" +
+              "<p class=\"portal-v2-empty\">Load failed.</p>" +
+              "<pre>" + escapeHtml(String(error && error.message ? error.message : error)) + "</pre>" +
+            "</div>" +
+          "</section>" +
+        "</div>" +
+      "</div>";
   }
 }
 
-async function renderSampleList(appContent) {
-  const viewTemplate = await loadTemplate("/portal/v2/partials/ViewProjectList/");
-  appContent.innerHTML = viewTemplate;
+async function renderLiveList(appContent, token) {
+  const payload = await fetchPortalList(token);
 
+  if (!payload || payload.success !== true) {
+    throw new Error(payload && payload.message ? payload.message : "Unable to load project list.");
+  }
+
+  const viewTemplate = await loadTemplate("/portal/v2/partials/ViewProjectList/");
   const itemTemplate = await loadTemplate("/portal/v2/partials/ItemProjectRow/");
 
-  const sampleProjects = [
-    {
-      ProjectName: "Sample Project One",
-      Status: "Active",
-      LastActivityOn: "2026-04-15 08:00",
-      ProjectUrl: "/portal/v2/?p=sample-project-one"
-    },
-    {
-      ProjectName: "Sample Project Two",
-      Status: "Paid",
-      LastActivityOn: "2026-04-14 17:30",
-      ProjectUrl: "/portal/v2/?p=sample-project-two"
-    }
-  ];
+  appContent.innerHTML = viewTemplate;
 
   const projectListItems = document.getElementById("ProjectListItems");
   if (!projectListItems) {
     throw new Error("ProjectListItems target not found.");
   }
 
-  projectListItems.innerHTML = sampleProjects
+  const projects = Array.isArray(payload.Projects) ? payload.Projects : [];
+
+  if (!projects.length) {
+    projectListItems.innerHTML = "<li><p class=\"portal-v2-empty\">No projects found.</p></li>";
+    return;
+  }
+
+  projectListItems.innerHTML = projects
     .map(function(project) {
-      return renderTemplate(itemTemplate, project);
+      return renderTemplate(itemTemplate, {
+        ProjectUrl:
+          "/portal/v2/?t=" + encodeURIComponent(token) +
+          "&p=" + encodeURIComponent(String(project.ProjectID || "").trim()),
+        ProjectName: project.ProjectName || "",
+        Status: project.Status || "",
+        LastActivityOn: project.LastActivityOn || ""
+      });
     })
     .join("");
 }
 
-async function renderSampleDetail(appContent) {
-  const viewTemplate = await loadTemplate("/portal/v2/partials/ViewProjectDetail/");
-  appContent.innerHTML = viewTemplate;
+async function renderLiveDetail(appContent, token, projectId) {
+  const payload = await fetchPortalDetail(token, projectId);
 
+  if (!payload || payload.success !== true) {
+    throw new Error(payload && payload.message ? payload.message : "Unable to load project detail.");
+  }
+
+  const viewTemplate = await loadTemplate("/portal/v2/partials/ViewProjectDetail/");
   const clientTemplate = await loadTemplate("/portal/v2/partials/ItemClientBlock/");
   const projectTemplate = await loadTemplate("/portal/v2/partials/ItemProjectBlock/");
   const documentTemplate = await loadTemplate("/portal/v2/partials/ItemDocumentRow/");
@@ -69,77 +108,11 @@ async function renderSampleDetail(appContent) {
   const refundTemplate = await loadTemplate("/portal/v2/partials/ItemRefundRow/");
   const serviceRequestTemplate = await loadTemplate("/portal/v2/partials/ItemServiceRequestRow/");
 
-  const sampleClient = {
-    ClientName: "Jensen, David",
-    ContactName: "David Jensen",
-    Email: "david@example.com",
-    Phone: "8634461056"
-  };
+  appContent.innerHTML = viewTemplate;
 
-  const sampleProject = {
-    ProjectName: "HA - Mini Split Service/Repairs",
-    Status: "Paid",
-    ComputedAddress: "900 County Road 950 Calhoun TN 37309",
-    Description: "Sample project detail description."
-  };
-
-  const sampleDocuments = [
-    {
-      DisplayName: "Project Report",
-      FileURL: "#",
-      CreatedDateTime: "2026-04-15 07:29:56"
-    }
-  ];
-
-  const sampleTimeEntries = [
-    {
-      WorkerName: "Robert Ketter",
-      TimeDate: "2026-04-07",
-      HoursWorked: "8.4",
-      Description: "Recover refrigerant and complete service work."
-    }
-  ];
-
-  const sampleExpenseAllocations = [
-    {
-      Description: "Heavy Duty Door Closer",
-      AllocatedAmount: "90.00",
-      CreatedDate: "2026-04-09"
-    }
-  ];
-
-  const sampleProjectProducts = [
-    {
-      Description: "Filter / Dryer",
-      Amount: "16.45",
-      ProductDate: "2026-04-07"
-    }
-  ];
-
-  const samplePayments = [
-    {
-      PaymentAmount: "970.45",
-      PaymentDate: "2026-04-09",
-      PaymentMethod: "Zelle",
-      PaymentReference: "Sent to 3045820759"
-    }
-  ];
-
-  const sampleRefunds = [
-    {
-      RefundAmount: "0.00",
-      RefundDate: "",
-      RefundReason: "No refunds"
-    }
-  ];
-
-  const sampleServiceRequests = [
-    {
-      ServiceType: "General Repair",
-      Status: "Closed",
-      IssueDescription: "Mini split service and related work."
-    }
-  ];
+  const client = payload.Client || {};
+  const project = payload.Project || {};
+  const collections = payload.Collections || {};
 
   const clientBlock = document.getElementById("ClientBlock");
   const projectBlock = document.getElementById("ProjectBlock");
@@ -147,29 +120,163 @@ async function renderSampleDetail(appContent) {
   if (!clientBlock) throw new Error("ClientBlock target not found.");
   if (!projectBlock) throw new Error("ProjectBlock target not found.");
 
-  clientBlock.innerHTML = renderTemplate(clientTemplate, sampleClient);
-  projectBlock.innerHTML = renderTemplate(projectTemplate, sampleProject);
+  clientBlock.innerHTML = renderTemplate(clientTemplate, {
+    ClientName: client.ClientName || "",
+    ContactName: client.ContactName || "",
+    Email: client.Email || "",
+    Phone: client.Phone || ""
+  });
 
-  renderListInto("DocumentItems", documentTemplate, sampleDocuments);
-  renderListInto("TimeEntryItems", timeEntryTemplate, sampleTimeEntries);
-  renderListInto("ExpenseAllocationItems", expenseAllocationTemplate, sampleExpenseAllocations);
-  renderListInto("ProjectProductItems", projectProductTemplate, sampleProjectProducts);
-  renderListInto("PaymentItems", paymentTemplate, samplePayments);
-  renderListInto("RefundItems", refundTemplate, sampleRefunds);
-  renderListInto("ServiceRequestItems", serviceRequestTemplate, sampleServiceRequests);
+  projectBlock.innerHTML = renderTemplate(projectTemplate, {
+    ProjectName: project.ProjectName || "",
+    Status: project.Status || "",
+    ComputedAddress: project._ComputedAddress || "",
+    Description: project.Description || ""
+  });
+
+  renderListInto(
+    "DocumentItems",
+    documentTemplate,
+    Array.isArray(collections.Documents) ? collections.Documents : [],
+    function(item) {
+      return {
+        DisplayName: item.DisplayName || "",
+        FileURL: item.FileURL || "",
+        CreatedDateTime: item.CreatedDateTime || ""
+      };
+    }
+  );
+
+  renderListInto(
+    "TimeEntryItems",
+    timeEntryTemplate,
+    Array.isArray(collections.TimeEntries) ? collections.TimeEntries : [],
+    function(item) {
+      return {
+        WorkerName: item.WorkerName || "",
+        TimeDate: item.TimeDate || "",
+        HoursWorked: item.HoursWorked || "",
+        Description: item.Description || ""
+      };
+    }
+  );
+
+  renderListInto(
+    "ExpenseAllocationItems",
+    expenseAllocationTemplate,
+    Array.isArray(collections.ExpenseAllocations) ? collections.ExpenseAllocations : [],
+    function(item) {
+      return {
+        Description: item.Description || "",
+        AllocatedAmount: item.AllocatedAmount || "",
+        CreatedDate: item.CreatedDate || ""
+      };
+    }
+  );
+
+  renderListInto(
+    "ProjectProductItems",
+    projectProductTemplate,
+    Array.isArray(collections.ProjectProducts) ? collections.ProjectProducts : [],
+    function(item) {
+      return {
+        Description: item.Description || "",
+        Amount: item.Amount || "",
+        ProductDate: item.ProductDate || ""
+      };
+    }
+  );
+
+  renderListInto(
+    "PaymentItems",
+    paymentTemplate,
+    Array.isArray(collections.Payments) ? collections.Payments : [],
+    function(item) {
+      return {
+        PaymentAmount: item.PaymentAmount || "",
+        PaymentDate: item.PaymentDate || "",
+        PaymentMethod: item.PaymentMethod || "",
+        PaymentReference: item.PaymentReference || ""
+      };
+    }
+  );
+
+  renderListInto(
+    "RefundItems",
+    refundTemplate,
+    Array.isArray(collections.Refunds) ? collections.Refunds : [],
+    function(item) {
+      return {
+        RefundAmount: item.RefundAmount || "",
+        RefundDate: item.RefundDate || "",
+        RefundReason: item.RefundReason || ""
+      };
+    }
+  );
+
+  renderListInto(
+    "ServiceRequestItems",
+    serviceRequestTemplate,
+    Array.isArray(collections.ServiceRequests) ? collections.ServiceRequests : [],
+    function(item) {
+      return {
+        ServiceType: item.ServiceType || "",
+        Status: item.Status || "",
+        IssueDescription: item.IssueDescription || ""
+      };
+    }
+  );
 }
 
-function renderListInto(targetId, template, items) {
+function renderListInto(targetId, template, items, mapper) {
   const target = document.getElementById(targetId);
   if (!target) {
     throw new Error(targetId + " target not found.");
   }
 
-  target.innerHTML = (Array.isArray(items) ? items : [])
+  const safeItems = Array.isArray(items) ? items : [];
+  if (!safeItems.length) {
+    target.innerHTML = "<li><p class=\"portal-v2-empty\">No items found.</p></li>";
+    return;
+  }
+
+  target.innerHTML = safeItems
     .map(function(item) {
-      return renderTemplate(template, item);
+      const mapped = typeof mapper === "function" ? mapper(item || {}) : (item || {});
+      return renderTemplate(template, mapped);
     })
     .join("");
+}
+
+async function fetchPortalList(token) {
+  const requestUrl =
+    API_URL +
+    "?mode=list" +
+    "&t=" + encodeURIComponent(token);
+
+  const response = await fetch(requestUrl, { method: "GET" });
+
+  if (!response.ok) {
+    throw new Error("HTTP " + response.status);
+  }
+
+  return response.json();
+}
+
+async function fetchPortalDetail(token, projectId) {
+  const requestUrl =
+    API_URL +
+    "?mode=detail" +
+    "&t=" + encodeURIComponent(token) +
+    "&p=" + encodeURIComponent(projectId);
+
+  const response = await fetch(requestUrl, { method: "GET" });
+
+  if (!response.ok) {
+    throw new Error("HTTP " + response.status);
+  }
+
+  return response.json();
 }
 
 async function loadTemplate(path) {
