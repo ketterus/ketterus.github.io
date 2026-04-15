@@ -18,19 +18,15 @@ async function initPortal() {
 
   AppContent.innerHTML =
     "<h1>Project Center</h1>" +
-    "<p>Validating token...</p>";
+    "<p>Loading projects...</p>";
 
   try {
     const Payload = await validateToken(Token);
-
-    AppContent.innerHTML =
-      "<h1>Project Center</h1>" +
-      "<p>ValidateToken request completed.</p>" +
-      "<pre>" + escapeHtml(JSON.stringify(Payload, null, 2)) + "</pre>";
+    renderProjectList(AppContent, Payload);
   } catch (error) {
     AppContent.innerHTML =
       "<h1>Project Center</h1>" +
-      "<p>ValidateToken failed.</p>" +
+      "<p>Request failed.</p>" +
       "<pre>" + escapeHtml(String(error)) + "</pre>";
   }
 }
@@ -49,11 +45,38 @@ async function validateToken(Token) {
   return Response.json();
 }
 
+function renderProjectList(AppContent, Payload) {
+  const ClientName = Payload && Payload.client && Payload.client.clientName
+    ? Payload.client.clientName
+    : "";
+
+  const Projects = Payload && Payload.data && Array.isArray(Payload.data.projects)
+    ? Payload.data.projects
+    : [];
+
+  const ProjectItems = Projects.length
+    ? Projects.map(function (Project) {
+        return (
+          "<li>" +
+            "<strong>" + escapeHtml(Project.projectName || "") + "</strong><br>" +
+            "Status: " + escapeHtml(Project.status || "") + "<br>" +
+            "Last Activity: " + escapeHtml(Project.lastActivityOn || "") +
+          "</li>"
+        );
+      }).join("")
+    : "<li>No projects found.</li>";
+
+  AppContent.innerHTML =
+    "<h1>Project Center</h1>" +
+    "<p>" + escapeHtml(ClientName) + "</p>" +
+    "<ul>" + ProjectItems + "</ul>";
+}
+
 function escapeHtml(Value) {
   return String(Value || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
