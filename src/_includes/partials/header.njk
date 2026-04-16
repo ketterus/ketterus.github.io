@@ -14,20 +14,20 @@
 
         {% elif headerMode == "portalInner" %}
           <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
-          <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
+          <a href="/portal/v2/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
           {% if showPortalMenuButton %}
             <a href="/portal/menu/" class="btn btn-menu" id="projectCenterMenuLink">Menu</a>
           {% endif %}
 
         {% elif headerMode == "portalSignedOut" %}
-          <a href="/portal/sign-in/" class="btn btn-outline-brand">Project Center Sign In</a>
+          <a href="/portal/v2/sign-in/" class="btn btn-outline-brand">Project Center Sign In</a>
           {% if showPublicMenuButton %}
             <a href="{{ site.menu_url }}" class="btn btn-menu">Menu</a>
           {% endif %}
 
         {% else %}
           <a href="{{ site.cta_url }}" class="btn btn-brand">{{ site.cta_label }}</a>
-          <a href="/portal/sign-in/" class="btn btn-outline-brand">{{ site.project_center_label }}</a>
+          <a href="/portal/v2/sign-in/" class="btn btn-outline-brand">{{ site.project_center_label }}</a>
           <a href="{{ site.menu_url }}" class="btn btn-menu">Menu</a>
         {% endif %}
       </div>
@@ -46,7 +46,7 @@
     const menuLink = document.getElementById("projectCenterMenuLink");
 
     if (backLink) {
-      backLink.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+      backLink.href = token ? "/portal/v2/?t=" + encodeURIComponent(token) : "/portal/";
     }
 
     if (serviceLink) {

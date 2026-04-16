@@ -19,7 +19,7 @@
       <div class="topbar-actions">
         
           <a href="/portal/portal-service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
-          <a href="/portal/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
+          <a href="/portal/v2/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
           
 
         
@@ -39,7 +39,7 @@
     const menuLink = document.getElementById("projectCenterMenuLink");
 
     if (backLink) {
-      backLink.href = token ? "/portal/?t=" + encodeURIComponent(token) : "/portal/";
+      backLink.href = token ? "/portal/v2/?t=" + encodeURIComponent(token) : "/portal/";
     }
 
     if (serviceLink) {
@@ -801,11 +801,11 @@
           Terms and Conditions
         </a>
       
-        <a href="/portal/" class="text-decoration-none text-reset me-3">
+        <a href="/portal/v2/" class="text-decoration-none text-reset me-3">
           Project Center
         </a>
       
-        <a href="/portal/sign-in/" class="text-decoration-none text-reset me-3">
+        <a href="/portal/v2/sign-in/" class="text-decoration-none text-reset me-3">
           Sign In
         </a>
       

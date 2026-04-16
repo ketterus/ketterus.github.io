@@ -16,8 +16,8 @@
   "footer_links": [
     { "label": "Privacy Policy", "url": "/privacy.html" },
     { "label": "Terms and Conditions", "url": "/terms.html" },
-    { "label": "Project Center", "url": "/portal/" },
-    { "label": "Sign In", "url": "/portal/sign-in/" },
+    { "label": "Project Center", "url": "/portal/v2/" },
+    { "label": "Sign In", "url": "/portal/v2/sign-in/" },
     { "label": "Menu", "url": "/menu.html" }
   ]
 }
