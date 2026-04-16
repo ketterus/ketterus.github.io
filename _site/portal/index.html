@@ -75,15 +75,6 @@
             </div>
           </div>
         </a>
-
-        <button class="portal-menu-button" id="portal-logout-button" type="button">
-          <div class="card-block">
-            <div class="card-block-body">
-              <p class="portal-menu-title">Log Out</p>
-              <p class="portal-menu-text">End access now and require a new secure link next time.</p>
-            </div>
-          </div>
-        </button>
       </div>
     </div>
   </div>
@@ -116,7 +107,7 @@
 
     button.addEventListener("click", async function() {
       if (!token) {
-        window.location.href = "https://ketter.us/portal/sign-in/";
+        window.location.href = "https://ketter.us/portal/v2/sign-in/";
         return;
       }
 
@@ -130,7 +121,7 @@
       } catch (error) {
       }
 
-      window.location.href = "https://ketter.us/portal/sign-in/";
+      window.location.href = "https://ketter.us/portal/v2/sign-in/";
     });
   }
 
