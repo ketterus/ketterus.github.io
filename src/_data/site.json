@@ -11,13 +11,25 @@
   "contact_preference": "Text preferred",
   "project_center_label": "Project Center",
   "cta_label": "Request Service",
-  "cta_url": "/service-request.html",
+  "cta_url": "https://ketterus.app/service-request/",
   "menu_url": "/menu.html",
   "footer_links": [
-    { "label": "Privacy Policy", "url": "/privacy.html" },
-    { "label": "Terms and Conditions", "url": "/terms.html" },
-    { "label": "Project Center", "url": "/portal/v2/" },
-    { "label": "Sign In", "url": "/portal/v2/sign-in/" },
-    { "label": "Menu", "url": "/menu.html" }
-  ]
+    {
+      "label": "Privacy Policy",
+      "url": "/privacy.html"
+    },
+    {
+      "label": "Terms and Conditions",
+      "url": "/terms.html"
+    },
+    {
+      "label": "Request Service",
+      "url": "https://ketterus.app/service-request/"
+    },
+    {
+      "label": "Project Center",
+      "url": "https://ketterus.app/project-center/"
+    }
+  ],
+  "project_center_url": "https://ketterus.app/project-center/"
 }

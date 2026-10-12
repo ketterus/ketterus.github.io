@@ -1,36 +1,4 @@
-<nav class="topbar">
-  <div class="site-shell">
-    <div class="topbar-inner">
-      <a class="brand" href="/" aria-label="{{ site.name }}">
-        <span class="brand-text">{{ site.name }}</span>
-      </a>
-
-      <div class="topbar-actions">
-        {% if headerMode == "portalHome" %}
-          <a href="https://ketterus.app/service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
-          {% if showPortalMenuButton %}
-            <a href="/portal/menu/" class="btn btn-menu" id="projectCenterMenuLink">Menu</a>
-          {% endif %}
-
-        {% elif headerMode == "portalInner" %}
-          <a href="https://ketterus.app/service-request/" class="btn btn-brand" id="projectCenterServiceRequestLink">Submit Service Request</a>
-          <a href="https://ketterus.app/project-center/" class="btn btn-outline-brand" id="projectCenterBackLink">Back to Projects</a>
-          {% if showPortalMenuButton %}
-            <a href="/portal/menu/" class="btn btn-menu" id="projectCenterMenuLink">Menu</a>
-          {% endif %}
-
-        {% elif headerMode == "portalSignedOut" %}
-          <a href="https://ketterus.app/project-center/" class="btn btn-outline-brand">Project Center Sign In</a>
-          {% if showPublicMenuButton %}
-            <a href="{{ site.menu_url }}" class="btn btn-menu">Menu</a>
-          {% endif %}
-
-        {% else %}
-          <a href="https://ketterus.app/service-request/" class="btn btn-brand">{{ site.cta_label }}</a>
-          <a href="https://ketterus.app/project-center/" class="btn btn-outline-brand">{{ site.project_center_label }}</a>
-          <a href="{{ site.menu_url }}" class="btn btn-menu">Menu</a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</nav>
+<nav class="topbar"><div class="site-shell"><div class="topbar-inner">
+<a class="brand" href="/" aria-label="{{ site.name }}"><span class="brand-text">{{ site.name }}</span></a>
+<div class="topbar-actions"><a href="{{ site.cta_url }}" class="btn btn-brand">Request Service</a><a href="{{ site.project_center_url }}" class="btn btn-outline-brand">Project Center</a><a href="{{ site.menu_url }}" class="btn btn-menu">Menu</a></div>
+</div></div></nav>
